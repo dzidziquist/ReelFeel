@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Diary — MovieRater{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-bold">Watch Diary</h1>
+  <a href="{% url 'add_entry' %}" class="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+    + Log something
+  </a>
+</div>
+
+{% if not entries %}
+<div class="text-center py-20 text-gray-500">
+  <p class="text-5xl mb-4">🎥</p>
+  <p class="text-lg mb-2">No entries yet.</p>
+  <a href="{% url 'search' %}" class="text-teal-400 hover:underline">Search for a film or show to get started</a>
+</div>
+{% else %}
+<div class="space-y-3">
+  {% for entry in entries %}
+  <div class="bg-gray-900 rounded-xl flex gap-4 p-4 hover:bg-gray-800/70 transition-colors group">
+    <!-- Poster -->
+    <a href="{% url 'media_detail' entry.media.tmdb_id %}" class="flex-shrink-0">
+      {% if entry.media.poster_url %}
+      <img src="{{ entry.media.poster_url }}" alt="{{ entry.media.title }}"
+           class="w-14 h-20 object-cover rounded-lg shadow" />
+      {% else %}
+      <div class="w-14 h-20 bg-gray-700 rounded-lg flex items-center justify-center text-2xl">🎬</div>
+      {% endif %}
+    </a>
+
+    <!-- Info -->
+    <div class="flex-1 min-w-0">
+      <div class="flex items-start justify-between gap-2">
+        <div>
+          <a href="{% url 'media_detail' entry.media.tmdb_id %}"
+             class="font-semibold text-base hover:text-teal-400 transition-colors">
+            {{ entry.media.title }}
+          </a>
+          {% if entry.media.year %}
+          <span class="text-gray-500 text-sm ml-1">{{ entry.media.year }}</span>
+          {% endif %}
+          <span class="ml-2 text-xs px-1.5 py-0.5 rounded border
+            {% if entry.media.media_type == 'film' %}border-blue-700 text-blue-400{% else %}border-purple-700 text-purple-400{% endif %}">
+            {% if entry.media.media_type == 'film' %}Film{% else %}TV{% endif %}
+          </span>
+          {% if entry.rewatch %}
+          <span class="ml-1 text-xs px-1.5 py-0.5 rounded border border-amber-700 text-amber-400">rewatch</span>
+          {% endif %}
+        </div>
+        <span class="text-gray-500 text-xs whitespace-nowrap">{{ entry.watched_on }}</span>
+      </div>
+
+      <!-- Star rating -->
+      <div class="flex items-center gap-2 mt-1">
+        <div class="star-display" data-rating="{{ entry.rating }}"></div>
+        <span class="text-teal-400 font-mono text-sm">{{ entry.rating }}/5</span>
+      </div>
+
+      <!-- Emotions -->
+      {% if entry.emotions.all %}
+      <div class="flex flex-wrap gap-1 mt-2">
+        {% for emotion in entry.emotions.all %}
+        <span class="emotion-badge text-xs px-2 py-0.5 rounded-full font-medium"
+              style="background-color: {{ emotion.color }}22; color: {{ emotion.color }}; border: 1px solid {{ emotion.color }}55;">
+          {{ emotion.icon }} {{ emotion.name }}
+        </span>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% if entry.review %}
+      <p class="text-gray-400 text-sm mt-2 italic">"{{ entry.review|truncatewords:25 }}"</p>
+      {% endif %}
+    </div>
+
+    <!-- Actions -->
+    <div class="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity text-xs">
+      <a href="{% url 'edit_entry' entry.pk %}" class="text-gray-400 hover:text-teal-400 transition-colors">edit</a>
+      <a href="{% url 'delete_entry' entry.pk %}" class="text-gray-400 hover:text-red-400 transition-colors">delete</a>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Search — MovieRater{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl font-bold mb-6">Search</h1>
+
+<form method="get" action="{% url 'search' %}" class="flex gap-2 mb-8">
+  <input type="text" name="q" value="{{ query }}" placeholder="Search films and TV shows…"
+         autofocus
+         class="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-teal-500 transition-colors" />
+  <button type="submit"
+          class="bg-teal-500 hover:bg-teal-600 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors">
+    Search
+  </button>
+</form>
+
+{% if error %}
+<div class="bg-red-900/40 border border-red-700 text-red-300 px-4 py-3 rounded-lg text-sm mb-6">
+  Error fetching results: {{ error }}
+  {% if not query %}—{% else %} — check that your TMDB API key is set in .env{% endif %}
+</div>
+{% endif %}
+
+{% if query and not results and not error %}
+<p class="text-gray-500 text-center py-10">No results for "<strong class="text-gray-300">{{ query }}</strong>"</p>
+{% endif %}
+
+{% if results %}
+<p class="text-gray-500 text-sm mb-4">{{ results|length }} result{{ results|length|pluralize }} for "<strong class="text-gray-200">{{ query }}</strong>"</p>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+  {% for r in results %}
+  <div class="bg-gray-900 rounded-xl flex gap-3 p-3 hover:bg-gray-800/70 transition-colors">
+    <!-- Poster -->
+    {% if r.poster_path %}
+    <img src="https://image.tmdb.org/t/p/w200{{ r.poster_path }}" alt="{{ r.title }}"
+         class="w-16 h-24 object-cover rounded-lg flex-shrink-0 shadow" />
+    {% else %}
+    <div class="w-16 h-24 bg-gray-700 rounded-lg flex-shrink-0 flex items-center justify-center text-2xl">🎬</div>
+    {% endif %}
+
+    <div class="flex-1 min-w-0 flex flex-col justify-between">
+      <div>
+        <p class="font-semibold text-sm leading-tight">{{ r.title }}</p>
+        <div class="flex items-center gap-2 mt-0.5">
+          {% if r.year %}<span class="text-gray-500 text-xs">{{ r.year }}</span>{% endif %}
+          <span class="text-xs px-1.5 py-0.5 rounded border
+            {% if r.media_type == 'film' %}border-blue-700 text-blue-400{% else %}border-purple-700 text-purple-400{% endif %}">
+            {% if r.media_type == 'film' %}Film{% else %}TV Show{% endif %}
+          </span>
+        </div>
+        {% if r.tmdb_rating %}
+        <span class="text-yellow-400 text-xs">★ {{ r.tmdb_rating|floatformat:1 }}</span>
+        {% endif %}
+        {% if r.overview %}
+        <p class="text-gray-500 text-xs mt-1 line-clamp-2">{{ r.overview }}</p>
+        {% endif %}
+      </div>
+      <a href="{% url 'add_entry' %}?tmdb_id={{ r.tmdb_id }}&type={{ r.media_type }}"
+         class="mt-2 inline-block bg-teal-600 hover:bg-teal-500 text-white text-xs px-3 py-1.5 rounded-lg font-medium transition-colors text-center">
+        + Log this
+      </a>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}
