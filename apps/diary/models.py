@@ -1,8 +1,12 @@
+from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 
 
 class DiaryEntry(models.Model):
+    user       = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="diary_entries"
+    )
     media      = models.ForeignKey(
         "media.MediaItem", on_delete=models.CASCADE, related_name="entries"
     )

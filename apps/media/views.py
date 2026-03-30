@@ -1,42 +1,71 @@
-import json
-from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, render
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 from apps.media.models import MediaItem
 from apps.media.services import tmdb as tmdb_service
 
 
+def _media_dict(item):
+    return {
+        "id": item.pk,
+        "tmdb_id": item.tmdb_id,
+        "media_type": item.media_type,
+        "title": item.title,
+        "year": item.year,
+        "poster_path": item.poster_path,
+        "poster_url": item.poster_url,
+        "backdrop_url": item.backdrop_url,
+        "overview": item.overview,
+        "genres": item.genres,
+        "runtime": item.runtime,
+        "tmdb_rating": item.tmdb_rating,
+    }
+
+
+@api_view(["GET"])
 def library(request):
-    media_type = request.GET.get("type", "")
-    items = MediaItem.objects.all()
+    media_type = request.query_params.get("type", "")
+    qs = MediaItem.objects.all()
     if media_type in ("film", "tv"):
-        items = items.filter(media_type=media_type)
-    return render(request, "library.html", {"items": items, "media_type": media_type})
+        qs = qs.filter(media_type=media_type)
+    return Response([_media_dict(item) for item in qs])
 
 
+@api_view(["GET"])
 def media_detail(request, tmdb_id):
-    item = get_object_or_404(MediaItem, tmdb_id=tmdb_id)
-    entries = item.entries.prefetch_related("emotions").order_by("-watched_on")
+    try:
+        item = MediaItem.objects.get(tmdb_id=tmdb_id)
+    except MediaItem.DoesNotExist:
+        return Response(status=404)
+
+    from apps.diary.models import DiaryEntry
+    from apps.diary.views import _entry_dict
+
+    entries = (
+        DiaryEntry.objects
+        .filter(media=item, user=request.user)
+        .prefetch_related("emotions")
+        .order_by("-watched_on")
+    )
     avg_rating = None
     if entries.exists():
-        total = sum(float(e.rating) for e in entries)
-        avg_rating = round(total / entries.count(), 1)
-    return render(request, "media_detail.html", {
-        "item": item,
-        "entries": entries,
+        avg_rating = round(sum(float(e.rating) for e in entries) / entries.count(), 1)
+
+    return Response({
+        "media": _media_dict(item),
+        "entries": [_entry_dict(e) for e in entries],
         "avg_rating": avg_rating,
     })
 
 
+@api_view(["GET"])
 def search(request):
-    query = request.GET.get("q", "").strip()
-    results = []
-    error = None
-    if query:
-        try:
-            results = tmdb_service.search_multi(query)
-        except Exception as exc:
-            error = str(exc)
-    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
-        return JsonResponse({"results": results, "error": error})
-    return render(request, "search.html", {"query": query, "results": results, "error": error})
+    query = request.query_params.get("q", "").strip()
+    if not query:
+        return Response({"results": []})
+    try:
+        results = tmdb_service.search_multi(query)
+    except Exception as exc:
+        return Response({"error": str(exc)}, status=502)
+    return Response({"results": results})
