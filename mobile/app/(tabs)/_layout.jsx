@@ -1,6 +1,5 @@
 import { Tabs } from 'expo-router'
 import { Text } from 'react-native'
-import { useAuth } from '../../context/AuthContext'
 
 function TabIcon({ emoji, focused }) {
   return (
@@ -9,8 +8,6 @@ function TabIcon({ emoji, focused }) {
 }
 
 export default function TabLayout() {
-  const { logout } = useAuth()
-
   return (
     <Tabs
       screenOptions={{
