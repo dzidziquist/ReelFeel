@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@react-native-community/datetimepicker": "^9.1.0",
+    "babel-preset-expo": "^55.0.15",
     "expo": "~54.0.33",
     "expo-image": "^55.0.8",
     "expo-router": "^55.0.10",
