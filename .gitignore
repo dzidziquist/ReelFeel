@@ -9,3 +9,5 @@ staticfiles/
 node_modules/
 staticfiles/
 staticfiles/
+mobile/node_modules/
+mobile/.env
