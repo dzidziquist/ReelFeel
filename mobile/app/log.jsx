@@ -1,63 +1,71 @@
 import { useEffect, useState } from 'react'
 import {
   View, Text, TextInput, TouchableOpacity, ScrollView,
-  Image, ActivityIndicator, Switch, Platform, Alert,
+  Image, ActivityIndicator, Switch, Platform, Alert, StyleSheet,
 } from 'react-native'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { api } from '../api/client'
+import { getEmotions, getDiary, createEntry, updateEntry } from '../lib/queries'
+import { searchTMDB } from '../lib/tmdb'
 import EmotionPicker from '../components/EmotionPicker'
 import { StarPicker } from '../components/StarRating'
+import { C } from '../constants/theme'
 
 function toDateString(d) {
   return d.toISOString().split('T')[0]
 }
 
 export default function LogEntry() {
-  const params = useLocalSearchParams()
-  const router = useRouter()
+  const params  = useLocalSearchParams()
+  const router  = useRouter()
 
   const tmdbId = params.tmdb_id || null
-  const type   = params.type || 'film'
-  const editId = params.edit || null
+  const type   = params.type    || 'film'
+  const editId = params.edit    || null
 
-  const [media, setMedia] = useState(null)
-  const [emotions, setEmotions] = useState([])
-  const [searchQ, setSearchQ] = useState('')
+  const [media, setMedia]               = useState(null)
+  const [emotions, setEmotions]         = useState([])
+  const [searchQ, setSearchQ]           = useState('')
   const [searchResults, setSearchResults] = useState([])
   const [showDatePicker, setShowDatePicker] = useState(false)
   const [form, setForm] = useState({
-    tmdb_id: tmdbId || '',
+    tmdb_id:    tmdbId || '',
     media_type: type,
     watched_on: toDateString(new Date()),
-    rating: 3,
-    review: '',
-    rewatch: false,
+    rating:     3,
+    review:     '',
+    rewatch:    false,
     emotion_ids: [],
   })
-  const [error, setError] = useState('')
+  const [error, setError]   = useState('')
   const [loading, setLoading] = useState(false)
 
-  useEffect(() => { api.getEmotions().then(setEmotions) }, [])
+  useEffect(() => { getEmotions().then(setEmotions) }, [])
 
   useEffect(() => {
     if (!tmdbId) return
-    api.getMedia(tmdbId).then(d => setMedia(d.media)).catch(() => {})
+    // Pre-populate media preview from TMDB search if we have tmdb_id from URL
+    // We fetch media info directly from TMDB since the item may not be in DB yet
+    import('../lib/tmdb').then(({ fetchTMDBDetail }) =>
+      fetchTMDBDetail(Number(tmdbId), type).then(d =>
+        setMedia({ tmdb_id: Number(tmdbId), media_type: type, title: d.title, year: d.year, poster_url: d.poster_path ? `https://image.tmdb.org/t/p/w500${d.poster_path}` : null })
+      ).catch(() => {})
+    )
   }, [tmdbId])
 
   useEffect(() => {
     if (!editId) return
-    api.getDiary().then(entries => {
-      const entry = entries.find(e => e.id === Number(editId))
+    getDiary().then(entries => {
+      const entry = entries.find(e => String(e.id) === String(editId))
       if (!entry) return
       setMedia(entry.media)
       setForm({
-        tmdb_id: entry.media.tmdb_id,
-        media_type: entry.media.media_type,
-        watched_on: entry.watched_on,
-        rating: entry.rating,
-        review: entry.review,
-        rewatch: entry.rewatch,
+        tmdb_id:     entry.media.tmdb_id,
+        media_type:  entry.media.media_type,
+        watched_on:  entry.watched_on,
+        rating:      entry.rating,
+        review:      entry.review,
+        rewatch:     entry.rewatch,
         emotion_ids: entry.emotions.map(e => e.id),
       })
     })
@@ -65,8 +73,8 @@ export default function LogEntry() {
 
   async function handleSearch() {
     if (!searchQ.trim()) return
-    const data = await api.search(searchQ.trim())
-    setSearchResults(data.results || [])
+    const data = await searchTMDB(searchQ.trim())
+    setSearchResults(data)
   }
 
   function selectMedia(r) {
@@ -85,11 +93,8 @@ export default function LogEntry() {
     setError('')
     setLoading(true)
     try {
-      if (editId) {
-        await api.updateEntry(editId, form)
-      } else {
-        await api.createEntry(form)
-      }
+      if (editId) await updateEntry(editId, form)
+      else        await createEntry(form)
       router.replace('/(tabs)')
     } catch (err) {
       setError(err.message)
@@ -101,47 +106,43 @@ export default function LogEntry() {
   const showForm = !!media || !!editId
 
   return (
-    <ScrollView className="flex-1 bg-gray-950" contentContainerStyle={{ padding: 16, paddingBottom: 60 }} keyboardShouldPersistTaps="handled">
+    <ScrollView style={s.flex} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
 
       {error ? (
-        <View className="bg-red-900/50 border border-red-700 rounded-xl px-4 py-3 mb-4">
-          <Text className="text-red-300 text-sm">{error}</Text>
-        </View>
+        <View style={s.errorBox}><Text style={s.errorText}>{error}</Text></View>
       ) : null}
 
       {/* Media search */}
       {!media && !editId && (
-        <View className="mb-6">
-          <Text className="text-gray-300 text-sm font-medium mb-2">Find a film or TV show</Text>
-          <View className="flex-row gap-2">
+        <View style={s.section}>
+          <Text style={s.label}>Find a film or TV show</Text>
+          <View style={s.searchRow}>
             <TextInput
-              className="flex-1 bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white text-sm"
+              style={s.searchInput}
               placeholder="Search TMDB…"
-              placeholderTextColor="#6b7280"
+              placeholderTextColor={C.textMut}
               value={searchQ}
               onChangeText={setSearchQ}
               onSubmitEditing={handleSearch}
               returnKeyType="search"
             />
-            <TouchableOpacity onPress={handleSearch} className="bg-orange-600 rounded-xl px-4 justify-center">
-              <Text className="text-white font-semibold">Go</Text>
+            <TouchableOpacity onPress={handleSearch} style={s.goBtn}>
+              <Text style={s.goBtnText}>Go</Text>
             </TouchableOpacity>
           </View>
           {searchResults.length > 0 && (
-            <View className="mt-3 gap-2">
+            <View style={s.searchResults}>
               {searchResults.slice(0, 5).map(r => (
-                <TouchableOpacity
-                  key={r.tmdb_id}
-                  onPress={() => selectMedia(r)}
-                  className="flex-row items-center gap-3 bg-gray-800 rounded-xl p-2.5"
-                >
+                <TouchableOpacity key={r.tmdb_id} onPress={() => selectMedia(r)} style={s.searchRow2}>
                   {r.poster_path
-                    ? <Image source={{ uri: `https://image.tmdb.org/t/p/w92${r.poster_path}` }} style={{ width: 36, height: 54, borderRadius: 4 }} resizeMode="cover" />
-                    : <View className="bg-gray-600 rounded items-center justify-center" style={{ width: 36, height: 54 }}><Text>🎬</Text></View>
+                    ? <Image source={{ uri: `https://image.tmdb.org/t/p/w92${r.poster_path}` }} style={s.miniPoster} resizeMode="cover" />
+                    : <View style={[s.miniPoster, s.miniPosterFallback]}><Text>🎬</Text></View>
                   }
                   <View>
-                    <Text className="text-white text-sm font-medium">{r.title} {r.year ? <Text className="text-gray-400">({r.year})</Text> : null}</Text>
-                    <Text className="text-xs" style={{ color: r.media_type === 'film' ? '#60a5fa' : '#c084fc' }}>
+                    <Text style={s.searchResultTitle}>
+                      {r.title}{r.year ? <Text style={{ color: C.textMut }}> ({r.year})</Text> : null}
+                    </Text>
+                    <Text style={[s.typeSmall, { color: r.media_type === 'film' ? C.redL : C.goldL }]}>
                       {r.media_type === 'film' ? 'Film' : 'TV Show'}
                     </Text>
                   </View>
@@ -154,25 +155,22 @@ export default function LogEntry() {
 
       {/* Selected media preview */}
       {media && (
-        <View className="bg-gray-800 rounded-xl flex-row gap-4 p-4 mb-6">
+        <View style={s.mediaCard}>
           {media.poster_url
-            ? <Image source={{ uri: media.poster_url }} style={{ width: 64, height: 96, borderRadius: 8 }} resizeMode="cover" />
-            : <View className="bg-gray-700 rounded-lg items-center justify-center" style={{ width: 64, height: 96 }}><Text className="text-2xl">🎬</Text></View>
+            ? <Image source={{ uri: media.poster_url }} style={s.mediaPoster} resizeMode="cover" />
+            : <View style={[s.mediaPoster, s.mediaPosterFallback]}><Text style={{ fontSize: 24 }}>🎬</Text></View>
           }
-          <View className="flex-1">
-            <Text className="text-white font-semibold text-base">{media.title}</Text>
-            {media.year ? <Text className="text-gray-400 text-sm">{media.year}</Text> : null}
-            <View
-              className="rounded border mt-1 px-1.5 py-0.5 self-start"
-              style={{ borderColor: media.media_type === 'film' ? '#1d4ed8' : '#7e22ce' }}
-            >
-              <Text className="text-xs" style={{ color: media.media_type === 'film' ? '#60a5fa' : '#c084fc' }}>
+          <View style={s.mediaInfo}>
+            <Text style={s.mediaTitle}>{media.title}</Text>
+            {media.year ? <Text style={s.mediaYear}>{media.year}</Text> : null}
+            <View style={[s.typeBadge, { borderColor: media.media_type === 'film' ? C.red : C.gold }]}>
+              <Text style={[s.typeText, { color: media.media_type === 'film' ? C.redL : C.goldL }]}>
                 {media.media_type === 'film' ? 'Film' : 'TV Show'}
               </Text>
             </View>
             {!editId && (
               <TouchableOpacity onPress={() => { setMedia(null); setForm(f => ({ ...f, tmdb_id: '', media_type: 'film' })) }}>
-                <Text className="text-gray-500 text-xs mt-1">Change</Text>
+                <Text style={s.changeBtn}>Change</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -181,15 +179,13 @@ export default function LogEntry() {
 
       {/* Form */}
       {showForm && (
-        <View className="gap-5">
+        <View style={s.formFields}>
+
           {/* Date */}
           <View>
-            <Text className="text-gray-300 text-sm font-medium mb-2">Watched on</Text>
-            <TouchableOpacity
-              onPress={() => setShowDatePicker(true)}
-              className="bg-gray-800 border border-gray-700 rounded-xl px-4 py-3"
-            >
-              <Text className="text-white text-sm">{form.watched_on}</Text>
+            <Text style={s.label}>Watched on</Text>
+            <TouchableOpacity onPress={() => setShowDatePicker(true)} style={s.dateBtn}>
+              <Text style={s.dateBtnText}>{form.watched_on}</Text>
             </TouchableOpacity>
             {showDatePicker && (
               <DateTimePicker
@@ -204,22 +200,22 @@ export default function LogEntry() {
               />
             )}
             {Platform.OS === 'ios' && showDatePicker && (
-              <TouchableOpacity onPress={() => setShowDatePicker(false)} className="mt-2">
-                <Text className="text-orange-400 text-sm text-right">Done</Text>
+              <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                <Text style={s.doneBtn}>Done</Text>
               </TouchableOpacity>
             )}
           </View>
 
           {/* Rating */}
           <View>
-            <Text className="text-gray-300 text-sm font-medium mb-2">Rating (0–5)</Text>
+            <Text style={s.label}>Rating (0–5)</Text>
             <StarPicker value={form.rating} onChange={r => setForm(f => ({ ...f, rating: r }))} />
-            <Text className="text-orange-400 font-mono text-sm mt-1">{form.rating} / 5</Text>
+            <Text style={s.ratingDisplay}>{form.rating} / 5</Text>
           </View>
 
           {/* Emotions */}
           <View>
-            <Text className="text-gray-300 text-sm font-medium mb-2">How did it make you feel?</Text>
+            <Text style={s.label}>How did it make you feel?</Text>
             <EmotionPicker
               emotions={emotions}
               selected={form.emotion_ids}
@@ -229,46 +225,44 @@ export default function LogEntry() {
 
           {/* Review */}
           <View>
-            <Text className="text-gray-300 text-sm font-medium mb-2">Notes <Text className="text-gray-500 font-normal">(optional)</Text></Text>
+            <Text style={s.label}>Notes <Text style={s.optional}>(optional)</Text></Text>
             <TextInput
-              className="bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white text-sm"
+              style={s.notesInput}
               placeholder="Any thoughts…"
-              placeholderTextColor="#6b7280"
+              placeholderTextColor={C.textMut}
               multiline
               numberOfLines={3}
               textAlignVertical="top"
               value={form.review}
               onChangeText={v => setForm(f => ({ ...f, review: v }))}
-              style={{ minHeight: 80 }}
             />
           </View>
 
           {/* Rewatch */}
-          <View className="flex-row items-center justify-between">
-            <Text className="text-gray-300 text-sm">This was a rewatch</Text>
+          <View style={s.rewatchRow}>
+            <Text style={s.rewatchLabel}>This was a rewatch</Text>
             <Switch
               value={form.rewatch}
               onValueChange={v => setForm(f => ({ ...f, rewatch: v }))}
-              trackColor={{ true: '#f97316', false: '#374151' }}
-              thumbColor="#fff"
+              trackColor={{ true: C.red, false: C.border }}
+              thumbColor={C.text}
             />
           </View>
 
           {/* Actions */}
-          <View className="flex-row gap-3 pt-2">
+          <View style={s.actions}>
             <TouchableOpacity
               onPress={handleSubmit}
               disabled={loading}
-              className="flex-1 bg-orange-500 rounded-xl py-3.5 items-center"
-              style={{ opacity: loading ? 0.6 : 1 }}
+              style={[s.submitBtn, { opacity: loading ? 0.6 : 1 }]}
             >
               {loading
-                ? <ActivityIndicator color="#fff" />
-                : <Text className="text-white font-semibold">{editId ? 'Save changes' : 'Log entry'}</Text>
+                ? <ActivityIndicator color={C.text} />
+                : <Text style={s.submitBtnText}>{editId ? 'Save changes' : 'Log entry'}</Text>
               }
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => router.back()} className="px-5 py-3.5 rounded-xl border border-gray-700">
-              <Text className="text-gray-400 font-medium">Cancel</Text>
+            <TouchableOpacity onPress={() => router.back()} style={s.cancelBtn}>
+              <Text style={s.cancelBtnText}>Cancel</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -276,3 +270,45 @@ export default function LogEntry() {
     </ScrollView>
   )
 }
+
+const s = StyleSheet.create({
+  flex:               { flex: 1, backgroundColor: C.bg0 },
+  content:            { padding: 16, paddingBottom: 60 },
+  errorBox:           { backgroundColor: '#3f0000', borderWidth: 1, borderColor: C.red, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, marginBottom: 16 },
+  errorText:          { color: '#fca5a5', fontSize: 13 },
+  section:            { marginBottom: 24 },
+  label:              { color: C.textSub, fontSize: 13, fontWeight: '500', marginBottom: 8 },
+  optional:           { color: C.textMut, fontWeight: '400' },
+  searchRow:          { flexDirection: 'row', gap: 8 },
+  searchInput:        { flex: 1, backgroundColor: C.bg2, borderWidth: 1, borderColor: C.border, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, color: C.text, fontSize: 14 },
+  goBtn:              { backgroundColor: C.red, borderRadius: 12, paddingHorizontal: 16, justifyContent: 'center' },
+  goBtnText:          { color: C.text, fontWeight: '600' },
+  searchResults:      { marginTop: 12, gap: 8 },
+  searchRow2:         { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: C.bg2, borderRadius: 12, padding: 10 },
+  miniPoster:         { width: 36, height: 54, borderRadius: 4 },
+  miniPosterFallback: { backgroundColor: C.bg1, alignItems: 'center', justifyContent: 'center' },
+  searchResultTitle:  { color: C.text, fontSize: 13, fontWeight: '500' },
+  typeSmall:          { fontSize: 11, marginTop: 2 },
+  mediaCard:          { backgroundColor: C.bg1, borderRadius: 12, flexDirection: 'row', gap: 16, padding: 16, marginBottom: 24 },
+  mediaPoster:        { width: 64, height: 96, borderRadius: 8 },
+  mediaPosterFallback:{ backgroundColor: C.bg2, alignItems: 'center', justifyContent: 'center' },
+  mediaInfo:          { flex: 1 },
+  mediaTitle:         { color: C.text, fontWeight: '600', fontSize: 15 },
+  mediaYear:          { color: C.textSub, fontSize: 13, marginTop: 2 },
+  typeBadge:          { borderWidth: 1, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2, alignSelf: 'flex-start', marginTop: 6 },
+  typeText:           { fontSize: 11 },
+  changeBtn:          { color: C.textMut, fontSize: 12, marginTop: 6 },
+  formFields:         { gap: 20 },
+  dateBtn:            { backgroundColor: C.bg2, borderWidth: 1, borderColor: C.border, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12 },
+  dateBtnText:        { color: C.text, fontSize: 14 },
+  doneBtn:            { color: C.gold, fontSize: 13, textAlign: 'right', marginTop: 8 },
+  ratingDisplay:      { color: C.gold, fontFamily: 'monospace', fontSize: 13, marginTop: 4 },
+  notesInput:         { backgroundColor: C.bg2, borderWidth: 1, borderColor: C.border, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, color: C.text, fontSize: 14, minHeight: 80 },
+  rewatchRow:         { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  rewatchLabel:       { color: C.textSub, fontSize: 13 },
+  actions:            { flexDirection: 'row', gap: 12, paddingTop: 8 },
+  submitBtn:          { flex: 1, backgroundColor: C.red, borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
+  submitBtnText:      { color: C.text, fontWeight: '600' },
+  cancelBtn:          { paddingHorizontal: 20, paddingVertical: 14, borderRadius: 12, borderWidth: 1, borderColor: C.border },
+  cancelBtnText:      { color: C.textSub, fontWeight: '500' },
+})

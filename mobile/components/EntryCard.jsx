@@ -1,101 +1,106 @@
-import { View, Text, Image, TouchableOpacity } from 'react-native'
+import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native'
 import { useRouter } from 'expo-router'
 import { StarDisplay } from './StarRating'
+import { C } from '../constants/theme'
 
-export default function EntryCard({ entry, showUser = false, onDelete }) {
+export default function EntryCard({ entry, onDelete }) {
   const { media } = entry
-  const router = useRouter()
+  const router    = useRouter()
 
   return (
-    <View className="bg-gray-900 rounded-xl flex-row gap-3 p-3">
+    <View style={s.card}>
       {/* Poster */}
       <TouchableOpacity onPress={() => router.push(`/media/${media.tmdb_id}`)}>
         {media.poster_url
-          ? <Image source={{ uri: media.poster_url }} style={{ width: 56, height: 80, borderRadius: 8 }} resizeMode="cover" />
-          : (
-            <View className="bg-gray-700 rounded-lg items-center justify-center" style={{ width: 56, height: 80 }}>
-              <Text className="text-2xl">🎬</Text>
-            </View>
-          )
+          ? <Image source={{ uri: media.poster_url }} style={s.poster} resizeMode="cover" />
+          : <View style={[s.poster, s.posterFallback]}><Text style={{ fontSize: 22 }}>🎬</Text></View>
         }
       </TouchableOpacity>
 
       {/* Info */}
-      <View className="flex-1 min-w-0">
-        <View className="flex-row items-start justify-between gap-2">
-          <View className="flex-1 min-w-0">
+      <View style={s.info}>
+        <View style={s.topRow}>
+          <View style={s.titleBlock}>
             <TouchableOpacity onPress={() => router.push(`/media/${media.tmdb_id}`)}>
-              <Text className="text-white font-semibold" numberOfLines={1}>{media.title}</Text>
+              <Text style={s.title} numberOfLines={1}>{media.title}</Text>
             </TouchableOpacity>
-            <View className="flex-row items-center gap-1.5 mt-0.5 flex-wrap">
-              {media.year ? <Text className="text-gray-500 text-xs">({media.year})</Text> : null}
-              <View
-                className="rounded border px-1 py-0.5"
-                style={{ borderColor: media.media_type === 'film' ? '#1e3a8a' : '#581c87' }}
-              >
-                <Text className="text-xs" style={{ color: media.media_type === 'film' ? '#60a5fa' : '#c084fc' }}>
+            <View style={s.metaRow}>
+              {media.year ? <Text style={s.year}>({media.year})</Text> : null}
+              <View style={[s.typeBadge, { borderColor: media.media_type === 'film' ? '#5c1414' : '#4a3800' }]}>
+                <Text style={[s.typeText, { color: media.media_type === 'film' ? C.redL : C.goldL }]}>
                   {media.media_type === 'film' ? 'Film' : 'TV'}
                 </Text>
               </View>
-              {entry.rewatch
-                ? (
-                  <View className="rounded border border-yellow-800 px-1 py-0.5">
-                    <Text className="text-yellow-500 text-xs">rewatch</Text>
-                  </View>
-                )
-                : null
-              }
-              {showUser && entry.user
-                ? (
-                  <TouchableOpacity onPress={() => router.push(`/users/${entry.user.id}`)}>
-                    <Text className="text-gray-500 text-xs">by <Text className="text-orange-400">{entry.user.username}</Text></Text>
-                  </TouchableOpacity>
-                )
-                : null
-              }
+              {entry.rewatch ? (
+                <View style={s.rewatchBadge}>
+                  <Text style={s.rewatchText}>rewatch</Text>
+                </View>
+              ) : null}
             </View>
           </View>
-          <Text className="text-gray-500 text-xs flex-shrink-0">{entry.watched_on}</Text>
+          <Text style={s.date}>{entry.watched_on}</Text>
         </View>
 
-        <View className="flex-row items-center gap-2 mt-1.5">
+        <View style={s.ratingRow}>
           <StarDisplay rating={entry.rating} />
-          <Text className="text-orange-400 font-mono text-sm">{entry.rating}/5</Text>
+          <Text style={s.ratingNum}>{entry.rating}/5</Text>
         </View>
 
         {entry.emotions.length > 0 && (
-          <View className="flex-row flex-wrap gap-1 mt-2">
+          <View style={s.emotionsRow}>
             {entry.emotions.map(e => (
               <View
                 key={e.id}
-                className="rounded-full px-2 py-0.5"
-                style={{ backgroundColor: e.color + '22', borderWidth: 1, borderColor: e.color + '55' }}
+                style={[s.emotionPill, { backgroundColor: e.color + '22', borderColor: e.color + '55' }]}
               >
-                <Text style={{ fontSize: 11, fontWeight: '600', color: e.color }}>
-                  {e.icon} {e.name}
-                </Text>
+                <Text style={[s.emotionText, { color: e.color }]}>{e.icon} {e.name}</Text>
               </View>
             ))}
           </View>
         )}
 
-        {entry.review
-          ? <Text className="text-gray-400 text-xs mt-1.5 italic" numberOfLines={2}>"{entry.review}"</Text>
-          : null
-        }
+        {entry.review ? (
+          <Text style={s.review} numberOfLines={2}>"{entry.review}"</Text>
+        ) : null}
       </View>
 
-      {/* Delete action */}
+      {/* Actions */}
       {onDelete && (
-        <View className="justify-start gap-2 flex-shrink-0">
+        <View style={s.actions}>
           <TouchableOpacity onPress={() => router.push(`/log?edit=${entry.id}`)}>
-            <Text className="text-gray-500 text-xs">edit</Text>
+            <Text style={s.editBtn}>edit</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => onDelete(entry.id)}>
-            <Text className="text-red-500 text-xs">del</Text>
+            <Text style={s.deleteBtn}>del</Text>
           </TouchableOpacity>
         </View>
       )}
     </View>
   )
 }
+
+const s = StyleSheet.create({
+  card:         { backgroundColor: C.bg1, borderRadius: 12, flexDirection: 'row', gap: 12, padding: 12 },
+  poster:       { width: 56, height: 80, borderRadius: 8 },
+  posterFallback:{ backgroundColor: C.bg2, alignItems: 'center', justifyContent: 'center' },
+  info:         { flex: 1, minWidth: 0 },
+  topRow:       { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
+  titleBlock:   { flex: 1, minWidth: 0 },
+  title:        { color: C.text, fontWeight: '600', fontSize: 14 },
+  metaRow:      { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 3, flexWrap: 'wrap' },
+  year:         { color: C.textMut, fontSize: 11 },
+  typeBadge:    { borderWidth: 1, borderRadius: 4, paddingHorizontal: 4, paddingVertical: 1 },
+  typeText:     { fontSize: 10 },
+  rewatchBadge: { borderWidth: 1, borderColor: '#4a3800', borderRadius: 4, paddingHorizontal: 4, paddingVertical: 1 },
+  rewatchText:  { color: C.goldL, fontSize: 10 },
+  date:         { color: C.textMut, fontSize: 11, flexShrink: 0 },
+  ratingRow:    { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6 },
+  ratingNum:    { color: C.gold, fontFamily: 'monospace', fontSize: 13 },
+  emotionsRow:  { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginTop: 8 },
+  emotionPill:  { borderWidth: 1, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 },
+  emotionText:  { fontSize: 11, fontWeight: '600' },
+  review:       { color: C.textSub, fontSize: 11, marginTop: 6, fontStyle: 'italic' },
+  actions:      { justifyContent: 'flex-start', gap: 8, flexShrink: 0 },
+  editBtn:      { color: C.textMut, fontSize: 11 },
+  deleteBtn:    { color: C.red, fontSize: 11 },
+})

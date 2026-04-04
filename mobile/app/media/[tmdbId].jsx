@@ -1,21 +1,22 @@
 import { useEffect, useState } from 'react'
 import {
   View, Text, ScrollView, Image, TouchableOpacity,
-  ActivityIndicator, Alert, ImageBackground,
+  ActivityIndicator, Alert, ImageBackground, StyleSheet,
 } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { api } from '../../api/client'
+import { getMedia, deleteEntry } from '../../lib/queries'
 import EntryCard from '../../components/EntryCard'
 import { StarDisplay } from '../../components/StarRating'
+import { C } from '../../constants/theme'
 
 export default function MediaDetail() {
   const { tmdbId } = useLocalSearchParams()
-  const router = useRouter()
-  const [data, setData] = useState(null)
+  const router     = useRouter()
+  const [data, setData]     = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    api.getMedia(tmdbId)
+    getMedia(tmdbId)
       .then(setData)
       .catch(() => router.back())
       .finally(() => setLoading(false))
@@ -27,7 +28,7 @@ export default function MediaDetail() {
       {
         text: 'Delete', style: 'destructive',
         onPress: async () => {
-          await api.deleteEntry(id)
+          await deleteEntry(id)
           setData(prev => ({ ...prev, entries: prev.entries.filter(e => e.id !== id) }))
         },
       },
@@ -35,98 +36,76 @@ export default function MediaDetail() {
   }
 
   if (loading) {
-    return (
-      <View className="flex-1 bg-gray-950 items-center justify-center">
-        <ActivityIndicator color="#f97316" />
-      </View>
-    )
+    return <View style={s.center}><ActivityIndicator color={C.gold} /></View>
   }
   if (!data) return null
 
   const { media, entries, avg_rating } = data
 
   return (
-    <ScrollView className="flex-1 bg-gray-950" contentContainerStyle={{ paddingBottom: 60 }}>
+    <ScrollView style={s.flex} contentContainerStyle={{ paddingBottom: 60 }}>
       {/* Backdrop */}
-      {media.backdrop_url
-        ? (
-          <ImageBackground
-            source={{ uri: media.backdrop_url }}
-            style={{ height: 180 }}
-            resizeMode="cover"
-          >
-            <View className="absolute inset-0" style={{ backgroundColor: 'rgba(17,24,39,0.65)' }} />
-          </ImageBackground>
-        )
-        : null
-      }
+      {media.backdrop_url ? (
+        <ImageBackground source={{ uri: media.backdrop_url }} style={s.backdrop} resizeMode="cover">
+          <View style={s.backdropOverlay} />
+        </ImageBackground>
+      ) : null}
 
       {/* Header */}
-      <View className="flex-row gap-4 px-4 pt-4 pb-4" style={{ marginTop: media.backdrop_url ? -60 : 0 }}>
-        {media.poster_url
-          ? (
-            <Image
-              source={{ uri: media.poster_url }}
-              style={{ width: 100, height: 150, borderRadius: 12, elevation: 8 }}
-              resizeMode="cover"
-            />
-          )
-          : null
-        }
-        <View className="flex-1 pt-2">
-          <Text className="text-white text-2xl font-bold leading-tight">{media.title}</Text>
-          {media.year ? <Text className="text-gray-400 text-base">({media.year})</Text> : null}
-          <View className="flex-row flex-wrap gap-2 mt-1">
-            <View
-              className="rounded border px-1.5 py-0.5"
-              style={{ borderColor: media.media_type === 'film' ? '#1d4ed8' : '#7e22ce' }}
-            >
-              <Text className="text-xs" style={{ color: media.media_type === 'film' ? '#60a5fa' : '#c084fc' }}>
+      <View style={[s.headerRow, { marginTop: media.backdrop_url ? -60 : 0 }]}>
+        {media.poster_url ? (
+          <Image source={{ uri: media.poster_url }} style={s.poster} resizeMode="cover" />
+        ) : null}
+        <View style={s.headerInfo}>
+          <Text style={s.mediaTitle}>{media.title}</Text>
+          {media.year ? <Text style={s.mediaYear}>({media.year})</Text> : null}
+          <View style={s.metaRow}>
+            <View style={[s.typeBadge, { borderColor: media.media_type === 'film' ? C.red : C.gold }]}>
+              <Text style={[s.typeText, { color: media.media_type === 'film' ? C.redL : C.goldL }]}>
                 {media.media_type === 'film' ? 'Film' : 'TV Show'}
               </Text>
             </View>
             {(media.genres || []).map(g => (
-              <Text key={g} className="text-gray-500 text-xs">{g}</Text>
+              <Text key={g} style={s.genre}>{g}</Text>
             ))}
           </View>
-          {media.runtime ? <Text className="text-gray-500 text-xs mt-1">{media.runtime} min</Text> : null}
+          {media.runtime ? <Text style={s.runtime}>{media.runtime} min</Text> : null}
 
-          <View className="flex-row gap-4 mt-3 items-center">
+          <View style={s.ratingsRow}>
             {avg_rating != null && (
               <View>
-                <Text className="text-orange-400 text-2xl font-bold font-mono">{avg_rating}</Text>
-                <Text className="text-gray-500 text-xs">your avg</Text>
+                <Text style={s.avgRating}>{Number(avg_rating).toFixed(1)}</Text>
+                <Text style={s.ratingLabel}>your avg</Text>
               </View>
             )}
-            {media.tmdb_rating && (
+            {media.tmdb_rating ? (
               <View>
-                <Text className="text-yellow-400 text-xl font-bold font-mono">{media.tmdb_rating.toFixed(1)}</Text>
-                <Text className="text-gray-500 text-xs">TMDB / 10</Text>
+                <Text style={s.tmdbRating}>{media.tmdb_rating.toFixed(1)}</Text>
+                <Text style={s.ratingLabel}>TMDB / 10</Text>
               </View>
-            )}
+            ) : null}
           </View>
         </View>
       </View>
 
-      {media.overview
-        ? <Text className="text-gray-300 text-sm px-4 mb-4 leading-relaxed">{media.overview}</Text>
-        : null
-      }
+      {media.overview ? (
+        <Text style={s.overview}>{media.overview}</Text>
+      ) : null}
 
       <TouchableOpacity
         onPress={() => router.push(`/log?tmdb_id=${media.tmdb_id}&type=${media.media_type}`)}
-        className="mx-4 mb-6 bg-orange-600 rounded-xl py-3 items-center"
+        style={s.logBtn}
       >
-        <Text className="text-white font-semibold">+ Log entry</Text>
+        <Text style={s.logBtnText}>+ Log entry</Text>
       </TouchableOpacity>
 
       {/* Entries */}
-      <View className="px-4">
-        <Text className="text-white text-lg font-semibold mb-3 pb-2 border-b border-gray-800">
-          Your entries <Text className="text-gray-500 font-normal text-base">({entries.length})</Text>
+      <View style={s.entriesBlock}>
+        <Text style={s.entriesHeader}>
+          Your entries <Text style={s.entriesCount}>({entries.length})</Text>
         </Text>
         {entries.length === 0
-          ? <Text className="text-gray-500 text-center py-8">You haven't logged this yet.</Text>
+          ? <Text style={s.noEntries}>You haven't logged this yet.</Text>
           : entries.map((e, i) => (
             <View key={e.id} style={{ marginBottom: i < entries.length - 1 ? 12 : 0 }}>
               <EntryCard entry={e} onDelete={handleDelete} />
@@ -137,3 +116,31 @@ export default function MediaDetail() {
     </ScrollView>
   )
 }
+
+const s = StyleSheet.create({
+  flex:           { flex: 1, backgroundColor: C.bg0 },
+  center:         { flex: 1, backgroundColor: C.bg0, alignItems: 'center', justifyContent: 'center' },
+  backdrop:       { height: 180 },
+  backdropOverlay:{ ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.6)' },
+  headerRow:      { flexDirection: 'row', gap: 16, paddingHorizontal: 16, paddingTop: 16, paddingBottom: 16 },
+  poster:         { width: 100, height: 150, borderRadius: 12, elevation: 8 },
+  headerInfo:     { flex: 1, paddingTop: 8 },
+  mediaTitle:     { color: C.text, fontSize: 22, fontWeight: '700', lineHeight: 28 },
+  mediaYear:      { color: C.textSub, fontSize: 15, marginTop: 2 },
+  metaRow:        { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 6 },
+  typeBadge:      { borderWidth: 1, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 },
+  typeText:       { fontSize: 11 },
+  genre:          { color: C.textMut, fontSize: 11 },
+  runtime:        { color: C.textMut, fontSize: 11, marginTop: 4 },
+  ratingsRow:     { flexDirection: 'row', gap: 20, marginTop: 12, alignItems: 'flex-end' },
+  avgRating:      { color: C.gold, fontSize: 24, fontWeight: '700', fontFamily: 'monospace' },
+  tmdbRating:     { color: C.goldL, fontSize: 20, fontWeight: '700', fontFamily: 'monospace' },
+  ratingLabel:    { color: C.textMut, fontSize: 11, marginTop: 2 },
+  overview:       { color: C.textSub, fontSize: 13, paddingHorizontal: 16, marginBottom: 16, lineHeight: 20 },
+  logBtn:         { marginHorizontal: 16, marginBottom: 24, backgroundColor: C.red, borderRadius: 12, paddingVertical: 12, alignItems: 'center' },
+  logBtnText:     { color: C.text, fontWeight: '600' },
+  entriesBlock:   { paddingHorizontal: 16 },
+  entriesHeader:  { color: C.text, fontSize: 17, fontWeight: '600', marginBottom: 12, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: C.border },
+  entriesCount:   { color: C.textMut, fontWeight: '400', fontSize: 15 },
+  noEntries:      { color: C.textMut, textAlign: 'center', paddingVertical: 32 },
+})

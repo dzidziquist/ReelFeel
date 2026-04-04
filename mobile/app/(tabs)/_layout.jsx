@@ -1,22 +1,21 @@
 import { Tabs } from 'expo-router'
 import { Text } from 'react-native'
+import { C } from '../../constants/theme'
 
 function TabIcon({ emoji, focused }) {
-  return (
-    <Text style={{ fontSize: 20, opacity: focused ? 1 : 0.5 }}>{emoji}</Text>
-  )
+  return <Text style={{ fontSize: 20, opacity: focused ? 1 : 0.45 }}>{emoji}</Text>
 }
 
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarStyle: { backgroundColor: '#111827', borderTopColor: '#1f2937' },
-        tabBarActiveTintColor: '#f97316',
-        tabBarInactiveTintColor: '#6b7280',
-        headerStyle: { backgroundColor: '#111827' },
-        headerTintColor: '#fff',
-        headerTitleStyle: { color: '#fff', fontWeight: '700' },
+        tabBarStyle: { backgroundColor: C.bg0, borderTopColor: C.border },
+        tabBarActiveTintColor: C.gold,
+        tabBarInactiveTintColor: C.textMut,
+        headerStyle: { backgroundColor: C.bg1 },
+        headerTintColor: C.text,
+        headerTitleStyle: { color: C.text, fontWeight: '700' },
       }}
     >
       <Tabs.Screen
@@ -24,13 +23,6 @@ export default function TabLayout() {
         options={{
           title: 'Diary',
           tabBarIcon: ({ focused }) => <TabIcon emoji="📔" focused={focused} />,
-        }}
-      />
-      <Tabs.Screen
-        name="feed"
-        options={{
-          title: 'Feed',
-          tabBarIcon: ({ focused }) => <TabIcon emoji="👥" focused={focused} />,
         }}
       />
       <Tabs.Screen

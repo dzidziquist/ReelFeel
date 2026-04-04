@@ -1,105 +1,106 @@
 import { useEffect, useState } from 'react'
-import {
-  View, Text, FlatList, TouchableOpacity,
-  ActivityIndicator, Image, Dimensions,
-} from 'react-native'
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Image, Dimensions, StyleSheet } from 'react-native'
 import { useRouter } from 'expo-router'
-import { api } from '../../api/client'
+import { getLibrary } from '../../lib/queries'
+import { C } from '../../constants/theme'
 
-const NUM_COLS = 4
+const NUM_COLS   = 4
 const ITEM_WIDTH = (Dimensions.get('window').width - 32 - (NUM_COLS - 1) * 8) / NUM_COLS
 
 export default function Library() {
-  const [items, setItems] = useState([])
+  const [items, setItems]   = useState([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('')
   const router = useRouter()
 
   useEffect(() => {
     setLoading(true)
-    api.getLibrary(filter)
-      .then(setItems)
-      .finally(() => setLoading(false))
+    getLibrary(filter).then(setItems).finally(() => setLoading(false))
   }, [filter])
 
-  function FilterBtn({ value, label, activeColor }) {
+  function FilterBtn({ value, label }) {
     const active = filter === value
     return (
       <TouchableOpacity
         onPress={() => setFilter(value)}
-        className={`px-3 py-1.5 rounded-lg border`}
-        style={{
-          backgroundColor: active ? activeColor : 'transparent',
-          borderColor: active ? activeColor : '#374151',
-        }}
+        style={[s.filterBtn, active && s.filterBtnActive]}
       >
-        <Text className="text-sm" style={{ color: active ? '#fff' : '#9ca3af' }}>{label}</Text>
+        <Text style={[s.filterText, active && s.filterTextActive]}>{label}</Text>
       </TouchableOpacity>
     )
   }
 
   return (
-    <View className="flex-1 bg-gray-950">
+    <View style={s.flex}>
       <FlatList
         data={loading ? [] : items}
         keyExtractor={item => String(item.id)}
         numColumns={NUM_COLS}
-        contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
-        columnWrapperStyle={{ gap: 8, marginBottom: 8 }}
+        contentContainerStyle={s.list}
+        columnWrapperStyle={s.row}
         ListHeaderComponent={
-          <View className="mb-5">
-            <Text className="text-white text-2xl font-bold mb-3">Library</Text>
-            <View className="flex-row gap-2">
-              <FilterBtn value="" label="All" activeColor="#0d9488" />
-              <FilterBtn value="film" label="Films" activeColor="#1d4ed8" />
-              <FilterBtn value="tv" label="TV Shows" activeColor="#7e22ce" />
+          <View style={s.headerBlock}>
+            <Text style={s.title}>Library</Text>
+            <View style={s.filters}>
+              <FilterBtn value=""     label="All" />
+              <FilterBtn value="film" label="Films" />
+              <FilterBtn value="tv"   label="TV Shows" />
             </View>
           </View>
         }
         ListEmptyComponent={
           loading
-            ? <View className="items-center py-20"><ActivityIndicator color="#f97316" /></View>
+            ? <View style={s.center}><ActivityIndicator color={C.gold} /></View>
             : (
-              <View className="items-center py-20">
-                <Text className="text-5xl mb-4">📚</Text>
-                <Text className="text-gray-400 text-lg mb-2">Nothing here yet.</Text>
+              <View style={s.empty}>
+                <Text style={s.emptyEmoji}>📚</Text>
+                <Text style={s.emptyTitle}>Nothing here yet.</Text>
                 <TouchableOpacity onPress={() => router.push('/search')}>
-                  <Text className="text-orange-400">Find something to watch</Text>
+                  <Text style={s.emptyLink}>Find something to watch</Text>
                 </TouchableOpacity>
               </View>
             )
         }
         renderItem={({ item }) => (
-          <TouchableOpacity
-            onPress={() => router.push(`/media/${item.tmdb_id}`)}
-            style={{ width: ITEM_WIDTH }}
-          >
-            <View
-              className="rounded-lg overflow-hidden bg-gray-800"
-              style={{ width: ITEM_WIDTH, height: ITEM_WIDTH * 1.5 }}
-            >
+          <TouchableOpacity onPress={() => router.push(`/media/${item.tmdb_id}`)} style={{ width: ITEM_WIDTH }}>
+            <View style={[s.poster, { height: ITEM_WIDTH * 1.5 }]}>
               {item.poster_url
                 ? <Image source={{ uri: item.poster_url }} style={{ width: ITEM_WIDTH, height: ITEM_WIDTH * 1.5 }} resizeMode="cover" />
-                : (
-                  <View className="flex-1 items-center justify-center">
-                    <Text className="text-3xl">🎬</Text>
-                  </View>
-                )
+                : <View style={s.posterFallback}><Text style={{ fontSize: 28 }}>🎬</Text></View>
               }
-              <View
-                className="absolute top-1 left-1 rounded px-1"
-                style={{ backgroundColor: item.media_type === 'film' ? 'rgba(30,58,138,0.85)' : 'rgba(88,28,135,0.85)' }}
-              >
-                <Text className="text-xs font-semibold" style={{ color: item.media_type === 'film' ? '#93c5fd' : '#d8b4fe' }}>
-                  {item.media_type === 'film' ? 'F' : 'TV'}
-                </Text>
+              <View style={[s.badge, { backgroundColor: item.media_type === 'film' ? 'rgba(180,20,20,0.85)' : 'rgba(120,90,0,0.85)' }]}>
+                <Text style={s.badgeText}>{item.media_type === 'film' ? 'F' : 'TV'}</Text>
               </View>
             </View>
-            <Text className="text-xs text-gray-300 mt-1" numberOfLines={1}>{item.title}</Text>
-            {item.year ? <Text className="text-xs text-gray-600">{item.year}</Text> : null}
+            <Text style={s.itemTitle} numberOfLines={1}>{item.title}</Text>
+            {item.year ? <Text style={s.itemYear}>{item.year}</Text> : null}
           </TouchableOpacity>
         )}
       />
     </View>
   )
 }
+
+const s = StyleSheet.create({
+  flex:            { flex: 1, backgroundColor: C.bg0 },
+  center:          { alignItems: 'center', paddingVertical: 80 },
+  list:            { padding: 16, paddingBottom: 40 },
+  row:             { gap: 8, marginBottom: 8 },
+  headerBlock:     { marginBottom: 20 },
+  title:           { color: C.text, fontSize: 22, fontWeight: '700', marginBottom: 12 },
+  filters:         { flexDirection: 'row', gap: 8 },
+  filterBtn:       { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: C.border },
+  filterBtnActive: { backgroundColor: C.red, borderColor: C.red },
+  filterText:      { color: C.textSub, fontSize: 13 },
+  filterTextActive:{ color: C.text },
+  empty:           { alignItems: 'center', paddingVertical: 80 },
+  emptyEmoji:      { fontSize: 48, marginBottom: 16 },
+  emptyTitle:      { color: C.textSub, fontSize: 17, marginBottom: 8 },
+  emptyLink:       { color: C.gold },
+  poster:          { borderRadius: 8, overflow: 'hidden', backgroundColor: C.bg2 },
+  posterFallback:  { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  badge:           { position: 'absolute', top: 4, left: 4, borderRadius: 4, paddingHorizontal: 4, paddingVertical: 2 },
+  badgeText:       { fontSize: 10, fontWeight: '700', color: C.text },
+  itemTitle:       { color: C.textSub, fontSize: 11, marginTop: 4 },
+  itemYear:        { color: C.textMut, fontSize: 11 },
+})
