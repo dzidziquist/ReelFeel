@@ -1,14 +1,14 @@
 import { useRef, useState } from 'react'
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native'
-import { C } from '../constants/theme'
+import { useTheme } from '../context/ThemeContext'
 
-const GOLD     = C.gold
-const GOLD_DIM = C.goldL + '88'
-const EMPTY    = '#2a2a2a'
+const GOLD = '#d4af37'
 
-/** Display-only star rating */
+/** Display-only star rating — works in any theme */
 export function StarDisplay({ rating, size = 'sm' }) {
-  const fontSize = size === 'lg' ? 24 : 16
+  const { theme } = useTheme()
+  const fontSize  = size === 'lg' ? 24 : 16
+  const emptyColor = theme.bg3 ?? '#2c2c2e'
   const stars = []
   for (let i = 1; i <= 5; i++) {
     if (rating >= i) {
@@ -16,14 +16,14 @@ export function StarDisplay({ rating, size = 'sm' }) {
     } else if (rating >= i - 0.5) {
       stars.push(
         <View key={i} style={{ width: fontSize * 0.7, height: fontSize, overflow: 'hidden', position: 'relative' }}>
-          <Text style={{ fontSize, color: EMPTY, position: 'absolute' }}>★</Text>
+          <Text style={{ fontSize, color: emptyColor, position: 'absolute' }}>★</Text>
           <View style={{ width: '50%', overflow: 'hidden' }}>
             <Text style={{ fontSize, color: GOLD }}>★</Text>
           </View>
         </View>
       )
     } else {
-      stars.push(<Text key={i} style={{ fontSize, color: EMPTY }}>★</Text>)
+      stars.push(<Text key={i} style={{ fontSize, color: emptyColor }}>★</Text>)
     }
   }
   return <View style={{ flexDirection: 'row', alignItems: 'center' }}>{stars}</View>
@@ -31,12 +31,16 @@ export function StarDisplay({ rating, size = 'sm' }) {
 
 /**
  * Interactive star picker with decimal text input.
- * - Tap stars to set value in 0.5 steps
+ * - Tap stars to set value in 1-step (tap filled star = subtract 0.5)
  * - Edit the text field to enter any decimal 0.0–5.0
  */
 export function StarPicker({ value, onChange }) {
+  const { theme }  = useTheme()
   const [inputText, setInputText] = useState(String(value ?? 3))
   const debounceRef = useRef(null)
+
+  const emptyColor = theme.bg3 ?? '#2c2c2e'
+  const displayValue = value ?? 0
 
   function handleStarPress(i) {
     const next = value === i ? i - 0.5 : i
@@ -68,8 +72,6 @@ export function StarPicker({ value, onChange }) {
     }
   }
 
-  const displayValue = value ?? 0
-
   return (
     <View style={s.wrap}>
       {/* Stars */}
@@ -78,7 +80,7 @@ export function StarPicker({ value, onChange }) {
           <TouchableOpacity key={i} onPress={() => handleStarPress(i)} activeOpacity={0.7}>
             <Text style={{
               fontSize: 32,
-              color: displayValue >= i ? GOLD : displayValue >= i - 0.5 ? GOLD_DIM : EMPTY,
+              color: displayValue >= i ? GOLD : displayValue >= i - 0.5 ? GOLD + '88' : emptyColor,
             }}>
               ★
             </Text>
@@ -88,7 +90,11 @@ export function StarPicker({ value, onChange }) {
       {/* Decimal input */}
       <View style={s.inputRow}>
         <TextInput
-          style={s.input}
+          style={[s.input, {
+            backgroundColor: theme.bg2,
+            borderColor: theme.border,
+            color: GOLD,
+          }]}
           value={inputText}
           onChangeText={handleTextChange}
           onBlur={handleTextBlur}
@@ -96,8 +102,8 @@ export function StarPicker({ value, onChange }) {
           maxLength={3}
           selectTextOnFocus
         />
-        <Text style={s.outOf}>/5</Text>
-        <Text style={s.hint}>  (0.0 – 5.0)</Text>
+        <Text style={[s.outOf, { color: theme.textSub }]}>/5</Text>
+        <Text style={[s.hint, { color: theme.textMut }]}>  (0.0 – 5.0)</Text>
       </View>
     </View>
   )
@@ -108,18 +114,15 @@ const s = StyleSheet.create({
   stars:    { flexDirection: 'row', gap: 8 },
   inputRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   input:    {
-    backgroundColor: '#1c1c1e',
     borderWidth: 1,
-    borderColor: '#2a2a2a',
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    color: GOLD,
     fontSize: 18,
     fontWeight: '700',
     width: 60,
     textAlign: 'center',
   },
-  outOf:    { color: C.textSub, fontSize: 16, fontWeight: '600' },
-  hint:     { color: C.textMut, fontSize: 11 },
+  outOf:    { fontSize: 16, fontWeight: '600' },
+  hint:     { fontSize: 11 },
 })
