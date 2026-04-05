@@ -3,7 +3,7 @@ import { Text } from 'react-native'
 import { C } from '../../constants/theme'
 
 function TabIcon({ emoji, focused }) {
-  return <Text style={{ fontSize: 20, opacity: focused ? 1 : 0.45 }}>{emoji}</Text>
+  return <Text style={{ fontSize: 20, opacity: focused ? 1 : 0.4 }}>{emoji}</Text>
 }
 
 export default function TabLayout() {
@@ -21,15 +21,23 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
+          title: 'Home',
+          tabBarIcon: ({ focused }) => <TabIcon emoji="🏠" focused={focused} />,
+          headerShown: false,
+        }}
+      />
+      <Tabs.Screen
+        name="diary"
+        options={{
           title: 'Diary',
           tabBarIcon: ({ focused }) => <TabIcon emoji="📔" focused={focused} />,
         }}
       />
       <Tabs.Screen
-        name="library"
+        name="watchlist"
         options={{
-          title: 'Library',
-          tabBarIcon: ({ focused }) => <TabIcon emoji="📚" focused={focused} />,
+          title: 'Watchlist',
+          tabBarIcon: ({ focused }) => <TabIcon emoji="🔖" focused={focused} />,
         }}
       />
       <Tabs.Screen
@@ -37,6 +45,22 @@ export default function TabLayout() {
         options={{
           title: 'Search',
           tabBarIcon: ({ focused }) => <TabIcon emoji="🔍" focused={focused} />,
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Profile',
+          tabBarIcon: ({ focused }) => <TabIcon emoji="👤" focused={focused} />,
+          headerShown: false,
+        }}
+      />
+      {/* Hidden from tab bar but still routable */}
+      <Tabs.Screen
+        name="library"
+        options={{
+          title: 'Library',
+          href: null,   // hides from tab bar
         }}
       />
     </Tabs>
