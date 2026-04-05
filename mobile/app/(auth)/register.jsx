@@ -5,15 +5,17 @@ import {
 } from 'react-native'
 import { Link } from 'expo-router'
 import { useAuth } from '../../context/AuthContext'
-import { C } from '../../constants/theme'
+import { useTheme } from '../../context/ThemeContext'
 
 export default function Register() {
   const { register } = useAuth()
-  const [username, setUsername] = useState('')
-  const [email, setEmail]       = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError]       = useState('')
-  const [loading, setLoading]   = useState(false)
+  const { theme }    = useTheme()
+
+  const [username, setUsername]   = useState('')
+  const [email, setEmail]         = useState('')
+  const [password, setPassword]   = useState('')
+  const [error, setError]         = useState('')
+  const [loading, setLoading]     = useState(false)
   const [confirmed, setConfirmed] = useState(false)
 
   async function handleRegister() {
@@ -27,7 +29,6 @@ export default function Register() {
         username: username || email.split('@')[0],
       })
       if (requiresConfirmation) setConfirmed(true)
-      // Otherwise onAuthStateChange fires → AuthGuard redirects to (tabs)
     } catch (err) {
       setError(err.message || 'Registration failed.')
     } finally {
@@ -37,23 +38,23 @@ export default function Register() {
 
   if (confirmed) {
     return (
-      <View style={s.flex}>
+      <View style={[s.flex, { backgroundColor: theme.bg0 }]}>
         <View style={s.inner}>
-          <Text style={s.title}>MovieRater</Text>
-          <Text style={s.subtitle}>Check your inbox.</Text>
+          <Text style={[s.title, { color: theme.text }]}>MovieRater</Text>
+          <Text style={[s.subtitle, { color: theme.textSub }]}>Check your inbox.</Text>
 
-          <View style={s.confirmBox}>
-            <Text style={s.confirmText}>
+          <View style={[s.confirmBox, { backgroundColor: theme.bg2, borderColor: theme.border }]}>
+            <Text style={[s.confirmText, { color: theme.text }]}>
               We sent a confirmation link to{'\n'}
-              <Text style={s.confirmEmail}>{email}</Text>
+              <Text style={[s.confirmEmail, { color: theme.gold }]}>{email}</Text>
             </Text>
-            <Text style={s.confirmSub}>
+            <Text style={[s.confirmSub, { color: theme.textSub }]}>
               Click the link in the email to activate your account, then sign in.
             </Text>
           </View>
 
           <Link href="/(auth)/login" asChild>
-            <TouchableOpacity style={s.btn}>
+            <TouchableOpacity style={[s.btn, { backgroundColor: theme.red }]}>
               <Text style={s.btnText}>Go to sign in</Text>
             </TouchableOpacity>
           </Link>
@@ -63,34 +64,36 @@ export default function Register() {
   }
 
   return (
-    <KeyboardAvoidingView style={s.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+    <KeyboardAvoidingView style={[s.flex, { backgroundColor: theme.bg0 }]} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled">
         <View style={s.inner}>
-          <Text style={s.title}>MovieRater</Text>
-          <Text style={s.subtitle}>Create your account.</Text>
+          <Text style={[s.title, { color: theme.text }]}>MovieRater</Text>
+          <Text style={[s.subtitle, { color: theme.textSub }]}>Create your account.</Text>
 
           {error ? (
-            <View style={s.errorBox}>
+            <View style={[s.errorBox, { borderColor: theme.red }]}>
               <Text style={s.errorText}>{error}</Text>
             </View>
           ) : null}
 
-          <Text style={s.label}>Username <Text style={s.optional}>(optional)</Text></Text>
+          <Text style={[s.label, { color: theme.textSub }]}>
+            Username <Text style={[s.optional, { color: theme.textMut }]}>(optional)</Text>
+          </Text>
           <TextInput
-            style={s.input}
+            style={[s.input, { backgroundColor: theme.bg2, borderColor: theme.border, color: theme.text }]}
             placeholder="choose a username"
-            placeholderTextColor={C.textMut}
+            placeholderTextColor={theme.textMut}
             autoCapitalize="none"
             autoCorrect={false}
             value={username}
             onChangeText={setUsername}
           />
 
-          <Text style={s.label}>Email</Text>
+          <Text style={[s.label, { color: theme.textSub }]}>Email</Text>
           <TextInput
-            style={s.input}
+            style={[s.input, { backgroundColor: theme.bg2, borderColor: theme.border, color: theme.text }]}
             placeholder="you@example.com"
-            placeholderTextColor={C.textMut}
+            placeholderTextColor={theme.textMut}
             autoCapitalize="none"
             keyboardType="email-address"
             autoCorrect={false}
@@ -98,32 +101,28 @@ export default function Register() {
             onChangeText={setEmail}
           />
 
-          <Text style={s.label}>Password</Text>
+          <Text style={[s.label, { color: theme.textSub }]}>Password</Text>
           <TextInput
-            style={[s.input, s.inputLast]}
+            style={[s.input, s.inputLast, { backgroundColor: theme.bg2, borderColor: theme.border, color: theme.text }]}
             placeholder="choose a password"
-            placeholderTextColor={C.textMut}
+            placeholderTextColor={theme.textMut}
             secureTextEntry
             value={password}
             onChangeText={setPassword}
             onSubmitEditing={handleRegister}
           />
 
-          <TouchableOpacity
-            onPress={handleRegister}
-            disabled={loading}
-            style={[s.btn, { opacity: loading ? 0.6 : 1 }]}
-          >
+          <TouchableOpacity onPress={handleRegister} disabled={loading} style={[s.btn, { backgroundColor: theme.red, opacity: loading ? 0.6 : 1 }]}>
             {loading
-              ? <ActivityIndicator color={C.text} />
+              ? <ActivityIndicator color="#fff" />
               : <Text style={s.btnText}>Create account</Text>
             }
           </TouchableOpacity>
 
           <View style={s.footer}>
-            <Text style={s.footerMut}>Already have an account?</Text>
+            <Text style={[s.footerMut, { color: theme.textMut }]}>Already have an account?</Text>
             <Link href="/(auth)/login">
-              <Text style={s.footerLink}> Sign in</Text>
+              <Text style={[s.footerLink, { color: theme.gold }]}> Sign in</Text>
             </Link>
           </View>
         </View>
@@ -133,24 +132,24 @@ export default function Register() {
 }
 
 const s = StyleSheet.create({
-  flex:         { flex: 1, backgroundColor: C.bg0 },
-  scroll:       { flexGrow: 1, justifyContent: 'center' },
-  inner:        { paddingHorizontal: 24, paddingVertical: 48 },
-  title:        { fontSize: 36, fontWeight: '700', color: C.text, textAlign: 'center', marginBottom: 4 },
-  subtitle:     { color: C.textSub, textAlign: 'center', marginBottom: 40 },
-  errorBox:     { backgroundColor: '#3f0000', borderWidth: 1, borderColor: C.red, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, marginBottom: 16 },
-  errorText:    { color: '#fca5a5', fontSize: 13 },
-  label:        { color: C.textSub, fontSize: 13, fontWeight: '500', marginBottom: 6 },
-  optional:     { color: C.textMut, fontWeight: '400' },
-  input:        { backgroundColor: C.bg2, borderWidth: 1, borderColor: C.border, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, color: C.text, fontSize: 14, marginBottom: 16 },
-  inputLast:    { marginBottom: 24 },
-  btn:          { backgroundColor: C.red, borderRadius: 12, paddingVertical: 14, alignItems: 'center', marginBottom: 16 },
-  btnText:      { color: C.text, fontWeight: '600', fontSize: 15 },
-  footer:       { flexDirection: 'row', justifyContent: 'center' },
-  footerMut:    { color: C.textMut, fontSize: 13 },
-  footerLink:   { color: C.gold, fontSize: 13, fontWeight: '500' },
-  confirmBox:   { backgroundColor: C.bg2, borderWidth: 1, borderColor: C.border, borderRadius: 12, padding: 20, marginBottom: 24 },
-  confirmText:  { color: C.text, fontSize: 14, textAlign: 'center', lineHeight: 22, marginBottom: 12 },
-  confirmEmail: { color: C.gold, fontWeight: '600' },
-  confirmSub:   { color: C.textSub, fontSize: 13, textAlign: 'center', lineHeight: 20 },
+  flex:        { flex: 1 },
+  scroll:      { flexGrow: 1, justifyContent: 'center' },
+  inner:       { paddingHorizontal: 24, paddingVertical: 48 },
+  title:       { fontSize: 36, fontWeight: '700', textAlign: 'center', marginBottom: 4 },
+  subtitle:    { textAlign: 'center', marginBottom: 40 },
+  errorBox:    { backgroundColor: '#3f0000', borderWidth: 1, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, marginBottom: 16 },
+  errorText:   { color: '#fca5a5', fontSize: 13 },
+  label:       { fontSize: 13, fontWeight: '500', marginBottom: 6 },
+  optional:    { fontWeight: '400' },
+  input:       { borderWidth: 1, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, fontSize: 14, marginBottom: 16 },
+  inputLast:   { marginBottom: 24 },
+  btn:         { borderRadius: 12, paddingVertical: 14, alignItems: 'center', marginBottom: 16 },
+  btnText:     { color: '#fff', fontWeight: '600', fontSize: 15 },
+  footer:      { flexDirection: 'row', justifyContent: 'center' },
+  footerMut:   { fontSize: 13 },
+  footerLink:  { fontSize: 13, fontWeight: '500' },
+  confirmBox:  { borderWidth: 1, borderRadius: 12, padding: 20, marginBottom: 24 },
+  confirmText: { fontSize: 14, textAlign: 'center', lineHeight: 22, marginBottom: 12 },
+  confirmEmail:{ fontWeight: '600' },
+  confirmSub:  { fontSize: 13, textAlign: 'center', lineHeight: 20 },
 })

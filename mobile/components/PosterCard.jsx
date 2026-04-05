@@ -1,6 +1,6 @@
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
-import { C } from '../constants/theme'
+import { useTheme } from '../context/ThemeContext'
 
 /**
  * Reusable poster card with:
@@ -18,10 +18,11 @@ import { C } from '../constants/theme'
  *   style      – optional extra container style
  */
 export default function PosterCard({ item, width = 120, onPress, onLongPress, watchState, style }) {
-  const height = Math.round(width * 1.5)
-  const isFilm = item.media_type === 'film' || item.media_type === 'movie'
+  const { theme } = useTheme()
+  const height    = Math.round(width * 1.5)
+  const isFilm    = item.media_type === 'film' || item.media_type === 'movie'
 
-  // Derive the single most-important watch state icon
+  // Most-important watch state badge
   let stateIcon = null
   let stateBg   = 'rgba(0,0,0,0.75)'
   if (watchState?.watched && watchState?.liked) {
@@ -31,10 +32,10 @@ export default function PosterCard({ item, width = 120, onPress, onLongPress, wa
     stateIcon = <Ionicons name="checkmark" size={11} color="#22c55e" />
     stateBg   = 'rgba(0,30,10,0.85)'
   } else if (watchState?.rated) {
-    stateIcon = <Ionicons name="star" size={10} color={C.gold} />
+    stateIcon = <Ionicons name="star" size={10} color={theme.gold} />
     stateBg   = 'rgba(20,15,0,0.85)'
   } else if (watchState?.inWatchlist) {
-    stateIcon = <Ionicons name="bookmark" size={10} color={C.gold} />
+    stateIcon = <Ionicons name="bookmark" size={10} color={theme.gold} />
     stateBg   = 'rgba(20,15,0,0.85)'
   }
 
@@ -50,7 +51,7 @@ export default function PosterCard({ item, width = 120, onPress, onLongPress, wa
         {item.poster_url ? (
           <Image source={{ uri: item.poster_url }} style={{ width, height }} resizeMode="cover" />
         ) : (
-          <View style={[s.fallback, { width, height }]}>
+          <View style={[s.fallback, { width, height, backgroundColor: theme.bg2 }]}>
             <Text style={s.fallbackEmoji}>🎬</Text>
           </View>
         )}
@@ -63,8 +64,8 @@ export default function PosterCard({ item, width = 120, onPress, onLongPress, wa
         {/* Rating badge — bottom right */}
         {item.tmdb_rating != null && (
           <View style={s.ratingBadge}>
-            <Ionicons name="star" size={9} color={C.gold} />
-            <Text style={s.ratingText}>{Number(item.tmdb_rating).toFixed(1)}</Text>
+            <Ionicons name="star" size={9} color={theme.gold} />
+            <Text style={[s.ratingText, { color: theme.gold }]}>{Number(item.tmdb_rating).toFixed(1)}</Text>
           </View>
         )}
 
@@ -76,15 +77,15 @@ export default function PosterCard({ item, width = 120, onPress, onLongPress, wa
         )}
       </View>
 
-      <Text style={[s.title, { width }]} numberOfLines={1}>{item.title}</Text>
-      {item.year ? <Text style={s.year}>{item.year}</Text> : null}
+      <Text style={[s.title, { width, color: theme.textSub }]} numberOfLines={1}>{item.title}</Text>
+      {item.year ? <Text style={[s.year, { color: theme.textMut }]}>{item.year}</Text> : null}
     </TouchableOpacity>
   )
 }
 
 const s = StyleSheet.create({
   imageWrap:    { borderRadius: 8, overflow: 'hidden', backgroundColor: '#1a1a1a' },
-  fallback:     { alignItems: 'center', justifyContent: 'center', backgroundColor: '#1a1a1a' },
+  fallback:     { alignItems: 'center', justifyContent: 'center' },
   fallbackEmoji:{ fontSize: 28 },
   typeBadge:    { position: 'absolute', top: 4, left: 4, borderRadius: 4, paddingHorizontal: 5, paddingVertical: 2 },
   typeText:     { fontSize: 10, fontWeight: '700', color: '#fff' },
@@ -94,12 +95,12 @@ const s = StyleSheet.create({
     borderRadius: 6, paddingHorizontal: 5, paddingVertical: 3,
     flexDirection: 'row', alignItems: 'center', gap: 2,
   },
-  ratingText:   { color: C.gold, fontSize: 10, fontWeight: '700' },
+  ratingText:   { fontSize: 10, fontWeight: '700' },
   stateBadge:   {
     position: 'absolute', bottom: 6, left: 6,
     borderRadius: 6, width: 22, height: 22,
     alignItems: 'center', justifyContent: 'center',
   },
-  title:        { color: C.textSub, fontSize: 11, marginTop: 5 },
-  year:         { color: C.textMut, fontSize: 10 },
+  title:        { fontSize: 11, marginTop: 5 },
+  year:         { fontSize: 10 },
 })
