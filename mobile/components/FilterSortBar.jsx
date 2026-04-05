@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import {
   View, Text, TouchableOpacity, ScrollView, Modal,
-  TextInput, StyleSheet,
+  TextInput, StyleSheet, Platform,
 } from 'react-native'
+import DateTimePicker from '@react-native-community/datetimepicker'
 import { Ionicons } from '@expo/vector-icons'
 import { useTheme } from '../context/ThemeContext'
 
@@ -107,8 +108,30 @@ export default function FilterSortBar({
   )
 }
 
+// ── Date helpers ──────────────────────────────────────────────
+function toStr(d) { return d.toISOString().split('T')[0] }
+function startOfWeek() {
+  const d = new Date(); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return d
+}
+function monthsAgo(n) {
+  const d = new Date(); d.setMonth(d.getMonth() - n); return d
+}
+const TODAY = toStr(new Date())
+const DATE_PRESETS = [
+  { label: 'All',        start: '',                            end: '' },
+  { label: 'This week',  start: toStr(startOfWeek()),         end: TODAY },
+  { label: 'This month', start: TODAY.slice(0, 7) + '-01',    end: TODAY },
+  { label: '3 months',   start: toStr(monthsAgo(3)),          end: TODAY },
+  { label: 'This year',  start: TODAY.slice(0, 4) + '-01-01', end: TODAY },
+]
+
 function FilterPanel({ theme, filters, onFiltersChange, onClose, emotions, availableGenres }) {
-  const [local, setLocal] = useState({ ...filters })
+  const [local, setLocal] = useState({
+    genre: '', minRating: '', maxRating: '', emotionIds: [], startDate: '', endDate: '',
+    ...filters,
+  })
+  const [showFromPicker, setShowFromPicker] = useState(false)
+  const [showToPicker,   setShowToPicker]   = useState(false)
 
   function patch(updates) {
     setLocal(prev => ({ ...prev, ...updates }))
@@ -120,9 +143,13 @@ function FilterPanel({ theme, filters, onFiltersChange, onClose, emotions, avail
   }
 
   function reset() {
-    const empty = { genre: '', minRating: '', maxRating: '', emotionIds: [] }
+    const empty = { genre: '', minRating: '', maxRating: '', emotionIds: [], startDate: '', endDate: '' }
     setLocal(empty)
     onFiltersChange(empty)
+  }
+
+  function applyPreset(preset) {
+    patch({ startDate: preset.start, endDate: preset.end })
   }
 
   const activeCount = [
@@ -130,7 +157,7 @@ function FilterPanel({ theme, filters, onFiltersChange, onClose, emotions, avail
     local.minRating,
     local.maxRating,
     ...(local.emotionIds ?? []),
-  ].filter(Boolean).length
+  ].filter(Boolean).length + (local.startDate || local.endDate ? 1 : 0)
 
   return (
     <View style={[fp.container, { backgroundColor: theme.bg0 }]}>
@@ -196,6 +223,95 @@ function FilterPanel({ theme, filters, onFiltersChange, onClose, emotions, avail
               />
             </View>
           </View>
+        </View>
+
+        {/* Date Range */}
+        <View style={fp.section}>
+          <Text style={[fp.sectionLabel, { color: theme.textSub }]}>Date Range</Text>
+
+          {/* Preset chips */}
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              {DATE_PRESETS.map(preset => {
+                const active = local.startDate === preset.start && local.endDate === preset.end
+                return (
+                  <TouchableOpacity
+                    key={preset.label}
+                    onPress={() => applyPreset(preset)}
+                    style={[fp.chip, active
+                      ? { backgroundColor: theme.red, borderColor: theme.red }
+                      : { borderColor: theme.border }
+                    ]}
+                  >
+                    <Text style={[fp.chipText, { color: active ? '#fff' : theme.textSub }]}>{preset.label}</Text>
+                  </TouchableOpacity>
+                )
+              })}
+            </View>
+          </ScrollView>
+
+          {/* Custom From / To */}
+          <TouchableOpacity
+            onPress={() => { setShowFromPicker(true); setShowToPicker(false) }}
+            style={[fp.dateRow, { backgroundColor: theme.bg2, borderColor: theme.border }]}
+          >
+            <Text style={[fp.dateLbl, { color: theme.textMut }]}>From</Text>
+            <Text style={[fp.dateVal, { color: local.startDate ? theme.text : theme.textMut }]}>
+              {local.startDate || 'Any'}
+            </Text>
+            <Ionicons name="chevron-forward" size={14} color={theme.textMut} />
+          </TouchableOpacity>
+
+          {showFromPicker && (
+            <View>
+              <DateTimePicker
+                value={local.startDate ? new Date(local.startDate + 'T00:00:00') : new Date()}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                maximumDate={new Date()}
+                onChange={(_, date) => {
+                  if (Platform.OS === 'android') setShowFromPicker(false)
+                  if (date) patch({ startDate: toStr(date) })
+                }}
+              />
+              {Platform.OS === 'ios' && (
+                <TouchableOpacity onPress={() => setShowFromPicker(false)} style={fp.doneBtn}>
+                  <Text style={{ color: theme.red, fontWeight: '600' }}>Done</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
+
+          <TouchableOpacity
+            onPress={() => { setShowToPicker(true); setShowFromPicker(false) }}
+            style={[fp.dateRow, { backgroundColor: theme.bg2, borderColor: theme.border, marginTop: 8 }]}
+          >
+            <Text style={[fp.dateLbl, { color: theme.textMut }]}>To</Text>
+            <Text style={[fp.dateVal, { color: local.endDate ? theme.text : theme.textMut }]}>
+              {local.endDate || 'Any'}
+            </Text>
+            <Ionicons name="chevron-forward" size={14} color={theme.textMut} />
+          </TouchableOpacity>
+
+          {showToPicker && (
+            <View>
+              <DateTimePicker
+                value={local.endDate ? new Date(local.endDate + 'T00:00:00') : new Date()}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                maximumDate={new Date()}
+                onChange={(_, date) => {
+                  if (Platform.OS === 'android') setShowToPicker(false)
+                  if (date) patch({ endDate: toStr(date) })
+                }}
+              />
+              {Platform.OS === 'ios' && (
+                <TouchableOpacity onPress={() => setShowToPicker(false)} style={fp.doneBtn}>
+                  <Text style={{ color: theme.red, fontWeight: '600' }}>Done</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
         </View>
 
         {/* Emotion filter */}
@@ -269,4 +385,8 @@ const fp = StyleSheet.create({
   footer:     { padding: 16, borderTopWidth: StyleSheet.hairlineWidth },
   applyBtn:   { paddingVertical: 16, borderRadius: 14, alignItems: 'center' },
   applyText:  { color: '#fff', fontSize: 16, fontWeight: '700' },
+  dateRow:    { flexDirection: 'row', alignItems: 'center', borderRadius: 10, borderWidth: 1, paddingHorizontal: 14, paddingVertical: 12, gap: 8 },
+  dateLbl:    { fontSize: 13, fontWeight: '600', width: 36 },
+  dateVal:    { flex: 1, fontSize: 14 },
+  doneBtn:    { alignItems: 'flex-end', paddingVertical: 8, paddingHorizontal: 14 },
 })

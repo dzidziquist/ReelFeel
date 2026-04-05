@@ -4,7 +4,7 @@ import {
   Modal, ActivityIndicator, StatusBar, StyleSheet, Dimensions,
   Alert,
 } from 'react-native'
-import { useRouter } from 'expo-router'
+import { useRouter, useFocusEffect } from 'expo-router'
 import { getTrending, getNowPlaying, getPopularTV } from '../../lib/tmdb'
 import { addToWatchlist, createEntry, getWatchStatesForTmdbIds } from '../../lib/queries'
 import { StarPicker } from '../../components/StarRating'
@@ -49,6 +49,8 @@ export default function Home() {
   const [refreshing, setRefreshing] = useState(false)
   const [error,      setError]      = useState('')
 
+  const lastLoadRef = useRef(0)
+
   // Action sheet state
   const [sheet,      setSheet]      = useState({ visible: false, item: null })
   // Quick rate modal
@@ -66,6 +68,7 @@ export default function Home() {
       setNowPlaying(np)
       setTrending(tr)
       setPopularTV(tv)
+      lastLoadRef.current = Date.now()
 
       // Batch fetch watch states
       const allIds = [...new Set([...np, ...tr, ...tv].map(m => m.tmdb_id))]
@@ -81,6 +84,15 @@ export default function Home() {
   useEffect(() => {
     load().finally(() => setLoading(false))
   }, [load])
+
+  useFocusEffect(
+    useCallback(() => {
+      const FIVE_MIN = 5 * 60 * 1000
+      if (Date.now() - lastLoadRef.current > FIVE_MIN) {
+        load()
+      }
+    }, [load])
+  )
 
   async function handleRefresh() {
     setRefreshing(true)
@@ -190,6 +202,7 @@ export default function Home() {
       <ScrollView
         style={s.flex}
         contentContainerStyle={s.content}
+        alwaysBounceVertical
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={theme.gold} colors={[theme.gold]} />}
       >
         {/* Header */}
@@ -256,7 +269,7 @@ export default function Home() {
 
 const s = StyleSheet.create({
   flex:         { flex: 1 },
-  content:      { paddingBottom: 48 },
+  content:      { paddingBottom: 48, minHeight: Dimensions.get('window').height },
   header:       { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingTop: 56, paddingBottom: 20 },
   logo:         { fontSize: 36 },
   appName:      { fontSize: 22, fontWeight: '800' },

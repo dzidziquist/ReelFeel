@@ -46,6 +46,8 @@ function applyFiltersSort(entries, filters, sort) {
       e.emotions?.some(em => filters.emotionIds.includes(em.id))
     )
   }
+  if (filters.startDate) result = result.filter(e => e.watched_on >= filters.startDate)
+  if (filters.endDate)   result = result.filter(e => e.watched_on <= filters.endDate)
 
   const [field, dir] = (sort ?? 'watched_on_desc').split('_').reduce((acc, part, i, arr) => {
     // last token is dir, rest is field
@@ -111,7 +113,7 @@ export default function Diary() {
   const [refreshing, setRefreshing] = useState(false)
   const [error,      setError]      = useState('')
   const [showHeatmap,setShowHeatmap]= useState(false)
-  const [filters,    setFilters]    = useState({ genre: '', minRating: '', maxRating: '', emotionIds: [] })
+  const [filters,    setFilters]    = useState({ genre: '', minRating: '', maxRating: '', emotionIds: [], startDate: '', endDate: '' })
   const [sort,       setSort]       = useState('watched_on_desc')
 
   const load = useCallback(async () => {
@@ -166,7 +168,7 @@ export default function Diary() {
     filters.minRating,
     filters.maxRating,
     ...(filters.emotionIds ?? []),
-  ].filter(Boolean).length
+  ].filter(Boolean).length + (filters.startDate || filters.endDate ? 1 : 0)
 
   // Filtered + sorted entries
   const displayed = useMemo(() => applyFiltersSort(entries, filters, sort), [entries, filters, sort])
@@ -234,7 +236,7 @@ export default function Diary() {
                 {activeFilterCount > 0 ? 'No entries match your filters.' : 'No entries yet.'}
               </Text>
               {activeFilterCount > 0
-                ? <TouchableOpacity onPress={() => setFilters({ genre: '', minRating: '', maxRating: '', emotionIds: [] })}>
+                ? <TouchableOpacity onPress={() => setFilters({ genre: '', minRating: '', maxRating: '', emotionIds: [], startDate: '', endDate: '' })}>
                     <Text style={[s.emptyLink, { color: theme.gold }]}>Clear filters</Text>
                   </TouchableOpacity>
                 : <TouchableOpacity onPress={() => router.push('/(tabs)/search')}>
