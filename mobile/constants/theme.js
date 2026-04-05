@@ -31,8 +31,8 @@ export const LIGHT = {
   bg3:       '#d1d1d6',   // elevated surfaces
   border:    '#c6c6c8',   // subtle border
   text:      '#000000',
-  textSub:   '#3c3c43',
-  textMut:   '#8e8e93',
+  textSub:   '#1c1c1e',   // near-black — primary secondary text
+  textMut:   '#3c3c43',   // dark gray — muted/hint text
   red:       '#dc2626',
   redL:      '#ef4444',
   gold:      '#b8860b',
