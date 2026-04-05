@@ -9,6 +9,7 @@ import { getEmotions, getDiary, createEntry, updateEntry } from '../lib/queries'
 import { searchTMDB } from '../lib/tmdb'
 import EmotionPicker from '../components/EmotionPicker'
 import { StarPicker } from '../components/StarRating'
+import TVEpisodeBrowser from '../components/TVEpisodeBrowser'
 import { useTheme } from '../context/ThemeContext'
 
 function toDateString(d) {
@@ -228,38 +229,22 @@ export default function LogEntry() {
             )}
           </View>
 
-          {/* Season / Episode — TV only */}
-          {(form.media_type === 'tv') && (
+          {/* Season / Episode browser — TV only */}
+          {form.media_type === 'tv' && form.tmdb_id && (
             <View>
               <Text style={[s.label, { color: theme.textSub }]}>
                 Season & Episode <Text style={[s.optional, { color: theme.textMut }]}>(optional)</Text>
               </Text>
-              <View style={s.seRow}>
-                <View style={s.seField}>
-                  <Text style={[s.seLabel, { color: theme.textMut }]}>Season</Text>
-                  <TextInput
-                    style={[s.seInput, { backgroundColor: theme.bg2, borderColor: theme.border, color: theme.text }]}
-                    value={form.season_number}
-                    onChangeText={v => setForm(f => ({ ...f, season_number: v.replace(/[^0-9]/g, '') }))}
-                    placeholder="1"
-                    placeholderTextColor={theme.textMut}
-                    keyboardType="number-pad"
-                    maxLength={3}
-                  />
-                </View>
-                <View style={s.seField}>
-                  <Text style={[s.seLabel, { color: theme.textMut }]}>Episode</Text>
-                  <TextInput
-                    style={[s.seInput, { backgroundColor: theme.bg2, borderColor: theme.border, color: theme.text }]}
-                    value={form.episode_number}
-                    onChangeText={v => setForm(f => ({ ...f, episode_number: v.replace(/[^0-9]/g, '') }))}
-                    placeholder="1"
-                    placeholderTextColor={theme.textMut}
-                    keyboardType="number-pad"
-                    maxLength={4}
-                  />
-                </View>
-              </View>
+              <TVEpisodeBrowser
+                tmdbId={Number(form.tmdb_id)}
+                seasonNumber={form.season_number}
+                episodeNumber={form.episode_number}
+                onSelect={(sn, ep) => setForm(f => ({
+                  ...f,
+                  season_number:  sn ? String(sn) : '',
+                  episode_number: ep ? String(ep) : '',
+                }))}
+              />
             </View>
           )}
 
@@ -361,10 +346,6 @@ const s = StyleSheet.create({
   dateBtn:            { borderWidth: 1, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12 },
   dateBtnText:        { fontSize: 14 },
   doneBtn:            { fontSize: 13, textAlign: 'right', marginTop: 8 },
-  seRow:              { flexDirection: 'row', gap: 12 },
-  seField:            { flex: 1 },
-  seLabel:            { fontSize: 11, fontWeight: '600', marginBottom: 6 },
-  seInput:            { borderWidth: 1, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, fontSize: 16, fontWeight: '600', textAlign: 'center' },
   notesInput:         { borderWidth: 1, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, fontSize: 14, minHeight: 80 },
   rewatchRow:         { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   rewatchLabel:       { fontSize: 13 },

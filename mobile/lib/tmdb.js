@@ -104,6 +104,39 @@ export async function fetchTMDBDetail(tmdbId, mediaType) {
   }
 }
 
+// ── TV Season / Episode Browser ──────────────────────────────
+/**
+ * Returns the season list for a TV show (season_number > 0 only).
+ */
+export async function getTVSeasons(tmdbId) {
+  const d = await get(`/tv/${tmdbId}`)
+  return (d.seasons ?? [])
+    .filter(s => s.season_number > 0)
+    .map(s => ({
+      season_number: s.season_number,
+      name:          s.name || `Season ${s.season_number}`,
+      episode_count: s.episode_count,
+      poster_url:    s.poster_path ? `${IMG}/w185${s.poster_path}` : null,
+      air_date:      s.air_date ?? null,
+    }))
+}
+
+/**
+ * Returns episodes for one season of a TV show.
+ */
+export async function getTVEpisodes(tmdbId, seasonNumber) {
+  const d = await get(`/tv/${tmdbId}/season/${seasonNumber}`)
+  return (d.episodes ?? []).map(e => ({
+    episode_number: e.episode_number,
+    name:           e.name,
+    overview:       e.overview ?? '',
+    still_url:      e.still_path ? `${IMG}/w300${e.still_path}` : null,
+    runtime:        e.runtime ?? null,
+    vote_average:   e.vote_average ?? null,
+    air_date:       e.air_date ?? null,
+  }))
+}
+
 // ── Watch Providers ──────────────────────────────────────────
 /**
  * Fetch streaming / buy / rent providers for a title.
