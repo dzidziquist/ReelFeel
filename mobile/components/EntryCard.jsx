@@ -39,6 +39,14 @@ export default function EntryCard({ entry, onDelete }) {
                   {isFilm ? 'Film' : 'TV'}
                 </Text>
               </View>
+              {(entry.season_number || entry.episode_number) ? (
+                <View style={[s.seBadge, { backgroundColor: theme.bg3 }]}>
+                  <Text style={[s.seText, { color: theme.textSub }]}>
+                    {entry.season_number  ? `S${entry.season_number}`  : ''}
+                    {entry.episode_number ? `E${entry.episode_number}` : ''}
+                  </Text>
+                </View>
+              ) : null}
               {entry.rewatch ? (
                 <View style={[s.rewatchBadge, { borderColor: '#4a3800' }]}>
                   <Text style={[s.rewatchText, { color: theme.goldL }]}>rewatch</Text>
@@ -104,6 +112,8 @@ const s = StyleSheet.create({
   year:         { fontSize: 11 },
   typeBadge:    { borderWidth: 1, borderRadius: 4, paddingHorizontal: 4, paddingVertical: 1 },
   typeText:     { fontSize: 10 },
+  seBadge:      { borderRadius: 4, paddingHorizontal: 5, paddingVertical: 1 },
+  seText:       { fontSize: 10, fontWeight: '700', fontFamily: 'monospace' },
   rewatchBadge: { borderWidth: 1, borderRadius: 4, paddingHorizontal: 4, paddingVertical: 1 },
   rewatchText:  { fontSize: 10 },
   date:         { fontSize: 11, flexShrink: 0 },

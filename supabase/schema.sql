@@ -63,9 +63,15 @@ create table if not exists public.diary_entries (
   watched_on date    not null,
   rating     numeric(2,1) not null check (rating >= 0 and rating <= 5),
   review     text    not null default '',
-  rewatch    boolean not null default false,
-  created_at timestamptz not null default now()
+  rewatch        boolean not null default false,
+  season_number  integer,
+  episode_number integer,
+  created_at     timestamptz not null default now()
 );
+
+-- Add season/episode columns if upgrading an existing DB
+alter table public.diary_entries add column if not exists season_number  integer;
+alter table public.diary_entries add column if not exists episode_number integer;
 
 -- ── diary_entry_emotions (junction) ──────────────────────────
 create table if not exists public.diary_entry_emotions (
