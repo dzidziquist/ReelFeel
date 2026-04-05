@@ -9,15 +9,16 @@ import { getEmotions, getDiary, createEntry, updateEntry } from '../lib/queries'
 import { searchTMDB } from '../lib/tmdb'
 import EmotionPicker from '../components/EmotionPicker'
 import { StarPicker } from '../components/StarRating'
-import { C } from '../constants/theme'
+import { useTheme } from '../context/ThemeContext'
 
 function toDateString(d) {
   return d.toISOString().split('T')[0]
 }
 
 export default function LogEntry() {
-  const params  = useLocalSearchParams()
-  const router  = useRouter()
+  const params   = useLocalSearchParams()
+  const router   = useRouter()
+  const { theme } = useTheme()
 
   const tmdbId = params.tmdb_id || null
   const type   = params.type    || 'film'
@@ -44,8 +45,6 @@ export default function LogEntry() {
 
   useEffect(() => {
     if (!tmdbId) return
-    // Pre-populate media preview from TMDB search if we have tmdb_id from URL
-    // We fetch media info directly from TMDB since the item may not be in DB yet
     import('../lib/tmdb').then(({ fetchTMDBDetail }) =>
       fetchTMDBDetail(Number(tmdbId), type).then(d =>
         setMedia({ tmdb_id: Number(tmdbId), media_type: type, title: d.title, year: d.year, poster_url: d.poster_path ? `https://image.tmdb.org/t/p/w500${d.poster_path}` : null })
@@ -104,45 +103,56 @@ export default function LogEntry() {
   }
 
   const showForm = !!media || !!editId
+  const isFilm   = form.media_type === 'film' || form.media_type === 'movie'
 
   return (
-    <ScrollView style={s.flex} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
+    <ScrollView
+      style={[s.flex, { backgroundColor: theme.bg0 }]}
+      contentContainerStyle={s.content}
+      keyboardShouldPersistTaps="handled"
+    >
 
       {error ? (
-        <View style={s.errorBox}><Text style={s.errorText}>{error}</Text></View>
+        <View style={[s.errorBox, { borderColor: theme.red }]}>
+          <Text style={s.errorText}>{error}</Text>
+        </View>
       ) : null}
 
       {/* Media search */}
       {!media && !editId && (
         <View style={s.section}>
-          <Text style={s.label}>Find a film or TV show</Text>
+          <Text style={[s.label, { color: theme.textSub }]}>Find a film or TV show</Text>
           <View style={s.searchRow}>
             <TextInput
-              style={s.searchInput}
+              style={[s.searchInput, { backgroundColor: theme.bg2, borderColor: theme.border, color: theme.text }]}
               placeholder="Search TMDB…"
-              placeholderTextColor={C.textMut}
+              placeholderTextColor={theme.textMut}
               value={searchQ}
               onChangeText={setSearchQ}
               onSubmitEditing={handleSearch}
               returnKeyType="search"
             />
-            <TouchableOpacity onPress={handleSearch} style={s.goBtn}>
+            <TouchableOpacity onPress={handleSearch} style={[s.goBtn, { backgroundColor: theme.red }]}>
               <Text style={s.goBtnText}>Go</Text>
             </TouchableOpacity>
           </View>
           {searchResults.length > 0 && (
             <View style={s.searchResults}>
               {searchResults.slice(0, 5).map(r => (
-                <TouchableOpacity key={r.tmdb_id} onPress={() => selectMedia(r)} style={s.searchRow2}>
+                <TouchableOpacity
+                  key={r.tmdb_id}
+                  onPress={() => selectMedia(r)}
+                  style={[s.searchRow2, { backgroundColor: theme.bg2 }]}
+                >
                   {r.poster_path
                     ? <Image source={{ uri: `https://image.tmdb.org/t/p/w92${r.poster_path}` }} style={s.miniPoster} resizeMode="cover" />
-                    : <View style={[s.miniPoster, s.miniPosterFallback]}><Text>🎬</Text></View>
+                    : <View style={[s.miniPoster, { backgroundColor: theme.bg1, alignItems: 'center', justifyContent: 'center' }]}><Text>🎬</Text></View>
                   }
                   <View>
-                    <Text style={s.searchResultTitle}>
-                      {r.title}{r.year ? <Text style={{ color: C.textMut }}> ({r.year})</Text> : null}
+                    <Text style={[s.searchResultTitle, { color: theme.text }]}>
+                      {r.title}{r.year ? <Text style={{ color: theme.textMut }}> ({r.year})</Text> : null}
                     </Text>
-                    <Text style={[s.typeSmall, { color: r.media_type === 'film' ? C.redL : C.goldL }]}>
+                    <Text style={[s.typeSmall, { color: r.media_type === 'film' ? theme.redL : theme.goldL }]}>
                       {r.media_type === 'film' ? 'Film' : 'TV Show'}
                     </Text>
                   </View>
@@ -155,22 +165,22 @@ export default function LogEntry() {
 
       {/* Selected media preview */}
       {media && (
-        <View style={s.mediaCard}>
+        <View style={[s.mediaCard, { backgroundColor: theme.bg1 }]}>
           {media.poster_url
             ? <Image source={{ uri: media.poster_url }} style={s.mediaPoster} resizeMode="cover" />
-            : <View style={[s.mediaPoster, s.mediaPosterFallback]}><Text style={{ fontSize: 24 }}>🎬</Text></View>
+            : <View style={[s.mediaPoster, { backgroundColor: theme.bg2, alignItems: 'center', justifyContent: 'center' }]}><Text style={{ fontSize: 24 }}>🎬</Text></View>
           }
           <View style={s.mediaInfo}>
-            <Text style={s.mediaTitle}>{media.title}</Text>
-            {media.year ? <Text style={s.mediaYear}>{media.year}</Text> : null}
-            <View style={[s.typeBadge, { borderColor: media.media_type === 'film' ? C.red : C.gold }]}>
-              <Text style={[s.typeText, { color: media.media_type === 'film' ? C.redL : C.goldL }]}>
-                {media.media_type === 'film' ? 'Film' : 'TV Show'}
+            <Text style={[s.mediaTitle, { color: theme.text }]}>{media.title}</Text>
+            {media.year ? <Text style={[s.mediaYear, { color: theme.textSub }]}>{media.year}</Text> : null}
+            <View style={[s.typeBadge, { borderColor: isFilm ? theme.red : theme.gold }]}>
+              <Text style={[s.typeText, { color: isFilm ? theme.redL : theme.goldL }]}>
+                {isFilm ? 'Film' : 'TV Show'}
               </Text>
             </View>
             {!editId && (
               <TouchableOpacity onPress={() => { setMedia(null); setForm(f => ({ ...f, tmdb_id: '', media_type: 'film' })) }}>
-                <Text style={s.changeBtn}>Change</Text>
+                <Text style={[s.changeBtn, { color: theme.textMut }]}>Change</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -183,9 +193,12 @@ export default function LogEntry() {
 
           {/* Date */}
           <View>
-            <Text style={s.label}>Watched on</Text>
-            <TouchableOpacity onPress={() => setShowDatePicker(true)} style={s.dateBtn}>
-              <Text style={s.dateBtnText}>{form.watched_on}</Text>
+            <Text style={[s.label, { color: theme.textSub }]}>Watched on</Text>
+            <TouchableOpacity
+              onPress={() => setShowDatePicker(true)}
+              style={[s.dateBtn, { backgroundColor: theme.bg2, borderColor: theme.border }]}
+            >
+              <Text style={[s.dateBtnText, { color: theme.text }]}>{form.watched_on}</Text>
             </TouchableOpacity>
             {showDatePicker && (
               <DateTimePicker
@@ -201,21 +214,20 @@ export default function LogEntry() {
             )}
             {Platform.OS === 'ios' && showDatePicker && (
               <TouchableOpacity onPress={() => setShowDatePicker(false)}>
-                <Text style={s.doneBtn}>Done</Text>
+                <Text style={[s.doneBtn, { color: theme.gold }]}>Done</Text>
               </TouchableOpacity>
             )}
           </View>
 
           {/* Rating */}
           <View>
-            <Text style={s.label}>Rating (0–5)</Text>
+            <Text style={[s.label, { color: theme.textSub }]}>Rating (0–5)</Text>
             <StarPicker value={form.rating} onChange={r => setForm(f => ({ ...f, rating: r }))} />
-            <Text style={s.ratingDisplay}>{form.rating} / 5</Text>
           </View>
 
           {/* Emotions */}
           <View>
-            <Text style={s.label}>How did it make you feel?</Text>
+            <Text style={[s.label, { color: theme.textSub }]}>How did it make you feel?</Text>
             <EmotionPicker
               emotions={emotions}
               selected={form.emotion_ids}
@@ -225,11 +237,13 @@ export default function LogEntry() {
 
           {/* Review */}
           <View>
-            <Text style={s.label}>Notes <Text style={s.optional}>(optional)</Text></Text>
+            <Text style={[s.label, { color: theme.textSub }]}>
+              Notes <Text style={[s.optional, { color: theme.textMut }]}>(optional)</Text>
+            </Text>
             <TextInput
-              style={s.notesInput}
+              style={[s.notesInput, { backgroundColor: theme.bg2, borderColor: theme.border, color: theme.text }]}
               placeholder="Any thoughts…"
-              placeholderTextColor={C.textMut}
+              placeholderTextColor={theme.textMut}
               multiline
               numberOfLines={3}
               textAlignVertical="top"
@@ -240,12 +254,12 @@ export default function LogEntry() {
 
           {/* Rewatch */}
           <View style={s.rewatchRow}>
-            <Text style={s.rewatchLabel}>This was a rewatch</Text>
+            <Text style={[s.rewatchLabel, { color: theme.textSub }]}>This was a rewatch</Text>
             <Switch
               value={form.rewatch}
               onValueChange={v => setForm(f => ({ ...f, rewatch: v }))}
-              trackColor={{ true: C.red, false: C.border }}
-              thumbColor={C.text}
+              trackColor={{ true: theme.red, false: theme.border }}
+              thumbColor={theme.text}
             />
           </View>
 
@@ -254,15 +268,18 @@ export default function LogEntry() {
             <TouchableOpacity
               onPress={handleSubmit}
               disabled={loading}
-              style={[s.submitBtn, { opacity: loading ? 0.6 : 1 }]}
+              style={[s.submitBtn, { backgroundColor: theme.red, opacity: loading ? 0.6 : 1 }]}
             >
               {loading
-                ? <ActivityIndicator color={C.text} />
+                ? <ActivityIndicator color="#fff" />
                 : <Text style={s.submitBtnText}>{editId ? 'Save changes' : 'Log entry'}</Text>
               }
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => router.back()} style={s.cancelBtn}>
-              <Text style={s.cancelBtnText}>Cancel</Text>
+            <TouchableOpacity
+              onPress={() => router.back()}
+              style={[s.cancelBtn, { borderColor: theme.border }]}
+            >
+              <Text style={[s.cancelBtnText, { color: theme.textSub }]}>Cancel</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -272,43 +289,40 @@ export default function LogEntry() {
 }
 
 const s = StyleSheet.create({
-  flex:               { flex: 1, backgroundColor: C.bg0 },
+  flex:               { flex: 1 },
   content:            { padding: 16, paddingBottom: 60 },
-  errorBox:           { backgroundColor: '#3f0000', borderWidth: 1, borderColor: C.red, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, marginBottom: 16 },
+  errorBox:           { backgroundColor: '#3f0000', borderWidth: 1, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, marginBottom: 16 },
   errorText:          { color: '#fca5a5', fontSize: 13 },
   section:            { marginBottom: 24 },
-  label:              { color: C.textSub, fontSize: 13, fontWeight: '500', marginBottom: 8 },
-  optional:           { color: C.textMut, fontWeight: '400' },
+  label:              { fontSize: 13, fontWeight: '500', marginBottom: 8 },
+  optional:           { fontWeight: '400' },
   searchRow:          { flexDirection: 'row', gap: 8 },
-  searchInput:        { flex: 1, backgroundColor: C.bg2, borderWidth: 1, borderColor: C.border, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, color: C.text, fontSize: 14 },
-  goBtn:              { backgroundColor: C.red, borderRadius: 12, paddingHorizontal: 16, justifyContent: 'center' },
-  goBtnText:          { color: C.text, fontWeight: '600' },
+  searchInput:        { flex: 1, borderWidth: 1, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, fontSize: 14 },
+  goBtn:              { borderRadius: 12, paddingHorizontal: 16, justifyContent: 'center' },
+  goBtnText:          { color: '#fff', fontWeight: '600' },
   searchResults:      { marginTop: 12, gap: 8 },
-  searchRow2:         { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: C.bg2, borderRadius: 12, padding: 10 },
+  searchRow2:         { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 12, padding: 10 },
   miniPoster:         { width: 36, height: 54, borderRadius: 4 },
-  miniPosterFallback: { backgroundColor: C.bg1, alignItems: 'center', justifyContent: 'center' },
-  searchResultTitle:  { color: C.text, fontSize: 13, fontWeight: '500' },
+  searchResultTitle:  { fontSize: 13, fontWeight: '500' },
   typeSmall:          { fontSize: 11, marginTop: 2 },
-  mediaCard:          { backgroundColor: C.bg1, borderRadius: 12, flexDirection: 'row', gap: 16, padding: 16, marginBottom: 24 },
+  mediaCard:          { borderRadius: 12, flexDirection: 'row', gap: 16, padding: 16, marginBottom: 24 },
   mediaPoster:        { width: 64, height: 96, borderRadius: 8 },
-  mediaPosterFallback:{ backgroundColor: C.bg2, alignItems: 'center', justifyContent: 'center' },
   mediaInfo:          { flex: 1 },
-  mediaTitle:         { color: C.text, fontWeight: '600', fontSize: 15 },
-  mediaYear:          { color: C.textSub, fontSize: 13, marginTop: 2 },
+  mediaTitle:         { fontWeight: '600', fontSize: 15 },
+  mediaYear:          { fontSize: 13, marginTop: 2 },
   typeBadge:          { borderWidth: 1, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2, alignSelf: 'flex-start', marginTop: 6 },
   typeText:           { fontSize: 11 },
-  changeBtn:          { color: C.textMut, fontSize: 12, marginTop: 6 },
+  changeBtn:          { fontSize: 12, marginTop: 6 },
   formFields:         { gap: 20 },
-  dateBtn:            { backgroundColor: C.bg2, borderWidth: 1, borderColor: C.border, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12 },
-  dateBtnText:        { color: C.text, fontSize: 14 },
-  doneBtn:            { color: C.gold, fontSize: 13, textAlign: 'right', marginTop: 8 },
-  ratingDisplay:      { color: C.gold, fontFamily: 'monospace', fontSize: 13, marginTop: 4 },
-  notesInput:         { backgroundColor: C.bg2, borderWidth: 1, borderColor: C.border, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, color: C.text, fontSize: 14, minHeight: 80 },
+  dateBtn:            { borderWidth: 1, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12 },
+  dateBtnText:        { fontSize: 14 },
+  doneBtn:            { fontSize: 13, textAlign: 'right', marginTop: 8 },
+  notesInput:         { borderWidth: 1, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, fontSize: 14, minHeight: 80 },
   rewatchRow:         { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  rewatchLabel:       { color: C.textSub, fontSize: 13 },
+  rewatchLabel:       { fontSize: 13 },
   actions:            { flexDirection: 'row', gap: 12, paddingTop: 8 },
-  submitBtn:          { flex: 1, backgroundColor: C.red, borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
-  submitBtnText:      { color: C.text, fontWeight: '600' },
-  cancelBtn:          { paddingHorizontal: 20, paddingVertical: 14, borderRadius: 12, borderWidth: 1, borderColor: C.border },
-  cancelBtnText:      { color: C.textSub, fontWeight: '500' },
+  submitBtn:          { flex: 1, borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
+  submitBtnText:      { color: '#fff', fontWeight: '600' },
+  cancelBtn:          { paddingHorizontal: 20, paddingVertical: 14, borderRadius: 12, borderWidth: 1 },
+  cancelBtnText:      { fontWeight: '500' },
 })

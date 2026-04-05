@@ -256,6 +256,60 @@ export async function upsertProfile({ display_name, bio }) {
   if (error) throw error
 }
 
+// ── Watch States (batch, for home feed badges) ────────────────
+/**
+ * For a list of tmdb_ids, return a Map<tmdb_id, { watched, liked, rated, inWatchlist }>
+ * Used by the Home screen to decorate poster cards.
+ */
+export async function getWatchStatesForTmdbIds(tmdbIds) {
+  const result = new Map()
+  if (!tmdbIds?.length) return result
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return result
+
+  // Get all media IDs for these tmdb_ids
+  const { data: mediaRows } = await supabase
+    .from('media').select('id, tmdb_id').in('tmdb_id', tmdbIds)
+  if (!mediaRows?.length) return result
+
+  const mediaIdToTmdbId = new Map(mediaRows.map(m => [m.id, m.tmdb_id]))
+  const mediaIds = mediaRows.map(m => m.id)
+
+  // Get diary entries for these media
+  const { data: diaryRows } = await supabase
+    .from('diary_entries').select('media_id, rating')
+    .eq('user_id', user.id).in('media_id', mediaIds)
+
+  // Get watchlist entries for these media
+  const { data: wlRows } = await supabase
+    .from('watchlist').select('media_id')
+    .eq('user_id', user.id).in('media_id', mediaIds)
+
+  const watchlistSet = new Set((wlRows ?? []).map(r => r.media_id))
+
+  // Build per-tmdb_id aggregates
+  const diaryByMedia = new Map()
+  for (const row of (diaryRows ?? [])) {
+    if (!diaryByMedia.has(row.media_id)) diaryByMedia.set(row.media_id, [])
+    diaryByMedia.get(row.media_id).push(row)
+  }
+
+  for (const { id: mediaId, tmdb_id } of mediaRows) {
+    const entries = diaryByMedia.get(mediaId) ?? []
+    const ratings = entries.map(e => Number(e.rating)).filter(Boolean)
+    const avgRating = ratings.length ? ratings.reduce((a, b) => a + b, 0) / ratings.length : null
+    result.set(tmdb_id, {
+      watched:     entries.length > 0,
+      liked:       avgRating != null && avgRating >= 4,
+      rated:       ratings.length > 0,
+      inWatchlist: watchlistSet.has(mediaId),
+    })
+  }
+
+  return result
+}
+
 // ── Account deletion ──────────────────────────────────────────
 export async function deleteAllMyData() {
   const { data: { user } } = await supabase.auth.getUser()
