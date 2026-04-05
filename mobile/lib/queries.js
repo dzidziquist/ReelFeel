@@ -28,18 +28,21 @@ export async function getEmotions() {
 export async function getDiary() {
   const { data, error } = await supabase
     .from('diary_entries')
-    .select('id, watched_on, rating, review, rewatch, created_at, media(*), diary_entry_emotions(emotions(*))')
+    .select('id, watched_on, rating, review, rewatch, season_number, episode_number, created_at, media(*), diary_entry_emotions(emotions(*))')
     .order('watched_on', { ascending: false })
   if (error) throw error
   return data.map(fmtEntry)
 }
 
-export async function createEntry({ tmdb_id, media_type, rating, watched_on, review, rewatch, emotion_ids = [] }) {
+export async function createEntry({ tmdb_id, media_type, rating, watched_on, review, rewatch, emotion_ids = [], season_number, episode_number }) {
   const { data: { user } } = await supabase.auth.getUser()
   const media = await getOrCreateMedia(tmdb_id, media_type)
+  const row = { user_id: user.id, media_id: media.id, rating, watched_on, review, rewatch }
+  if (season_number)  row.season_number  = season_number
+  if (episode_number) row.episode_number = episode_number
   const { data: entry, error } = await supabase
     .from('diary_entries')
-    .insert({ user_id: user.id, media_id: media.id, rating, watched_on, review, rewatch })
+    .insert(row)
     .select().single()
   if (error) throw error
   if (emotion_ids.length) {
@@ -51,9 +54,10 @@ export async function createEntry({ tmdb_id, media_type, rating, watched_on, rev
   return entry
 }
 
-export async function updateEntry(id, { rating, watched_on, review, rewatch, emotion_ids = [] }) {
+export async function updateEntry(id, { rating, watched_on, review, rewatch, emotion_ids = [], season_number, episode_number }) {
+  const updates = { rating, watched_on, review, rewatch, season_number: season_number || null, episode_number: episode_number || null }
   const { error } = await supabase
-    .from('diary_entries').update({ rating, watched_on, review, rewatch }).eq('id', id)
+    .from('diary_entries').update(updates).eq('id', id)
   if (error) throw error
   await supabase.from('diary_entry_emotions').delete().eq('entry_id', id)
   if (emotion_ids.length)

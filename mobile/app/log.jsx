@@ -30,13 +30,15 @@ export default function LogEntry() {
   const [searchResults, setSearchResults] = useState([])
   const [showDatePicker, setShowDatePicker] = useState(false)
   const [form, setForm] = useState({
-    tmdb_id:    tmdbId || '',
-    media_type: type,
-    watched_on: toDateString(new Date()),
-    rating:     3,
-    review:     '',
-    rewatch:    false,
-    emotion_ids: [],
+    tmdb_id:        tmdbId || '',
+    media_type:     type,
+    watched_on:     toDateString(new Date()),
+    rating:         3,
+    review:         '',
+    rewatch:        false,
+    emotion_ids:    [],
+    season_number:  '',
+    episode_number: '',
   })
   const [error, setError]   = useState('')
   const [loading, setLoading] = useState(false)
@@ -59,13 +61,15 @@ export default function LogEntry() {
       if (!entry) return
       setMedia(entry.media)
       setForm({
-        tmdb_id:     entry.media.tmdb_id,
-        media_type:  entry.media.media_type,
-        watched_on:  entry.watched_on,
-        rating:      entry.rating,
-        review:      entry.review,
-        rewatch:     entry.rewatch,
-        emotion_ids: entry.emotions.map(e => e.id),
+        tmdb_id:        entry.media.tmdb_id,
+        media_type:     entry.media.media_type,
+        watched_on:     entry.watched_on,
+        rating:         entry.rating,
+        review:         entry.review,
+        rewatch:        entry.rewatch,
+        emotion_ids:    entry.emotions.map(e => e.id),
+        season_number:  entry.season_number  ? String(entry.season_number)  : '',
+        episode_number: entry.episode_number ? String(entry.episode_number) : '',
       })
     })
   }, [editId])
@@ -92,8 +96,13 @@ export default function LogEntry() {
     setError('')
     setLoading(true)
     try {
-      if (editId) await updateEntry(editId, form)
-      else        await createEntry(form)
+      const payload = {
+        ...form,
+        season_number:  form.season_number  ? parseInt(form.season_number,  10) : undefined,
+        episode_number: form.episode_number ? parseInt(form.episode_number, 10) : undefined,
+      }
+      if (editId) await updateEntry(editId, payload)
+      else        await createEntry(payload)
       router.replace('/(tabs)')
     } catch (err) {
       setError(err.message)
@@ -219,6 +228,41 @@ export default function LogEntry() {
             )}
           </View>
 
+          {/* Season / Episode — TV only */}
+          {(form.media_type === 'tv') && (
+            <View>
+              <Text style={[s.label, { color: theme.textSub }]}>
+                Season & Episode <Text style={[s.optional, { color: theme.textMut }]}>(optional)</Text>
+              </Text>
+              <View style={s.seRow}>
+                <View style={s.seField}>
+                  <Text style={[s.seLabel, { color: theme.textMut }]}>Season</Text>
+                  <TextInput
+                    style={[s.seInput, { backgroundColor: theme.bg2, borderColor: theme.border, color: theme.text }]}
+                    value={form.season_number}
+                    onChangeText={v => setForm(f => ({ ...f, season_number: v.replace(/[^0-9]/g, '') }))}
+                    placeholder="1"
+                    placeholderTextColor={theme.textMut}
+                    keyboardType="number-pad"
+                    maxLength={3}
+                  />
+                </View>
+                <View style={s.seField}>
+                  <Text style={[s.seLabel, { color: theme.textMut }]}>Episode</Text>
+                  <TextInput
+                    style={[s.seInput, { backgroundColor: theme.bg2, borderColor: theme.border, color: theme.text }]}
+                    value={form.episode_number}
+                    onChangeText={v => setForm(f => ({ ...f, episode_number: v.replace(/[^0-9]/g, '') }))}
+                    placeholder="1"
+                    placeholderTextColor={theme.textMut}
+                    keyboardType="number-pad"
+                    maxLength={4}
+                  />
+                </View>
+              </View>
+            </View>
+          )}
+
           {/* Rating */}
           <View>
             <Text style={[s.label, { color: theme.textSub }]}>Rating (0–5)</Text>
@@ -317,6 +361,10 @@ const s = StyleSheet.create({
   dateBtn:            { borderWidth: 1, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12 },
   dateBtnText:        { fontSize: 14 },
   doneBtn:            { fontSize: 13, textAlign: 'right', marginTop: 8 },
+  seRow:              { flexDirection: 'row', gap: 12 },
+  seField:            { flex: 1 },
+  seLabel:            { fontSize: 11, fontWeight: '600', marginBottom: 6 },
+  seInput:            { borderWidth: 1, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, fontSize: 16, fontWeight: '600', textAlign: 'center' },
   notesInput:         { borderWidth: 1, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, fontSize: 14, minHeight: 80 },
   rewatchRow:         { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   rewatchLabel:       { fontSize: 13 },
