@@ -19,7 +19,7 @@ function fmtEntry(e) {
 
 // ── Emotions ──────────────────────────────────────────────────
 export async function getEmotions() {
-  const { data, error } = await supabase.from('emotions').select('*').order('name')
+  const { data, error } = await supabase.from('emotions').select('*').order('category').order('sort_order').order('name')
   if (error) throw error
   return data
 }

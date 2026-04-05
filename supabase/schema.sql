@@ -31,29 +31,59 @@ alter table public.media add constraint media_media_type_check
 
 -- ── emotions ─────────────────────────────────────────────────
 create table if not exists public.emotions (
-  id    bigserial primary key,
-  name  text not null unique,
-  icon  text not null default '🎭',
-  color text not null default '#888888'
+  id         bigserial primary key,
+  name       text not null unique,
+  icon       text not null default '🎭',
+  color      text not null default '#888888',
+  category   text not null default 'Other',
+  sort_order integer not null default 99
 );
 
--- Add icon/color columns if they don't exist yet
-alter table public.emotions add column if not exists icon  text not null default '🎭';
-alter table public.emotions add column if not exists color text not null default '#888888';
+-- Idempotent column additions for existing DBs
+alter table public.emotions add column if not exists icon       text    not null default '🎭';
+alter table public.emotions add column if not exists color      text    not null default '#888888';
+alter table public.emotions add column if not exists category   text    not null default 'Other';
+alter table public.emotions add column if not exists sort_order integer not null default 99;
 
--- Seed / update emotions with icons and colors
-insert into public.emotions (name, icon, color) values
-  ('Happy',    '😊', '#f59e0b'),
-  ('Sad',      '😢', '#3b82f6'),
-  ('Excited',  '🤩', '#f97316'),
-  ('Scared',   '😱', '#8b5cf6'),
-  ('Bored',    '😑', '#6b7280'),
-  ('Moved',    '🥺', '#ec4899'),
-  ('Confused', '😵', '#14b8a6'),
-  ('Inspired', '✨', '#10b981'),
-  ('Amused',   '😄', '#84cc16'),
-  ('Tense',    '😬', '#ef4444')
-on conflict (name) do update set icon = excluded.icon, color = excluded.color;
+-- Seed / upsert all categorised emotions
+-- Happy  #f59e0b · Interested  #3b82f6 · Surprised  #8b5cf6
+-- Sad    #6b7280 · Disgusted   #10b981 · Afraid     #f97316 · Angry #ef4444
+insert into public.emotions (name, icon, color, category, sort_order) values
+  ('Joyful',        '😁', '#f59e0b', 'Happy',      1),
+  ('Warm',          '🤗', '#f59e0b', 'Happy',      2),
+  ('Touched',       '🥹', '#f59e0b', 'Happy',      3),
+  ('Amused',        '😂', '#f59e0b', 'Happy',      4),
+  ('Hilarious',     '🤣', '#f59e0b', 'Happy',      5),
+  ('In love',       '😍', '#f59e0b', 'Happy',      6),
+  ('Curious',       '🤔', '#3b82f6', 'Interested',  1),
+  ('Neutral',       '😐', '#3b82f6', 'Interested',  2),
+  ('Puzzled',       '😵', '#3b82f6', 'Interested',  3),
+  ('Bored',         '😑', '#3b82f6', 'Interested',  4),
+  ('Mind-blown',    '🤯', '#3b82f6', 'Interested',  5),
+  ('Surprised',     '😮', '#8b5cf6', 'Surprised',   1),
+  ('Astonished',    '😲', '#8b5cf6', 'Surprised',   2),
+  ('Speechless',    '🫢', '#8b5cf6', 'Surprised',   3),
+  ('Shocked',       '😱', '#8b5cf6', 'Surprised',   4),
+  ('Disappointed',  '🙁', '#6b7280', 'Sad',         1),
+  ('Sad',           '😔', '#6b7280', 'Sad',         2),
+  ('Distressed',    '😣', '#6b7280', 'Sad',         3),
+  ('Tearful',       '😢', '#6b7280', 'Sad',         4),
+  ('Devastated',    '😭', '#6b7280', 'Sad',         5),
+  ('Indifferent',   '😶', '#10b981', 'Disgusted',   1),
+  ('Uncomfortable', '😬', '#10b981', 'Disgusted',   2),
+  ('Disgusted',     '🤢', '#10b981', 'Disgusted',   3),
+  ('Revolted',      '🤮', '#10b981', 'Disgusted',   4),
+  ('Anxious',       '😟', '#f97316', 'Afraid',      1),
+  ('Afraid',        '😰', '#f97316', 'Afraid',      2),
+  ('Scared',        '🫣', '#f97316', 'Afraid',      3),
+  ('Horrified',     '😱', '#f97316', 'Afraid',      4),
+  ('Frustrated',    '😤', '#ef4444', 'Angry',       1),
+  ('Irritated',     '😾', '#ef4444', 'Angry',       2),
+  ('Angry',         '😡', '#ef4444', 'Angry',       3),
+  ('Furious',       '🤬', '#ef4444', 'Angry',       4)
+on conflict (name) do update set
+  icon = excluded.icon, color = excluded.color,
+  category = excluded.category, sort_order = excluded.sort_order;
 
 -- ── diary_entries ─────────────────────────────────────────────
 create table if not exists public.diary_entries (
