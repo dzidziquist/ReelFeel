@@ -3,12 +3,13 @@ import {
   View, Text, TextInput, TouchableOpacity,
   KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator, StyleSheet,
 } from 'react-native'
-import { Link } from 'expo-router'
+import { Link, useRouter } from 'expo-router'
 import { useAuth } from '../../context/AuthContext'
 import { C } from '../../constants/theme'
 
 export default function Login() {
   const { login } = useAuth()
+  const router = useRouter()
   const [email, setEmail]       = useState('')
   const [password, setPassword] = useState('')
   const [error, setError]       = useState('')
@@ -54,7 +55,7 @@ export default function Login() {
 
           <Text style={s.label}>Password</Text>
           <TextInput
-            style={[s.input, s.inputLast]}
+            style={s.input}
             placeholder="your password"
             placeholderTextColor={C.textMut}
             secureTextEntry
@@ -62,6 +63,13 @@ export default function Login() {
             onChangeText={setPassword}
             onSubmitEditing={handleLogin}
           />
+
+          <TouchableOpacity
+            onPress={() => router.push('/(auth)/forgot-password')}
+            style={s.forgotWrap}
+          >
+            <Text style={s.forgotLink}>Forgot password?</Text>
+          </TouchableOpacity>
 
           <TouchableOpacity
             onPress={handleLogin}
@@ -95,9 +103,10 @@ const s = StyleSheet.create({
   errorBox:  { backgroundColor: '#3f0000', borderWidth: 1, borderColor: C.red, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, marginBottom: 16 },
   errorText: { color: '#fca5a5', fontSize: 13 },
   label:     { color: C.textSub, fontSize: 13, fontWeight: '500', marginBottom: 6 },
-  input:     { backgroundColor: C.bg2, borderWidth: 1, borderColor: C.border, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, color: C.text, fontSize: 14, marginBottom: 16 },
-  inputLast: { marginBottom: 24 },
-  btn:       { backgroundColor: C.red, borderRadius: 12, paddingVertical: 14, alignItems: 'center', marginBottom: 16 },
+  input:      { backgroundColor: C.bg2, borderWidth: 1, borderColor: C.border, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, color: C.text, fontSize: 14, marginBottom: 8 },
+  forgotWrap: { alignSelf: 'flex-end', marginBottom: 20 },
+  forgotLink: { color: C.gold, fontSize: 13 },
+  btn:        { backgroundColor: C.red, borderRadius: 12, paddingVertical: 14, alignItems: 'center', marginBottom: 16 },
   btnText:   { color: C.text, fontWeight: '600', fontSize: 15 },
   footer:    { flexDirection: 'row', justifyContent: 'center' },
   footerMut: { color: C.textMut, fontSize: 13 },
