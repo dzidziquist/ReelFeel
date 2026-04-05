@@ -9,6 +9,8 @@ export default function EntryCard({ entry, onDelete }) {
   const router    = useRouter()
   const { theme } = useTheme()
 
+  if (!media) return null  // guard against broken diary entry join
+
   const isFilm = media.media_type === 'film' || media.media_type === 'movie'
 
   return (
