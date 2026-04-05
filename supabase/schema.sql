@@ -1,5 +1,5 @@
 -- ============================================================
--- MovieRater — Supabase schema  (v2)
+-- MovieRater — Supabase schema  (v3)
 -- Run this in the Supabase SQL editor (Dashboard → SQL Editor)
 -- Safe to re-run: all statements are idempotent.
 -- ============================================================
@@ -8,7 +8,7 @@
 create table if not exists public.media (
   id            bigserial primary key,
   tmdb_id       integer not null,
-  media_type    text    not null check (media_type in ('movie','tv','film')),
+  media_type    text    not null,
   title         text    not null,
   poster_path   text,
   backdrop_path text,
@@ -20,19 +20,40 @@ create table if not exists public.media (
   vote_count    integer,
   tagline       text,
   year          integer,
+  watch_providers jsonb default '[]',
   unique (tmdb_id, media_type)
 );
 
+-- Fix / replace the media_type check constraint to allow 'film' as well as legacy 'movie'
+alter table public.media drop constraint if exists media_media_type_check;
+alter table public.media add constraint media_media_type_check
+  check (media_type in ('movie', 'tv', 'film'));
+
 -- ── emotions ─────────────────────────────────────────────────
 create table if not exists public.emotions (
-  id   bigserial primary key,
-  name text not null unique
+  id    bigserial primary key,
+  name  text not null unique,
+  icon  text not null default '🎭',
+  color text not null default '#888888'
 );
 
-insert into public.emotions (name) values
-  ('Happy'),('Sad'),('Excited'),('Scared'),('Bored'),
-  ('Moved'),('Confused'),('Inspired'),('Amused'),('Tense')
-on conflict (name) do nothing;
+-- Add icon/color columns if they don't exist yet
+alter table public.emotions add column if not exists icon  text not null default '🎭';
+alter table public.emotions add column if not exists color text not null default '#888888';
+
+-- Seed / update emotions with icons and colors
+insert into public.emotions (name, icon, color) values
+  ('Happy',    '😊', '#f59e0b'),
+  ('Sad',      '😢', '#3b82f6'),
+  ('Excited',  '🤩', '#f97316'),
+  ('Scared',   '😱', '#8b5cf6'),
+  ('Bored',    '😑', '#6b7280'),
+  ('Moved',    '🥺', '#ec4899'),
+  ('Confused', '😵', '#14b8a6'),
+  ('Inspired', '✨', '#10b981'),
+  ('Amused',   '😄', '#84cc16'),
+  ('Tense',    '😬', '#ef4444')
+on conflict (name) do update set icon = excluded.icon, color = excluded.color;
 
 -- ── diary_entries ─────────────────────────────────────────────
 create table if not exists public.diary_entries (

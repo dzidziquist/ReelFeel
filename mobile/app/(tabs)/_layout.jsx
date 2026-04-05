@@ -1,28 +1,26 @@
 import { Tabs } from 'expo-router'
-import { Text } from 'react-native'
-import { C } from '../../constants/theme'
-
-function TabIcon({ emoji, focused }) {
-  return <Text style={{ fontSize: 20, opacity: focused ? 1 : 0.4 }}>{emoji}</Text>
-}
+import { Ionicons } from '@expo/vector-icons'
+import { useTheme } from '../../context/ThemeContext'
 
 export default function TabLayout() {
+  const { theme } = useTheme()
+
   return (
     <Tabs
       screenOptions={{
-        tabBarStyle: { backgroundColor: C.bg0, borderTopColor: C.border },
-        tabBarActiveTintColor: C.gold,
-        tabBarInactiveTintColor: C.textMut,
-        headerStyle: { backgroundColor: C.bg1 },
-        headerTintColor: C.text,
-        headerTitleStyle: { color: C.text, fontWeight: '700' },
+        tabBarStyle: { backgroundColor: theme.bg0, borderTopColor: theme.border },
+        tabBarActiveTintColor: theme.gold,
+        tabBarInactiveTintColor: theme.textMut,
+        headerStyle: { backgroundColor: theme.bg1 },
+        headerTintColor: theme.text,
+        headerTitleStyle: { color: theme.text, fontWeight: '700' },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ focused }) => <TabIcon emoji="🏠" focused={focused} />,
+          tabBarIcon: ({ color, size }) => <Ionicons name="home-outline" size={size} color={color} />,
           headerShown: false,
         }}
       />
@@ -30,28 +28,28 @@ export default function TabLayout() {
         name="diary"
         options={{
           title: 'Diary',
-          tabBarIcon: ({ focused }) => <TabIcon emoji="📔" focused={focused} />,
+          tabBarIcon: ({ color, size }) => <Ionicons name="journal-outline" size={size} color={color} />,
         }}
       />
       <Tabs.Screen
         name="watchlist"
         options={{
           title: 'Watchlist',
-          tabBarIcon: ({ focused }) => <TabIcon emoji="🔖" focused={focused} />,
+          tabBarIcon: ({ color, size }) => <Ionicons name="bookmark-outline" size={size} color={color} />,
         }}
       />
       <Tabs.Screen
         name="search"
         options={{
           title: 'Search',
-          tabBarIcon: ({ focused }) => <TabIcon emoji="🔍" focused={focused} />,
+          tabBarIcon: ({ color, size }) => <Ionicons name="search-outline" size={size} color={color} />,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: 'Profile',
-          tabBarIcon: ({ focused }) => <TabIcon emoji="👤" focused={focused} />,
+          tabBarIcon: ({ color, size }) => <Ionicons name="person-outline" size={size} color={color} />,
           headerShown: false,
         }}
       />
@@ -60,7 +58,7 @@ export default function TabLayout() {
         name="library"
         options={{
           title: 'Library',
-          href: null,   // hides from tab bar
+          href: null,
         }}
       />
     </Tabs>

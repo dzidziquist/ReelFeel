@@ -103,3 +103,30 @@ export async function fetchTMDBDetail(tmdbId, mediaType) {
     cast,
   }
 }
+
+// ── Watch Providers ──────────────────────────────────────────
+/**
+ * Fetch streaming / buy / rent providers for a title.
+ * @param {number}  tmdbId
+ * @param {string}  mediaType  'film' | 'tv' | 'movie'
+ * @param {string}  country    ISO 3166-1 alpha-2 (default 'US')
+ */
+export async function getWatchProviders(tmdbId, mediaType, country = 'US') {
+  const path = (mediaType === 'film' || mediaType === 'movie') ? 'movie' : 'tv'
+  try {
+    const data = await get(`/${path}/${tmdbId}/watch/providers`)
+    const region = (data.results ?? {})[country] ?? {}
+    const toProvider = p => ({
+      id:       p.provider_id,
+      name:     p.provider_name,
+      logo_url: p.logo_path ? `${IMG}/w92${p.logo_path}` : null,
+    })
+    return {
+      streaming: (region.flatrate ?? []).map(toProvider),
+      rent:      (region.rent     ?? []).map(toProvider),
+      buy:       (region.buy      ?? []).map(toProvider),
+    }
+  } catch {
+    return { streaming: [], rent: [], buy: [] }
+  }
+}

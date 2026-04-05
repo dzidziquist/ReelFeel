@@ -4,34 +4,35 @@ import {
   Alert, TextInput, Modal, RefreshControl, StyleSheet,
 } from 'react-native'
 import { useRouter } from 'expo-router'
+import { Ionicons } from '@expo/vector-icons'
 import { getProfile, upsertProfile, getInsights, deleteAllMyData, deleteMyAccount } from '../../lib/queries'
 import { useAuth } from '../../context/AuthContext'
-import { C } from '../../constants/theme'
+import { useTheme } from '../../context/ThemeContext'
 
-function Avatar({ name, size = 64 }) {
+function Avatar({ name, size = 64, theme }) {
   const initials = (name || '?').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
   return (
     <View style={[
       a.avatarRing,
-      { width: size + 8, height: size + 8, borderRadius: (size + 8) / 2 },
+      { width: size + 8, height: size + 8, borderRadius: (size + 8) / 2, borderColor: theme?.gold ?? '#d4af37' },
     ]}>
-      <View style={[a.avatar, { width: size, height: size, borderRadius: size / 2 }]}>
-        <Text style={[a.initials, { fontSize: size * 0.38 }]}>{initials}</Text>
+      <View style={[a.avatar, { width: size, height: size, borderRadius: size / 2, backgroundColor: theme?.bg2 ?? '#1a1a1a' }]}>
+        <Text style={[a.initials, { fontSize: size * 0.38, color: theme?.gold ?? '#d4af37' }]}>{initials}</Text>
       </View>
     </View>
   )
 }
 
-function StatBox({ value, label }) {
+function StatBox({ value, label, theme }) {
   return (
     <View style={s.statBox}>
-      <Text style={s.statVal}>{value ?? '—'}</Text>
-      <Text style={s.statLbl}>{label}</Text>
+      <Text style={[s.statVal, { color: theme?.gold ?? '#d4af37' }]}>{value ?? '—'}</Text>
+      <Text style={[s.statLbl, { color: theme?.textMut ?? '#6b6b6b' }]}>{label}</Text>
     </View>
   )
 }
 
-function EditModal({ visible, profile, onSave, onCancel }) {
+function EditModal({ visible, profile, onSave, onCancel, theme = {} }) {
   const [displayName, setDisplayName] = useState(profile?.display_name || '')
   const [bio,         setBio]         = useState(profile?.bio          || '')
   const [saving,      setSaving]      = useState(false)
@@ -55,51 +56,71 @@ function EditModal({ visible, profile, onSave, onCancel }) {
     }
   }
 
+  const mi = {
+    container: { flex: 1, backgroundColor: theme.bg0 ?? '#000' },
+    header:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, paddingTop: 56, borderBottomWidth: 1, borderBottomColor: theme.border ?? '#2a2a2a' },
+    title:     { color: theme.text ?? '#fff', fontSize: 16, fontWeight: '700' },
+    cancel:    { color: theme.textSub ?? '#a3a3a3', fontSize: 15 },
+    save:      { color: theme.gold ?? '#d4af37', fontSize: 15, fontWeight: '700' },
+    body:      { padding: 20 },
+    label:     { color: theme.textSub ?? '#a3a3a3', fontSize: 13, fontWeight: '600', marginBottom: 8 },
+    optional:  { color: theme.textMut ?? '#6b6b6b', fontWeight: '400' },
+    input:     { backgroundColor: theme.bg1 ?? '#111', borderWidth: 1, borderColor: theme.border ?? '#2a2a2a', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, color: theme.text ?? '#fff', fontSize: 14, marginBottom: 20 },
+    charCount: { color: theme.textMut ?? '#6b6b6b', fontSize: 11, textAlign: 'right', marginTop: -16, marginBottom: 20 },
+  }
+
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onCancel}>
-      <View style={m.container}>
-        <View style={m.header}>
-          <TouchableOpacity onPress={onCancel}><Text style={m.cancel}>Cancel</Text></TouchableOpacity>
-          <Text style={m.title}>Edit Profile</Text>
+      <View style={mi.container}>
+        <View style={mi.header}>
+          <TouchableOpacity onPress={onCancel}><Text style={mi.cancel}>Cancel</Text></TouchableOpacity>
+          <Text style={mi.title}>Edit Profile</Text>
           <TouchableOpacity onPress={save} disabled={saving}>
             {saving
-              ? <ActivityIndicator color={C.gold} />
-              : <Text style={m.save}>Save</Text>
+              ? <ActivityIndicator color={theme.gold ?? '#d4af37'} />
+              : <Text style={mi.save}>Save</Text>
             }
           </TouchableOpacity>
         </View>
-        <ScrollView style={m.body} keyboardShouldPersistTaps="handled">
-          <Text style={m.label}>Display Name</Text>
+        <ScrollView style={mi.body} keyboardShouldPersistTaps="handled">
+          <Text style={mi.label}>Display Name</Text>
           <TextInput
-            style={m.input}
+            style={mi.input}
             value={displayName}
             onChangeText={setDisplayName}
             placeholder="Your name"
-            placeholderTextColor={C.textMut}
+            placeholderTextColor={theme.textMut ?? '#6b6b6b'}
             maxLength={40}
           />
-          <Text style={m.label}>Bio <Text style={m.optional}>(optional)</Text></Text>
+          <Text style={mi.label}>Bio <Text style={mi.optional}>(optional)</Text></Text>
           <TextInput
-            style={[m.input, m.textArea]}
+            style={[mi.input, { minHeight: 100 }]}
             value={bio}
             onChangeText={setBio}
             placeholder="A short bio about yourself…"
-            placeholderTextColor={C.textMut}
+            placeholderTextColor={theme.textMut ?? '#6b6b6b'}
             multiline
             numberOfLines={4}
             textAlignVertical="top"
             maxLength={200}
           />
-          <Text style={m.charCount}>{bio.length}/200</Text>
+          <Text style={mi.charCount}>{bio.length}/200</Text>
         </ScrollView>
       </View>
     </Modal>
   )
 }
 
+const THEME_MODES = [
+  { key: 'system', label: 'System', icon: 'phone-portrait-outline' },
+  { key: 'light',  label: 'Light',  icon: 'sunny-outline' },
+  { key: 'dark',   label: 'Dark',   icon: 'moon-outline' },
+]
+
 export default function Profile() {
   const { logout } = useAuth()
   const router     = useRouter()
+  const { theme, mode, setMode } = useTheme()
 
   const [profile,    setProfile]    = useState(null)
   const [insights,   setInsights]   = useState(null)
@@ -191,7 +212,7 @@ export default function Profile() {
   }
 
   if (loading) {
-    return <View style={s.center}><ActivityIndicator size="large" color={C.gold} /></View>
+    return <View style={[s.center, { backgroundColor: theme.bg0 }]}><ActivityIndicator size="large" color={theme.gold} /></View>
   }
 
   const displayName = profile?.display_name || profile?.username || 'User'
@@ -201,88 +222,103 @@ export default function Profile() {
     : ''
 
   return (
-    <View style={s.flex}>
+    <View style={[s.flex, { backgroundColor: theme.bg0 }]}>
       <EditModal
         visible={editOpen}
         profile={profile}
         onSave={handleEditSave}
         onCancel={() => setEditOpen(false)}
+        theme={theme}
       />
 
       <ScrollView
         style={s.flex}
         contentContainerStyle={s.content}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={C.gold} colors={[C.gold]} />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={theme.gold} colors={[theme.gold]} />}
       >
         {/* Profile Header */}
         <View style={s.hero}>
-          <Avatar name={displayName} size={72} />
+          <Avatar name={displayName} size={72} theme={theme} />
           <View style={s.heroInfo}>
-            <Text style={s.displayName}>{displayName}</Text>
-            {username ? <Text style={s.username}>{username}</Text> : null}
-            {profile?.bio ? <Text style={s.bio}>{profile.bio}</Text> : null}
-            {memberSince ? <Text style={s.memberSince}>Member since {memberSince}</Text> : null}
+            <Text style={[s.displayName, { color: theme.text }]}>{displayName}</Text>
+            {username ? <Text style={[s.username, { color: theme.textMut }]}>{username}</Text> : null}
+            {profile?.bio ? <Text style={[s.bio, { color: theme.textSub }]}>{profile.bio}</Text> : null}
+            {memberSince ? <Text style={[s.memberSince, { color: theme.textMut }]}>Member since {memberSince}</Text> : null}
           </View>
-          <TouchableOpacity onPress={() => setEditOpen(true)} style={s.editBtn}>
-            <Text style={s.editBtnText}>Edit</Text>
+          <TouchableOpacity onPress={() => setEditOpen(true)} style={[s.editBtn, { borderColor: theme.border }]}>
+            <Text style={[s.editBtnText, { color: theme.textSub }]}>Edit</Text>
           </TouchableOpacity>
         </View>
 
-        {error ? (
-          <View style={s.errorBox}><Text style={s.errorText}>{error}</Text></View>
-        ) : null}
+        {error ? <View style={s.errorBox}><Text style={s.errorText}>{error}</Text></View> : null}
 
         {/* Stats */}
-        <View style={s.statsSection}>
-          <Text style={s.sectionLabel}>WATCH STATS</Text>
+        <View style={[s.section, { backgroundColor: theme.bg1, borderColor: theme.border }]}>
+          <Text style={[s.sectionLabel, { color: theme.textMut }]}>WATCH STATS</Text>
           <View style={s.statsGrid}>
-            <StatBox value={insights?.totalMovies}  label="Films" />
-            <StatBox value={insights?.totalTV}      label="TV Shows" />
-            <StatBox value={insights?.totalEntries} label="Entries" />
-            <StatBox
-              value={insights?.avgRating ? insights.avgRating.toFixed(1) : null}
-              label="Avg Rating"
-            />
+            <StatBox value={insights?.totalMovies}  label="Films"    theme={theme} />
+            <StatBox value={insights?.totalTV}      label="TV Shows"  theme={theme} />
+            <StatBox value={insights?.totalEntries} label="Entries"   theme={theme} />
+            <StatBox value={insights?.avgRating ? insights.avgRating.toFixed(1) : null} label="Avg Rating" theme={theme} />
           </View>
           {insights?.totalRuntime > 0 && (
-            <View style={s.runtimeRow}>
-              <Text style={s.runtimeText}>
+            <View style={[s.runtimeRow, { borderTopColor: theme.border }]}>
+              <Text style={[s.runtimeText, { color: theme.textSub }]}>
                 ⏱ {Math.floor(insights.totalRuntime / 60)}h {insights.totalRuntime % 60}m watched all-time
               </Text>
             </View>
           )}
         </View>
 
+        {/* Appearance */}
+        <View style={[s.section, { backgroundColor: theme.bg1, borderColor: theme.border }]}>
+          <Text style={[s.sectionLabel, { color: theme.textMut }]}>APPEARANCE</Text>
+          <View style={s.themeRow}>
+            {THEME_MODES.map(m => {
+              const active = mode === m.key
+              return (
+                <TouchableOpacity
+                  key={m.key}
+                  onPress={() => setMode(m.key)}
+                  style={[s.themeBtn, { borderColor: active ? theme.gold : theme.border, backgroundColor: active ? theme.gold + '20' : theme.bg2 }]}
+                >
+                  <Ionicons name={m.icon} size={18} color={active ? theme.gold : theme.textMut} />
+                  <Text style={[s.themeBtnText, { color: active ? theme.gold : theme.textMut }]}>{m.label}</Text>
+                </TouchableOpacity>
+              )
+            })}
+          </View>
+        </View>
+
         {/* Navigation */}
-        <View style={s.linksSection}>
-          <Text style={s.sectionLabel}>COLLECTION</Text>
-          <TouchableOpacity
-            style={s.linkRow}
-            onPress={() => router.push('/(tabs)/library')}
-          >
-            <Text style={s.linkEmoji}>📚</Text>
-            <Text style={s.linkText}>My Library</Text>
-            <Text style={s.linkChevron}>›</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={s.linkRow}
-            onPress={() => router.push('/(tabs)/diary')}
-          >
-            <Text style={s.linkEmoji}>📔</Text>
-            <Text style={s.linkText}>Watch Diary</Text>
-            <Text style={s.linkChevron}>›</Text>
-          </TouchableOpacity>
+        <View style={[s.section, { backgroundColor: theme.bg1, borderColor: theme.border }]}>
+          <Text style={[s.sectionLabel, { color: theme.textMut }]}>COLLECTION</Text>
+          {[
+            { icon: 'library-outline',  label: 'My Library',  desc: 'Unique titles watched', route: '/(tabs)/library' },
+            { icon: 'journal-outline',  label: 'Watch Diary', desc: 'All watch sessions',     route: '/(tabs)/diary'   },
+          ].map(item => (
+            <TouchableOpacity key={item.route} style={[s.linkRow, { borderBottomColor: theme.border }]} onPress={() => router.push(item.route)}>
+              <View style={[s.iconWrap, { backgroundColor: theme.bg2 }]}>
+                <Ionicons name={item.icon} size={20} color={theme.gold} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[s.linkText, { color: theme.text }]}>{item.label}</Text>
+                <Text style={[s.linkDesc, { color: theme.textMut }]}>{item.desc}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={theme.textMut} />
+            </TouchableOpacity>
+          ))}
         </View>
 
         {/* Account */}
-        <View style={s.linksSection}>
-          <Text style={s.sectionLabel}>ACCOUNT</Text>
+        <View style={[s.section, { backgroundColor: theme.bg1, borderColor: theme.border }]}>
+          <Text style={[s.sectionLabel, { color: theme.textMut }]}>ACCOUNT</Text>
           <TouchableOpacity style={s.linkRow} onPress={logout}>
-            <Text style={s.linkEmoji}>🚪</Text>
-            <Text style={s.linkText}>Sign Out</Text>
-            <Text style={s.linkChevron}>›</Text>
+            <View style={[s.iconWrap, { backgroundColor: theme.bg2 }]}>
+              <Ionicons name="log-out-outline" size={20} color={theme.textSub} />
+            </View>
+            <Text style={[s.linkText, { color: theme.text, flex: 1 }]}>Sign Out</Text>
+            <Ionicons name="chevron-forward" size={18} color={theme.textMut} />
           </TouchableOpacity>
         </View>
 
@@ -290,19 +326,25 @@ export default function Profile() {
         <View style={s.dangerSection}>
           <Text style={s.dangerLabel}>DANGER ZONE</Text>
           <TouchableOpacity style={s.dangerRow} onPress={confirmDeleteData}>
-            <View>
-              <Text style={s.dangerTitle}>Delete All My Data</Text>
-              <Text style={s.dangerDesc}>Remove all diary entries and watchlist items</Text>
+            <View style={[s.iconWrap, { backgroundColor: 'rgba(220,38,38,0.15)' }]}>
+              <Ionicons name="trash-outline" size={20} color="#ef4444" />
             </View>
-            <Text style={s.dangerArrow}>›</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={s.dangerTitle}>Delete All My Data</Text>
+              <Text style={s.dangerDesc}>Remove diary entries and watchlist</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="#ef4444" />
           </TouchableOpacity>
           <View style={s.dangerDivider} />
           <TouchableOpacity style={s.dangerRow} onPress={confirmDeleteAccount}>
-            <View>
-              <Text style={[s.dangerTitle, { color: '#ff4444' }]}>Delete Account</Text>
-              <Text style={s.dangerDesc}>Permanently delete your account and all data</Text>
+            <View style={[s.iconWrap, { backgroundColor: 'rgba(220,38,38,0.15)' }]}>
+              <Ionicons name="person-remove-outline" size={20} color="#ff4444" />
             </View>
-            <Text style={[s.dangerArrow, { color: '#ff4444' }]}>›</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={[s.dangerTitle, { color: '#ff4444' }]}>Delete Account</Text>
+              <Text style={s.dangerDesc}>Permanently delete account and all data</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="#ff4444" />
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -311,77 +353,58 @@ export default function Profile() {
 }
 
 const s = StyleSheet.create({
-  flex:          { flex: 1, backgroundColor: C.bg0 },
-  center:        { flex: 1, backgroundColor: C.bg0, alignItems: 'center', justifyContent: 'center' },
-  content:       { padding: 16, paddingBottom: 60 },
+  flex:        { flex: 1 },
+  center:      { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  content:     { padding: 16, paddingBottom: 60 },
 
   // Hero
-  hero:          { flexDirection: 'row', gap: 12, alignItems: 'flex-start', marginTop: 48, marginBottom: 28 },
-  heroInfo:      { flex: 1 },
-  displayName:   { color: C.text, fontSize: 20, fontWeight: '800' },
-  username:      { color: C.textMut, fontSize: 13, marginTop: 2 },
-  bio:           { color: C.textSub, fontSize: 13, marginTop: 6, lineHeight: 18 },
-  memberSince:   { color: C.textMut, fontSize: 11, marginTop: 6 },
-  editBtn:       { borderWidth: 1, borderColor: C.border, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 6 },
-  editBtnText:   { color: C.textSub, fontSize: 13 },
+  hero:        { flexDirection: 'row', gap: 12, alignItems: 'flex-start', marginTop: 48, marginBottom: 20 },
+  heroInfo:    { flex: 1 },
+  displayName: { fontSize: 20, fontWeight: '800' },
+  username:    { fontSize: 13, marginTop: 2 },
+  bio:         { fontSize: 13, marginTop: 6, lineHeight: 18 },
+  memberSince: { fontSize: 11, marginTop: 6 },
+  editBtn:     { borderWidth: 1, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 6 },
+  editBtnText: { fontSize: 13 },
+
+  // Shared section card
+  section:     { borderRadius: 14, padding: 16, marginBottom: 14, borderWidth: 1 },
+  sectionLabel:{ fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 },
 
   // Stats
-  statsSection:  { backgroundColor: C.bg1, borderRadius: 14, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: C.border },
-  sectionLabel:  { color: C.textMut, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 },
-  statsGrid:     { flexDirection: 'row', flexWrap: 'wrap', gap: 1 },
-  statBox:       { width: '50%', paddingVertical: 10, alignItems: 'center' },
-  statVal:       { color: C.gold, fontSize: 26, fontWeight: '700' },
-  statLbl:       { color: C.textMut, fontSize: 11, marginTop: 2 },
-  runtimeRow:    { marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: C.border },
-  runtimeText:   { color: C.textSub, fontSize: 12, textAlign: 'center' },
+  statsGrid:   { flexDirection: 'row', flexWrap: 'wrap' },
+  statBox:     { width: '50%', paddingVertical: 10, alignItems: 'center' },
+  statVal:     { fontSize: 26, fontWeight: '700' },
+  statLbl:     { fontSize: 11, marginTop: 2 },
+  runtimeRow:  { marginTop: 12, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth },
+  runtimeText: { fontSize: 12, textAlign: 'center' },
+
+  // Appearance
+  themeRow:    { flexDirection: 'row', gap: 8 },
+  themeBtn:    { flex: 1, paddingVertical: 10, borderRadius: 10, borderWidth: 1, alignItems: 'center', gap: 4 },
+  themeBtnText:{ fontSize: 11, fontWeight: '600' },
 
   // Links
-  linksSection:  { backgroundColor: C.bg1, borderRadius: 14, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: C.border },
-  linkRow:       { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, gap: 12 },
-  linkEmoji:     { fontSize: 20, width: 28 },
-  linkText:      { flex: 1, color: C.text, fontSize: 15 },
-  linkChevron:   { color: C.textMut, fontSize: 20 },
+  linkRow:     { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, gap: 12, borderBottomWidth: StyleSheet.hairlineWidth },
+  iconWrap:    { width: 36, height: 36, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
+  linkText:    { fontSize: 15, fontWeight: '500' },
+  linkDesc:    { fontSize: 11, marginTop: 1 },
 
   // Danger
-  dangerSection: {
-    backgroundColor: '#1a0000', borderRadius: 14, padding: 16,
-    marginBottom: 16, borderWidth: 1, borderColor: '#5c1414',
-  },
+  dangerSection: { backgroundColor: '#1a0000', borderRadius: 14, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: '#5c1414' },
   dangerLabel:   { color: '#ef4444', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 },
-  dangerRow:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 8 },
-  dangerTitle:   { color: C.textSub, fontSize: 14, fontWeight: '600' },
-  dangerDesc:    { color: C.textMut, fontSize: 11, marginTop: 2 },
-  dangerArrow:   { color: C.textMut, fontSize: 20 },
-  dangerDivider: { height: 1, backgroundColor: '#3f0000', marginVertical: 4 },
+  dangerRow:     { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, gap: 12 },
+  dangerTitle:   { color: '#a3a3a3', fontSize: 14, fontWeight: '600' },
+  dangerDesc:    { color: '#6b6b6b', fontSize: 11, marginTop: 2 },
+  dangerDivider: { height: StyleSheet.hairlineWidth, backgroundColor: '#3f0000', marginVertical: 4 },
 
-  errorBox:      { backgroundColor: '#3f0000', borderWidth: 1, borderColor: C.red, borderRadius: 12, padding: 14, marginBottom: 16 },
-  errorText:     { color: '#fca5a5', fontSize: 13 },
+  errorBox:  { backgroundColor: '#3f0000', borderWidth: 1, borderColor: '#dc2626', borderRadius: 12, padding: 14, marginBottom: 16 },
+  errorText: { color: '#fca5a5', fontSize: 13 },
 })
 
-// Avatar sub-styles
+// Avatar sub-styles (static — colors applied inline in Avatar component)
 const a = StyleSheet.create({
-  avatarRing: { borderWidth: 2, borderColor: C.gold, alignItems: 'center', justifyContent: 'center' },
-  avatar:     { backgroundColor: C.bg2, alignItems: 'center', justifyContent: 'center' },
-  initials:   { color: C.gold, fontWeight: '800' },
-})
-
-// Modal sub-styles
-const m = StyleSheet.create({
-  container:  { flex: 1, backgroundColor: C.bg0 },
-  header:     {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    padding: 16, paddingTop: 56, borderBottomWidth: 1, borderBottomColor: C.border,
-  },
-  title:      { color: C.text, fontSize: 16, fontWeight: '700' },
-  cancel:     { color: C.textSub, fontSize: 15 },
-  save:       { color: C.gold, fontSize: 15, fontWeight: '700' },
-  body:       { padding: 20 },
-  label:      { color: C.textSub, fontSize: 13, fontWeight: '600', marginBottom: 8 },
-  optional:   { color: C.textMut, fontWeight: '400' },
-  input:      {
-    backgroundColor: C.bg1, borderWidth: 1, borderColor: C.border, borderRadius: 12,
-    paddingHorizontal: 16, paddingVertical: 12, color: C.text, fontSize: 14, marginBottom: 20,
-  },
-  textArea:   { minHeight: 100 },
-  charCount:  { color: C.textMut, fontSize: 11, textAlign: 'right', marginTop: -16, marginBottom: 20 },
+  avatarRing: { borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  avatar:     { alignItems: 'center', justifyContent: 'center' },
+  initials:   { fontWeight: '800' },
 })

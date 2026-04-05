@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { Stack, useRouter, useSegments } from 'expo-router'
 import { AuthProvider, useAuth } from '../context/AuthContext'
-import { C } from '../constants/theme'
+import { ThemeProvider, useTheme } from '../context/ThemeContext'
 
 function AuthGuard() {
   const { user, loading } = useAuth()
@@ -18,18 +18,26 @@ function AuthGuard() {
   return null
 }
 
-const hdr = { backgroundColor: C.bg1 }
+function AppStack() {
+  const { theme } = useTheme()
+  const hdr = { backgroundColor: theme.headerBg }
+  return (
+    <Stack>
+      <Stack.Screen name="(auth)"         options={{ headerShown: false }} />
+      <Stack.Screen name="(tabs)"         options={{ headerShown: false }} />
+      <Stack.Screen name="log"            options={{ presentation: 'modal', title: 'Log Entry', headerStyle: hdr, headerTintColor: theme.text }} />
+      <Stack.Screen name="media/[tmdbId]" options={{ title: '', headerStyle: hdr, headerTintColor: theme.text }} />
+    </Stack>
+  )
+}
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <AuthGuard />
-      <Stack>
-        <Stack.Screen name="(auth)"        options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)"        options={{ headerShown: false }} />
-        <Stack.Screen name="log"           options={{ presentation: 'modal', title: 'Log Entry', headerStyle: hdr, headerTintColor: C.text }} />
-        <Stack.Screen name="media/[tmdbId]" options={{ title: '', headerStyle: hdr, headerTintColor: C.text }} />
-      </Stack>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <AuthGuard />
+        <AppStack />
+      </AuthProvider>
+    </ThemeProvider>
   )
 }
