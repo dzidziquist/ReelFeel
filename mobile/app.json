@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "MovieRater",
-    "slug": "movierater",
+    "name": "SceneIT",
+    "slug": "sceneit",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -14,7 +14,7 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.movierater.app",
+      "bundleIdentifier": "com.sceneit.app",
       "buildNumber": "1"
     },
     "android": {
@@ -23,7 +23,7 @@
         "backgroundColor": "#111827"
       }
     },
-    "scheme": "movierater",
+    "scheme": "sceneit",
     "web": {
       "favicon": "./assets/favicon.png"
     },

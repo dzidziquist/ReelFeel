@@ -40,7 +40,7 @@ export default function Register() {
     return (
       <View style={[s.flex, { backgroundColor: theme.bg0 }]}>
         <View style={s.inner}>
-          <Text style={[s.title, { color: theme.text }]}>MovieRater</Text>
+          <Text style={[s.title, { color: theme.text }]}>SceneIT</Text>
           <Text style={[s.subtitle, { color: theme.textSub }]}>Check your inbox.</Text>
 
           <View style={[s.confirmBox, { backgroundColor: theme.bg2, borderColor: theme.border }]}>
@@ -67,7 +67,7 @@ export default function Register() {
     <KeyboardAvoidingView style={[s.flex, { backgroundColor: theme.bg0 }]} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled">
         <View style={s.inner}>
-          <Text style={[s.title, { color: theme.text }]}>MovieRater</Text>
+          <Text style={[s.title, { color: theme.text }]}>SceneIT</Text>
           <Text style={[s.subtitle, { color: theme.textSub }]}>Create your account.</Text>
 
           {error ? (

@@ -16,7 +16,7 @@ export default function NavBar() {
   return (
     <nav className="bg-gray-900 border-b border-gray-800 sticky top-0 z-50">
       <div className="max-w-5xl mx-auto px-4 flex items-center justify-between h-14">
-        <Link to="/" className="text-teal-400 font-bold text-xl tracking-tight">🎬 MovieRater</Link>
+        <Link to="/" className="text-teal-400 font-bold text-xl tracking-tight">🎬 SceneIT</Link>
 
         {user && (
           <div className="flex items-center gap-5">
