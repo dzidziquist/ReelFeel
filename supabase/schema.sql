@@ -1,5 +1,5 @@
 -- ============================================================
--- MovieRater — Supabase schema  (v3)
+-- SceneIT — Supabase schema  (v3)
 -- Run this in the Supabase SQL editor (Dashboard → SQL Editor)
 -- Safe to re-run: all statements are idempotent.
 -- ============================================================

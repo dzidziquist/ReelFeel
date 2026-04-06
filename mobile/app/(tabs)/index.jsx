@@ -209,7 +209,7 @@ export default function Home() {
         <View style={s.header}>
           <Text style={s.logo}>🎬</Text>
           <View>
-            <Text style={[s.appName, { color: theme.text }]}>MovieRater</Text>
+            <Text style={[s.appName, { color: theme.text }]}>SceneIT</Text>
             <Text style={[s.subtitle, { color: theme.textMut }]}>What's on the big screen</Text>
           </View>
         </View>

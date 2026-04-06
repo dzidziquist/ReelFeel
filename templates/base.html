@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{% block title %}MovieRater{% endblock %}</title>
+  <title>{% block title %}SceneIT{% endblock %}</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -25,7 +25,7 @@
   <nav class="bg-gray-900 border-b border-gray-800 sticky top-0 z-50">
     <div class="max-w-6xl mx-auto px-4 flex items-center justify-between h-14">
       <a href="{% url 'home' %}" class="text-brand font-bold text-xl tracking-tight">
-        🎬 MovieRater
+        🎬 SceneIT
       </a>
       <div class="flex items-center gap-6 text-sm font-medium">
         <a href="{% url 'home' %}" class="hover:text-brand transition-colors">Diary</a>
@@ -55,7 +55,7 @@
   </main>
 
   <footer class="text-center text-gray-600 text-xs py-6 border-t border-gray-800">
-    MovieRater — personal media tracker
+    SceneIT — personal media tracker
   </footer>
 
   <script src="{% static 'js/main.js' %}"></script>
