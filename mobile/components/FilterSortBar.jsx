@@ -102,6 +102,7 @@ export default function FilterSortBar({
           onClose={() => setOpen(false)}
           emotions={emotions}
           availableGenres={availableGenres}
+          mode={mode}
         />
       </Modal>
     </View>
@@ -125,7 +126,7 @@ const DATE_PRESETS = [
   { label: 'This year',  start: TODAY.slice(0, 4) + '-01-01', end: TODAY },
 ]
 
-function FilterPanel({ theme, filters, onFiltersChange, onClose, emotions, availableGenres }) {
+function FilterPanel({ theme, filters, onFiltersChange, onClose, emotions, availableGenres, mode }) {
   const [local, setLocal] = useState({
     genre: '', minRating: '', maxRating: '', emotionIds: [], startDate: '', endDate: '',
     ...filters,
@@ -152,12 +153,14 @@ function FilterPanel({ theme, filters, onFiltersChange, onClose, emotions, avail
     patch({ startDate: preset.start, endDate: preset.end })
   }
 
-  const activeCount = [
-    local.genre,
-    local.minRating,
-    local.maxRating,
-    ...(local.emotionIds ?? []),
-  ].filter(Boolean).length + (local.startDate || local.endDate ? 1 : 0)
+  const activeCount = mode === 'watchlist'
+    ? [local.genre].filter(Boolean).length
+    : [
+        local.genre,
+        local.minRating,
+        local.maxRating,
+        ...(local.emotionIds ?? []),
+      ].filter(Boolean).length + (local.startDate || local.endDate ? 1 : 0)
 
   return (
     <View style={[fp.container, { backgroundColor: theme.bg0 }]}>
@@ -193,8 +196,8 @@ function FilterPanel({ theme, filters, onFiltersChange, onClose, emotions, avail
           </View>
         )}
 
-        {/* Rating range */}
-        <View style={fp.section}>
+        {/* Rating range — diary only */}
+        {mode !== 'watchlist' && <View style={fp.section}>
           <Text style={[fp.sectionLabel, { color: theme.textSub }]}>Rating</Text>
           <View style={fp.ratingRow}>
             <View style={fp.ratingInput}>
@@ -223,10 +226,10 @@ function FilterPanel({ theme, filters, onFiltersChange, onClose, emotions, avail
               />
             </View>
           </View>
-        </View>
+        </View>}
 
-        {/* Date Range */}
-        <View style={fp.section}>
+        {/* Date Range — diary only */}
+        {mode !== 'watchlist' && <View style={fp.section}>
           <Text style={[fp.sectionLabel, { color: theme.textSub }]}>Date Range</Text>
 
           {/* Preset chips */}
@@ -312,7 +315,7 @@ function FilterPanel({ theme, filters, onFiltersChange, onClose, emotions, avail
               )}
             </View>
           )}
-        </View>
+        </View>}
 
         {/* Emotion filter */}
         {emotions.length > 0 && (

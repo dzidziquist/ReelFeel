@@ -36,6 +36,7 @@ export default function TabLayout() {
         options={{
           title: 'Watchlist',
           tabBarIcon: ({ color, size }) => <Ionicons name="bookmark-outline" size={size} color={color} />,
+          headerShown: false,
         }}
       />
       <Tabs.Screen
