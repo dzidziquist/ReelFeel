@@ -122,7 +122,7 @@ export default function Home() {
       // Update watch state badge
       setWatchStates(prev => {
         const map = new Map(prev)
-        map.set(item.tmdb_id, { watched: true, liked: false, rated: true, inWatchlist: prev.get(item.tmdb_id)?.inWatchlist ?? false })
+        map.set(item.tmdb_id, { watched: true, liked: false, rated: true, inWatchlist: false })
         return map
       })
       Alert.alert('Marked watched', `"${item.title}" logged with 3★`)

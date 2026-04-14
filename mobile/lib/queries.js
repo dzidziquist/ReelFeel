@@ -51,6 +51,9 @@ export async function createEntry({ tmdb_id, media_type, rating, watched_on, rev
       .insert(emotion_ids.map(id => ({ entry_id: entry.id, emotion_id: id })))
     if (eErr) throw eErr
   }
+  // Auto-remove from watchlist when logged (ignore error if not present)
+  await supabase.from('watchlist').delete()
+    .eq('user_id', user.id).eq('media_id', media.id)
   return entry
 }
 
