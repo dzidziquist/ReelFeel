@@ -7,7 +7,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
 import { getWatchlist, removeFromWatchlist } from '../../lib/queries'
 import PosterCard from '../../components/PosterCard'
-import SwipeableRow from '../../components/SwipeableRow'
 import FilterSortBar from '../../components/FilterSortBar'
 import { useTheme } from '../../context/ThemeContext'
 
@@ -90,7 +89,7 @@ export default function Watchlist() {
         ListHeaderComponent={
           <View style={s.headerBlock}>
             <Text style={[s.title, { color: theme.text }]}>Watchlist</Text>
-            <Text style={[s.subtitle, { color: theme.textMut }]}>{items.length} {items.length === 1 ? 'title' : 'titles'} saved · Swipe left to remove</Text>
+            <Text style={[s.subtitle, { color: theme.textMut }]}>{items.length} {items.length === 1 ? 'title' : 'titles'} saved · Long press to remove</Text>
             {error ? <View style={s.errorBox}><Text style={s.errorText}>{error}</Text></View> : null}
             <View style={{ marginTop: 12 }}>
               <FilterSortBar
@@ -125,22 +124,18 @@ export default function Watchlist() {
           if (!item) return <View style={{ width: ITEM_WIDTH }} />
           return (
             <View style={{ width: ITEM_WIDTH }}>
-              <SwipeableRow onDelete={() => confirmRemove(item)}>
-                <View style={{ paddingRight: 4 }}>
-                  <PosterCard
-                    item={item.media}
-                    width={ITEM_WIDTH - 4}
-                    onPress={() => router.push(`/media/${item.media.tmdb_id}?type=${item.media.media_type}`)}
-                    onLongPress={() => confirmRemove(item)}
-                  />
-                  <TouchableOpacity
-                    onPress={() => router.push(`/log?tmdb_id=${item.media.tmdb_id}&type=${item.media.media_type}`)}
-                    style={[s.logBtn, { backgroundColor: theme.red }]}
-                  >
-                    <Text style={s.logBtnText}>+ Log</Text>
-                  </TouchableOpacity>
-                </View>
-              </SwipeableRow>
+              <PosterCard
+                item={item.media}
+                width={ITEM_WIDTH}
+                onPress={() => router.push(`/media/${item.media.tmdb_id}?type=${item.media.media_type}`)}
+                onLongPress={() => confirmRemove(item)}
+              />
+              <TouchableOpacity
+                onPress={() => router.push(`/log?tmdb_id=${item.media.tmdb_id}&type=${item.media.media_type}`)}
+                style={[s.logBtn, { backgroundColor: theme.red }]}
+              >
+                <Text style={s.logBtnText}>+ Log</Text>
+              </TouchableOpacity>
             </View>
           )
         }}
