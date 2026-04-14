@@ -3,6 +3,7 @@ import {
   View, Text, FlatList, TouchableOpacity, ActivityIndicator,
   Alert, RefreshControl, Dimensions, StyleSheet,
 } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
 import { getWatchlist, removeFromWatchlist } from '../../lib/queries'
 import PosterCard from '../../components/PosterCard'
@@ -25,8 +26,9 @@ function applySort(items, sort) {
 }
 
 export default function Watchlist() {
-  const { theme } = useTheme()
-  const router    = useRouter()
+  const { theme }  = useTheme()
+  const router     = useRouter()
+  const insets     = useSafeAreaInsets()
 
   const [items,     setItems]     = useState([])
   const [loading,   setLoading]   = useState(true)
@@ -70,7 +72,7 @@ export default function Watchlist() {
     return applySort(result, sort)
   }, [items, filters, sort])
 
-  if (loading) return <View style={[s.center, { backgroundColor: theme.bg0 }]}><ActivityIndicator size="large" color={theme.gold} /></View>
+  if (loading) return <View style={[s.center, { backgroundColor: theme.bg0, paddingTop: insets.top }]}><ActivityIndicator size="large" color={theme.gold} /></View>
 
   // Pad for even columns
   const padded = [...displayed]
@@ -82,7 +84,7 @@ export default function Watchlist() {
         data={padded}
         keyExtractor={(item, i) => item ? String(item.id) : `pad-${i}`}
         numColumns={NUM_COLS}
-        contentContainerStyle={s.list}
+        contentContainerStyle={[s.list, { paddingTop: insets.top + 16 }]}
         columnWrapperStyle={s.row}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={theme.gold} colors={[theme.gold]} />}
         ListHeaderComponent={
@@ -150,7 +152,7 @@ export default function Watchlist() {
 const s = StyleSheet.create({
   flex:        { flex: 1 },
   center:      { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  list:        { padding: 16, paddingBottom: 48 },
+  list:        { paddingHorizontal: 16, paddingBottom: 48 },
   row:         { gap: GAP, marginBottom: GAP },
   headerBlock: { marginBottom: 12 },
   title:       { fontSize: 24, fontWeight: '800' },
