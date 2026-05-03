@@ -12,6 +12,10 @@ export const DARK = {
   redL:      '#ef4444',
   gold:      '#d4af37',
   goldL:     '#f0c842',
+  violet:    '#7c3aed',
+  violetL:   '#a78bfa',
+  pink:      '#ec4899',
+  pinkL:     '#f472b6',
   success:   '#22c55e',
   info:      '#3b82f6',
   // Semantic
@@ -37,6 +41,10 @@ export const LIGHT = {
   redL:      '#ef4444',
   gold:      '#b8860b',
   goldL:     '#d4af37',
+  violet:    '#7c3aed',
+  violetL:   '#8b5cf6',
+  pink:      '#db2777',
+  pinkL:     '#ec4899',
   success:   '#16a34a',
   info:      '#2563eb',
   // Semantic
