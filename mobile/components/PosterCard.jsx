@@ -84,23 +84,30 @@ export default function PosterCard({ item, width = 120, onPress, onLongPress, wa
 }
 
 const s = StyleSheet.create({
-  imageWrap:    { borderRadius: 8, overflow: 'hidden', backgroundColor: '#1a1a1a' },
+  imageWrap:    {
+    borderRadius: 4, overflow: 'hidden', backgroundColor: '#1a1a1a',
+    borderWidth: 2, borderColor: '#222',
+    shadowColor: '#000', shadowOffset: { width: 3, height: 3 }, shadowOpacity: 0.9, shadowRadius: 0,
+    elevation: 3,
+  },
   fallback:     { alignItems: 'center', justifyContent: 'center' },
   fallbackEmoji:{ fontSize: 28 },
-  typeBadge:    { position: 'absolute', top: 4, left: 4, borderRadius: 4, paddingHorizontal: 5, paddingVertical: 2 },
-  typeText:     { fontSize: 10, fontWeight: '700', color: '#fff' },
+  typeBadge:    { position: 'absolute', top: 4, left: 4, borderRadius: 3, paddingHorizontal: 5, paddingVertical: 2 },
+  typeText:     { fontSize: 10, fontWeight: '800', color: '#fff' },
   ratingBadge:  {
     position: 'absolute', bottom: 6, right: 6,
-    backgroundColor: 'rgba(0,0,0,0.75)',
-    borderRadius: 6, paddingHorizontal: 5, paddingVertical: 3,
+    backgroundColor: 'rgba(0,0,0,0.85)',
+    borderRadius: 3, paddingHorizontal: 5, paddingVertical: 3,
     flexDirection: 'row', alignItems: 'center', gap: 2,
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)',
   },
-  ratingText:   { fontSize: 10, fontWeight: '700' },
+  ratingText:   { fontSize: 10, fontWeight: '800' },
   stateBadge:   {
     position: 'absolute', bottom: 6, left: 6,
-    borderRadius: 6, width: 22, height: 22,
+    borderRadius: 3, width: 22, height: 22,
     alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)',
   },
-  title:        { fontSize: 11, marginTop: 5 },
+  title:        { fontSize: 11, marginTop: 5, fontWeight: '600' },
   year:         { fontSize: 10 },
 })
