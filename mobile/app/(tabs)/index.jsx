@@ -5,8 +5,8 @@ import {
   Alert,
 } from 'react-native'
 import { useRouter, useFocusEffect } from 'expo-router'
-import { getTrending, getNowPlaying, getPopularTV } from '../../lib/tmdb'
-import { addToWatchlist, createEntry, getWatchStatesForTmdbIds } from '../../lib/queries'
+import { getTrending, getNowPlaying, getPopularTV, getRecommendations } from '../../lib/tmdb'
+import { addToWatchlist, createEntry, getWatchStatesForTmdbIds, getRecommendationSeeds } from '../../lib/queries'
 import { StarPicker } from '../../components/StarRating'
 import PosterCard from '../../components/PosterCard'
 import ActionSheet from '../../components/ActionSheet'
@@ -16,10 +16,11 @@ const CARD_WIDTH = 120
 const CARD_GAP   = 12
 
 function Section({ title, emoji, data, onItemPress, onItemLongPress, watchStates }) {
+  const { theme } = useTheme()
   if (!data?.length) return null
   return (
     <View style={s.section}>
-      <Text style={s.sectionTitle}>{emoji}  {title}</Text>
+      <Text style={[s.sectionTitle, { color: theme.text }]}>{emoji}  {title}</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.row}>
         {data.map(item => (
           <PosterCard
@@ -44,6 +45,7 @@ export default function Home() {
   const [nowPlaying, setNowPlaying] = useState([])
   const [trending,   setTrending]   = useState([])
   const [popularTV,  setPopularTV]  = useState([])
+  const [forYou,     setForYou]     = useState([])
   const [watchStates,setWatchStates]= useState(new Map())
   const [loading,    setLoading]    = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -76,10 +78,34 @@ export default function Home() {
         const states = await getWatchStatesForTmdbIds(allIds)
         setWatchStates(states)
       } catch (_) {}
+
+      // Personalised recommendations — non-blocking, runs after main load
+      loadForYou().catch(() => {})
     } catch (err) {
       setError('Failed to load. Check your TMDB API key.')
     }
   }, [])
+
+  async function loadForYou() {
+    const seeds = await getRecommendationSeeds()
+    if (!seeds.length) return
+
+    const batches = await Promise.all(
+      seeds.slice(0, 5).map(s => getRecommendations(s.tmdb_id, s.media_type))
+    )
+
+    const seen  = new Set()
+    const items = []
+    for (const batch of batches) {
+      for (const item of batch) {
+        if (!seen.has(item.tmdb_id) && item.poster_path) {
+          seen.add(item.tmdb_id)
+          items.push(item)
+        }
+      }
+    }
+    setForYou(items.slice(0, 24))
+  }
 
   useEffect(() => {
     load().finally(() => setLoading(false))
@@ -96,7 +122,7 @@ export default function Home() {
 
   async function handleRefresh() {
     setRefreshing(true)
-    await load()
+    await Promise.all([load(), loadForYou().catch(() => {})])
     setRefreshing(false)
   }
 
@@ -225,6 +251,14 @@ export default function Home() {
           </View>
         ) : (
           <>
+            <Section
+              title="For You"
+              emoji="🎯"
+              data={forYou.filter(item => !watchStates.get(item.tmdb_id)?.watched)}
+              onItemPress={openMovie}
+              onItemLongPress={openSheet}
+              watchStates={watchStates}
+            />
             <Section title="Now Playing" emoji="🎟" data={nowPlaying} onItemPress={openMovie} onItemLongPress={openSheet} watchStates={watchStates} />
             <Section title="Trending This Week" emoji="🔥" data={trending} onItemPress={openMovie} onItemLongPress={openSheet} watchStates={watchStates} />
             <Section title="Popular TV Shows" emoji="📺" data={popularTV} onItemPress={openMovie} onItemLongPress={openSheet} watchStates={watchStates} />
@@ -275,7 +309,7 @@ const s = StyleSheet.create({
   appName:      { fontSize: 22, fontWeight: '800' },
   subtitle:     { fontSize: 12, marginTop: 2 },
   section:      { marginBottom: 28 },
-  sectionTitle: { fontSize: 17, fontWeight: '700', marginBottom: 12, paddingHorizontal: 16, color: '#fff' },
+  sectionTitle: { fontSize: 17, fontWeight: '800', marginBottom: 12, paddingHorizontal: 16 },
   row:          { paddingHorizontal: 16 },
   loadingBlock: { alignItems: 'center', paddingVertical: 80, gap: 16 },
   loadingText:  { fontSize: 13 },
