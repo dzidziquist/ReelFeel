@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ReelFeel – Auth Screen Preview</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #0a0a0f;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    padding: 40px 20px;
+  }
+
+  h1 {
+    text-align: center;
+    color: #a78bfa;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+  }
+  .tagline {
+    text-align: center;
+    color: #6b6b6b;
+    font-size: 13px;
+    font-style: italic;
+    margin-bottom: 40px;
+  }
+
+  .screens {
+    display: flex;
+    gap: 32px;
+    justify-content: center;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .phone {
+    width: 320px;
+    background: #1a1a2e;
+    border-radius: 44px;
+    padding: 12px;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.06);
+    position: relative;
+  }
+
+  .phone-notch {
+    width: 120px;
+    height: 28px;
+    background: #000;
+    border-radius: 20px;
+    margin: 0 auto 4px;
+  }
+
+  .phone-screen {
+    background: #000;
+    border-radius: 36px;
+    padding: 32px 24px 36px;
+    min-height: 620px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .screen-label {
+    text-align: center;
+    color: #4b4b6b;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  /* logo area */
+  .logo-wrap { text-align: center; margin-bottom: 36px; }
+  .logo-emoji { font-size: 48px; display: block; margin-bottom: 6px; }
+  .logo-name {
+    font-size: 36px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -1px;
+    display: block;
+  }
+  .logo-sub {
+    font-size: 13px;
+    color: #a78bfa;
+    font-style: italic;
+    margin-top: 4px;
+    display: block;
+  }
+
+  /* form */
+  .field-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #a3a3a3;
+    margin-bottom: 6px;
+    display: block;
+  }
+  .field-label .optional {
+    font-weight: 400;
+    color: #6b6b6b;
+  }
+  .input {
+    width: 100%;
+    background: #1c1c1e;
+    border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    padding: 13px 16px;
+    color: #fff;
+    font-size: 14px;
+    margin-bottom: 14px;
+    display: block;
+    outline: none;
+    font-family: inherit;
+  }
+  .input::placeholder { color: #6b6b6b; }
+
+  .forgot {
+    text-align: right;
+    margin-bottom: 22px;
+    margin-top: -4px;
+  }
+  .forgot a { color: #a78bfa; font-size: 12px; text-decoration: none; }
+
+  .btn {
+    width: 100%;
+    background: #7c3aed;
+    border-radius: 20px;
+    padding: 14px;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    border: none;
+    cursor: pointer;
+    display: block;
+    text-align: center;
+    margin-bottom: 18px;
+  }
+  .btn:hover { background: #6d28d9; }
+
+  .footer-row {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    font-size: 13px;
+  }
+  .footer-muted { color: #6b6b6b; }
+  .footer-link { color: #ec4899; font-weight: 600; text-decoration: none; }
+
+  /* confirm box */
+  .confirm-box {
+    background: #1c1c1e;
+    border: 1px solid #7c3aed;
+    border-radius: 16px;
+    padding: 18px;
+    margin-bottom: 24px;
+    text-align: center;
+  }
+  .confirm-text { color: #fff; font-size: 14px; line-height: 1.6; margin-bottom: 8px; }
+  .confirm-email { color: #ec4899; font-weight: 700; }
+  .confirm-sub { color: #a3a3a3; font-size: 13px; line-height: 1.5; }
+
+  /* error box */
+  .error-box {
+    background: #2d001a;
+    border: 1px solid #ec4899;
+    border-radius: 16px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    color: #f472b6;
+    font-size: 13px;
+  }
+
+  /* theme toggle */
+  .theme-row {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 40px;
+  }
+  .theme-btn {
+    padding: 6px 16px;
+    border-radius: 20px;
+    border: 1px solid #3a3a5c;
+    background: transparent;
+    color: #a3a3a3;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .theme-btn.active {
+    background: #7c3aed;
+    border-color: #7c3aed;
+    color: #fff;
+  }
+
+  /* Light theme variants */
+  body.light { background: #e8e8f0; }
+  body.light .phone { background: #d0d0e8; }
+  body.light .phone-screen { background: #f2f2f7; }
+  body.light .logo-name { color: #000; }
+  body.light .logo-sub { color: #7c3aed; }
+  body.light .field-label { color: #1c1c1e; }
+  body.light .input {
+    background: #e5e5ea;
+    border-color: #c6c6c8;
+    color: #000;
+  }
+  body.light .input::placeholder { color: #3c3c43; }
+  body.light .footer-muted { color: #3c3c43; }
+  body.light .confirm-box { background: #e5e5ea; }
+  body.light .confirm-text { color: #000; }
+  body.light h1 { color: #7c3aed; }
+  body.light .screen-label { color: #aaaacc; }
+</style>
+</head>
+<body>
+
+<h1>🎞️ ReelFeel – Auth Screens</h1>
+<p class="tagline">your feelings, your films.</p>
+
+<div class="theme-row">
+  <button class="theme-btn active" onclick="setTheme('dark')">Dark</button>
+  <button class="theme-btn" onclick="setTheme('light')">Light</button>
+</div>
+
+<div class="screens">
+
+  <!-- LOGIN -->
+  <div>
+    <div class="screen-label">Login</div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-screen">
+
+        <div class="logo-wrap">
+          <span class="logo-emoji">🎞️</span>
+          <span class="logo-name">ReelFeel</span>
+          <span class="logo-sub">your feelings, your films.</span>
+        </div>
+
+        <label class="field-label">Email</label>
+        <input class="input" type="email" placeholder="you@example.com" />
+
+        <label class="field-label">Password</label>
+        <input class="input" type="password" placeholder="shhh... 🤫" />
+
+        <div class="forgot"><a href="#">Forgot password?</a></div>
+
+        <button class="btn">Let's go! 🍿</button>
+
+        <div class="footer-row">
+          <span class="footer-muted">New here?</span>
+          <a class="footer-link" href="#"> Join the club ✨</a>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- REGISTER -->
+  <div>
+    <div class="screen-label">Register</div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-screen">
+
+        <div class="logo-wrap">
+          <span class="logo-emoji">🎞️</span>
+          <span class="logo-name">ReelFeel</span>
+          <span class="logo-sub">join the watch party.</span>
+        </div>
+
+        <label class="field-label">Username <span class="optional">(optional)</span></label>
+        <input class="input" type="text" placeholder="e.g. cinephile_42 🎥" />
+
+        <label class="field-label">Email</label>
+        <input class="input" type="email" placeholder="you@example.com" />
+
+        <label class="field-label">Password</label>
+        <input class="input" type="password" placeholder="make it a good one 🔐" style="margin-bottom:22px" />
+
+        <button class="btn">Create my account 🚀</button>
+
+        <div class="footer-row">
+          <span class="footer-muted">Already a watcher?</span>
+          <a class="footer-link" href="#"> Sign in ✨</a>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- FORGOT PASSWORD -->
+  <div>
+    <div class="screen-label">Forgot Password</div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-screen">
+
+        <div class="logo-wrap">
+          <span class="logo-emoji">🔑</span>
+          <span class="logo-name">ReelFeel</span>
+          <span class="logo-sub">let's get you back in.</span>
+        </div>
+
+        <label class="field-label">Email</label>
+        <input class="input" type="email" placeholder="you@example.com" style="margin-bottom:22px" />
+
+        <button class="btn">Send reset link 📨</button>
+
+        <div class="footer-row">
+          <span class="footer-muted">Remember it?</span>
+          <a class="footer-link" href="#"> Sign in ✨</a>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- EMAIL CONFIRMED (bonus) -->
+  <div>
+    <div class="screen-label">Email Confirmed</div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-screen">
+
+        <div class="logo-wrap">
+          <span class="logo-emoji">📬</span>
+          <span class="logo-name">ReelFeel</span>
+          <span class="logo-sub">almost there!</span>
+        </div>
+
+        <div class="confirm-box">
+          <div class="confirm-text">
+            We sent a confirmation link to<br>
+            <span class="confirm-email">you@example.com</span>
+          </div>
+          <div class="confirm-sub">Click the link to activate your account, then sign in. ✅</div>
+        </div>
+
+        <button class="btn">Go sign in 🎬</button>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function setTheme(t) {
+    document.body.className = t === 'light' ? 'light' : '';
+    document.querySelectorAll('.theme-btn').forEach(b => {
+      b.classList.toggle('active', b.textContent.toLowerCase() === t);
+    });
+  }
+</script>
+</body>
+</html>
