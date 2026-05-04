@@ -280,7 +280,7 @@ export default function Profile() {
                 <TouchableOpacity
                   key={m.key}
                   onPress={() => setMode(m.key)}
-                  style={[s.themeBtn, { borderColor: active ? theme.gold : theme.text, backgroundColor: active ? theme.gold + '22' : theme.bg2 }]}
+                  style={[s.themeBtn, { borderColor: active ? theme.gold : theme.text, backgroundColor: active ? theme.gold + '44' : theme.bg2 }]}
                 >
                   <Ionicons name={m.icon} size={18} color={active ? theme.gold : theme.textMut} />
                   <Text style={[s.themeBtnText, { color: active ? theme.gold : theme.textMut }]}>{m.label}</Text>
@@ -391,8 +391,6 @@ const s = StyleSheet.create({
   themeRow:    { flexDirection: 'row', gap: 8 },
   themeBtn:    {
     flex: 1, paddingVertical: 10, borderRadius: 4, borderWidth: 2, alignItems: 'center', gap: 4,
-    shadowColor: '#000', shadowOffset: { width: 2, height: 2 }, shadowOpacity: 0.7, shadowRadius: 0,
-    elevation: 2,
   },
   themeBtnText:{ fontSize: 11, fontWeight: '700' },
 
