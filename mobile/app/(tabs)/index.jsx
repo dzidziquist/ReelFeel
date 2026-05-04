@@ -91,13 +91,17 @@ export default function Home() {
     if (!seeds.length) return
 
     const batches = await Promise.all(
-      seeds.slice(0, 5).map(s => getRecommendations(s.tmdb_id, s.media_type))
+      seeds.map(s => getRecommendations(s.tmdb_id, s.media_type))
     )
 
+    // Round-robin interleave so every loved title contributes to the feed
     const seen  = new Set()
     const items = []
-    for (const batch of batches) {
-      for (const item of batch) {
+    const maxLen = Math.max(...batches.map(b => b.length))
+    for (let i = 0; i < maxLen; i++) {
+      for (const batch of batches) {
+        if (i >= batch.length) continue
+        const item = batch[i]
         if (!seen.has(item.tmdb_id) && item.poster_path) {
           seen.add(item.tmdb_id)
           items.push(item)

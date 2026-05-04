@@ -320,41 +320,46 @@ export async function getWatchStatesForTmdbIds(tmdbIds) {
 
 // ── Recommendation seeds ──────────────────────────────────────
 /**
- * Returns up to 6 seed titles (tmdb_id + media_type) to drive "For You".
- * Priority: top-rated diary entries (rating ≥ 3), then recent watchlist items.
+ * Returns up to 6 seed titles ordered by how much the user loved them:
+ *   1. Loved    — rated 4.5–5★
+ *   2. Enjoyed  — rated 3.5–4.4★
+ *   3. Watchlist — titles saved but not yet watched
+ * Seeds with lower ratings or plain watchlist items only fill in if the
+ * higher tiers don't produce enough seeds.
  */
 export async function getRecommendationSeeds() {
   const { data: { user } } = await supabase.auth.getUser()
 
-  const [{ data: diary }, { data: watchlist }] = await Promise.all([
-    supabase
-      .from('diary_entries')
+  const [{ data: loved }, { data: enjoyed }, { data: wl }] = await Promise.all([
+    supabase.from('diary_entries')
       .select('rating, media(tmdb_id, media_type)')
       .eq('user_id', user.id)
-      .gte('rating', 3)
+      .gte('rating', 4.5)
       .order('rating', { ascending: false })
-      .limit(6),
-    supabase
-      .from('watchlist')
+      .limit(5),
+    supabase.from('diary_entries')
+      .select('rating, media(tmdb_id, media_type)')
+      .eq('user_id', user.id)
+      .gte('rating', 3.5).lt('rating', 4.5)
+      .order('rating', { ascending: false })
+      .limit(4),
+    supabase.from('watchlist')
       .select('media(tmdb_id, media_type)')
       .eq('user_id', user.id)
       .order('added_at', { ascending: false })
-      .limit(4),
+      .limit(3),
   ])
 
   const seeds = []
   const seen  = new Set()
 
-  for (const e of (diary ?? [])) {
-    if (e.media && !seen.has(e.media.tmdb_id)) {
-      seeds.push({ tmdb_id: e.media.tmdb_id, media_type: e.media.media_type })
-      seen.add(e.media.tmdb_id)
-    }
-  }
-  for (const w of (watchlist ?? [])) {
-    if (w.media && !seen.has(w.media.tmdb_id)) {
-      seeds.push({ tmdb_id: w.media.tmdb_id, media_type: w.media.media_type })
-      seen.add(w.media.tmdb_id)
+  for (const rows of [loved ?? [], enjoyed ?? [], wl ?? []]) {
+    for (const row of rows) {
+      const m = row.media
+      if (m && !seen.has(m.tmdb_id)) {
+        seeds.push({ tmdb_id: m.tmdb_id, media_type: m.media_type })
+        seen.add(m.tmdb_id)
+      }
     }
   }
 
