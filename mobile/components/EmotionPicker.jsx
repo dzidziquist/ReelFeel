@@ -1,7 +1,7 @@
 import { ScrollView, View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import { useTheme } from '../context/ThemeContext'
 
-const CATEGORY_ORDER = ['Happy', 'Interested', 'Surprised', 'Sad', 'Disgusted', 'Afraid', 'Angry']
+const CATEGORY_ORDER = ['Neutral', 'Happy', 'Interested', 'Surprised', 'Sad', 'Disgusted', 'Afraid', 'Angry']
 
 /**
  * Emotion picker with category rows + intensity columns (like a mood board).

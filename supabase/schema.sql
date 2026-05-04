@@ -46,9 +46,12 @@ alter table public.emotions add column if not exists category   text    not null
 alter table public.emotions add column if not exists sort_order integer not null default 99;
 
 -- Seed / upsert all categorised emotions
--- Happy  #f59e0b · Interested  #3b82f6 · Surprised  #8b5cf6
+-- Neutral  #9ca3af · Happy  #f59e0b · Interested  #3b82f6 · Surprised  #8b5cf6
 -- Sad    #6b7280 · Disgusted   #10b981 · Afraid     #f97316 · Angry #ef4444
 insert into public.emotions (name, icon, color, category, sort_order) values
+  ('Neutral',       '😐', '#9ca3af', 'Neutral',     1),
+  ('Meh',           '😶', '#9ca3af', 'Neutral',     2),
+  ('Fine',          '🙂', '#9ca3af', 'Neutral',     3),
   ('Joyful',        '😁', '#f59e0b', 'Happy',      1),
   ('Warm',          '🤗', '#f59e0b', 'Happy',      2),
   ('Touched',       '🥹', '#f59e0b', 'Happy',      3),
@@ -56,10 +59,9 @@ insert into public.emotions (name, icon, color, category, sort_order) values
   ('Hilarious',     '🤣', '#f59e0b', 'Happy',      5),
   ('In love',       '😍', '#f59e0b', 'Happy',      6),
   ('Curious',       '🤔', '#3b82f6', 'Interested',  1),
-  ('Neutral',       '😐', '#3b82f6', 'Interested',  2),
-  ('Puzzled',       '😵', '#3b82f6', 'Interested',  3),
-  ('Bored',         '😑', '#3b82f6', 'Interested',  4),
-  ('Mind-blown',    '🤯', '#3b82f6', 'Interested',  5),
+  ('Puzzled',       '😵', '#3b82f6', 'Interested',  2),
+  ('Bored',         '😑', '#3b82f6', 'Interested',  3),
+  ('Mind-blown',    '🤯', '#3b82f6', 'Interested',  4),
   ('Surprised',     '😮', '#8b5cf6', 'Surprised',   1),
   ('Astonished',    '😲', '#8b5cf6', 'Surprised',   2),
   ('Speechless',    '🫢', '#8b5cf6', 'Surprised',   3),

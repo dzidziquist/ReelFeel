@@ -172,13 +172,14 @@ export async function getMedia(tmdbId, fallbackType = 'film') {
 
   const { data: entries, error: eErr } = await supabase
     .from('diary_entries')
-    .select('id, watched_on, rating, review, rewatch, created_at, diary_entry_emotions(emotions(*))')
+    .select('id, watched_on, rating, review, rewatch, season_number, episode_number, created_at, diary_entry_emotions(emotions(*))')
     .eq('user_id', user.id).eq('media_id', media.id)
     .order('watched_on', { ascending: false })
   if (eErr) throw eErr
 
   const mappedEntries = entries.map(e => ({
     ...e,
+    media:    mediaRow,  // inject from outer scope — EntryCard requires it
     emotions: (e.diary_entry_emotions ?? []).map(x => x.emotions),
   }))
   const avg = entries.length
