@@ -63,7 +63,7 @@ export default function Search() {
           <View style={s.headerBlock}>
             <Text style={[s.title, { color: theme.text }]}>Search</Text>
             <TextInput
-              style={[s.input, { backgroundColor: theme.bg2, borderColor: theme.border, color: theme.text }]}
+              style={[s.input, { backgroundColor: theme.bg2, borderColor: theme.text, color: theme.text }]}
               placeholder="Search films and TV shows…"
               placeholderTextColor={theme.textMut}
               value={query}
@@ -82,7 +82,7 @@ export default function Search() {
           </View>
         }
         renderItem={({ item: r }) => (
-          <View style={[s.resultCard, { backgroundColor: theme.bg1 }]}>
+          <View style={[s.resultCard, { backgroundColor: theme.bg1, borderColor: theme.text }]}>
             <TouchableOpacity onPress={() => router.push(`/media/${r.tmdb_id}?type=${r.media_type}`)}>
               {r.poster_path
                 ? <Image source={{ uri: `https://image.tmdb.org/t/p/w200${r.poster_path}` }} style={s.poster} resizeMode="cover" />
@@ -124,7 +124,7 @@ export default function Search() {
                 <TouchableOpacity
                   onPress={() => handleWatchlist(r)}
                   disabled={saving[r.tmdb_id]}
-                  style={[s.watchlistBtn, { backgroundColor: theme.bg2, borderColor: theme.border }]}
+                  style={[s.watchlistBtn, { backgroundColor: theme.bg2, borderColor: theme.text }]}
                 >
                   {saving[r.tmdb_id]
                     ? <ActivityIndicator size="small" color={theme.gold} />
@@ -144,13 +144,20 @@ const s = StyleSheet.create({
   flex:             { flex: 1 },
   list:             { padding: 16, paddingBottom: 40 },
   headerBlock:      { marginBottom: 20 },
-  title:            { fontSize: 22, fontWeight: '700', marginBottom: 16 },
-  input:            { borderWidth: 1, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, fontSize: 14 },
-  errorBox:         { backgroundColor: '#3f0000', borderWidth: 1, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, marginTop: 12 },
+  title:            { fontSize: 22, fontWeight: '900', marginBottom: 16 },
+  input:            {
+    borderWidth: 2, borderRadius: 6, paddingHorizontal: 16, paddingVertical: 12, fontSize: 14,
+    shadowColor: '#000', shadowOffset: { width: 3, height: 3 }, shadowOpacity: 0.7, shadowRadius: 0, elevation: 3,
+  },
+  errorBox:         { backgroundColor: '#3f0000', borderWidth: 2, borderRadius: 6, paddingHorizontal: 16, paddingVertical: 12, marginTop: 12 },
   errorText:        { color: '#fca5a5', fontSize: 13 },
   noResults:        { textAlign: 'center', marginTop: 40 },
-  resultCard:       { borderRadius: 12, flexDirection: 'row', gap: 12, padding: 12, marginBottom: 12 },
-  poster:           { width: 64, height: 96, borderRadius: 8 },
+  resultCard:       {
+    borderRadius: 6, flexDirection: 'row', gap: 12, padding: 12, marginBottom: 12,
+    borderWidth: 2,
+    shadowColor: '#000', shadowOffset: { width: 3, height: 3 }, shadowOpacity: 0.8, shadowRadius: 0, elevation: 3,
+  },
+  poster:           { width: 64, height: 96, borderRadius: 4 },
   ratingBadge:      { position: 'absolute', bottom: 4, right: 4, backgroundColor: 'rgba(0,0,0,0.8)', borderRadius: 4, paddingHorizontal: 4, paddingVertical: 2, flexDirection: 'row', alignItems: 'center', gap: 2 },
   ratingBadgeText:  { fontSize: 9, fontWeight: '700' },
   resultInfo:       { flex: 1, justifyContent: 'space-between' },
@@ -161,8 +168,12 @@ const s = StyleSheet.create({
   typeText:         { fontSize: 11 },
   overview:         { fontSize: 11, marginTop: 4, lineHeight: 16 },
   actionRow:        { flexDirection: 'row', gap: 8, marginTop: 8 },
-  logBtn:           { borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6, flex: 1, alignItems: 'center' },
-  logBtnText:       { color: '#fff', fontSize: 12, fontWeight: '600' },
-  watchlistBtn:     { borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6, flex: 1, alignItems: 'center', borderWidth: 1 },
+  logBtn:           {
+    borderRadius: 4, paddingHorizontal: 12, paddingVertical: 6, flex: 1, alignItems: 'center',
+    borderWidth: 2, borderColor: '#000',
+    shadowColor: '#000', shadowOffset: { width: 2, height: 2 }, shadowOpacity: 0.8, shadowRadius: 0, elevation: 2,
+  },
+  logBtnText:       { color: '#fff', fontSize: 12, fontWeight: '700' },
+  watchlistBtn:     { borderRadius: 4, paddingHorizontal: 12, paddingVertical: 6, flex: 1, alignItems: 'center', borderWidth: 2 },
   watchlistBtnText: { fontSize: 12, fontWeight: '600' },
 })

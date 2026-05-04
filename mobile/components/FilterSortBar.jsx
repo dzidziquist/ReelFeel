@@ -56,7 +56,7 @@ export default function FilterSortBar({
   return (
     <View style={{ marginBottom: 12 }}>
       {/* Collapsed bar */}
-      <View style={[s.bar, { backgroundColor: theme.bg1, borderColor: theme.border }]}>
+      <View style={[s.bar, { backgroundColor: theme.bg1, borderColor: theme.text }]}>
         <TouchableOpacity style={s.filterBtn} onPress={() => setOpen(true)} activeOpacity={0.8}>
           <Ionicons name="options-outline" size={16} color={theme.textSub} />
           <Text style={[s.filterLabel, { color: theme.textSub }]}>Filter</Text>
@@ -67,7 +67,7 @@ export default function FilterSortBar({
           )}
         </TouchableOpacity>
 
-        <View style={[s.divider, { backgroundColor: theme.border }]} />
+        <View style={[s.divider, { backgroundColor: theme.text }]} />
 
         {/* Sort chips */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flex: 1 }}>
@@ -80,7 +80,7 @@ export default function FilterSortBar({
                   onPress={() => onSortChange(opt.key)}
                   style={[
                     s.chip,
-                    active ? { backgroundColor: theme.red ?? '#dc2626', borderColor: theme.red } : { borderColor: theme.border },
+                    active ? { backgroundColor: theme.red ?? '#dc2626', borderColor: theme.red } : { borderColor: theme.text },
                   ]}
                 >
                   <Text style={[s.chipText, { color: active ? '#fff' : theme.textMut }]}>
@@ -165,7 +165,7 @@ function FilterPanel({ theme, filters, onFiltersChange, onClose, emotions, avail
   return (
     <View style={[fp.container, { backgroundColor: theme.bg0 }]}>
       {/* Header */}
-      <View style={[fp.header, { borderBottomColor: theme.border }]}>
+      <View style={[fp.header, { borderBottomColor: theme.text }]}>
         <TouchableOpacity onPress={onClose}><Text style={{ color: theme.textSub, fontSize: 15 }}>Cancel</Text></TouchableOpacity>
         <Text style={[fp.title, { color: theme.text }]}>Filter</Text>
         <TouchableOpacity onPress={reset}><Text style={{ color: theme.red ?? '#dc2626', fontSize: 15 }}>Reset</Text></TouchableOpacity>
@@ -185,7 +185,7 @@ function FilterPanel({ theme, filters, onFiltersChange, onClose, emotions, avail
                     onPress={() => patch({ genre: active ? '' : g })}
                     style={[fp.chip, active
                       ? { backgroundColor: theme.red, borderColor: theme.red }
-                      : { borderColor: theme.border }
+                      : { borderColor: theme.text }
                     ]}
                   >
                     <Text style={[fp.chipText, { color: active ? '#fff' : theme.textSub }]}>{g}</Text>
@@ -203,7 +203,7 @@ function FilterPanel({ theme, filters, onFiltersChange, onClose, emotions, avail
             <View style={fp.ratingInput}>
               <Text style={[fp.ratingLbl, { color: theme.textMut }]}>Min</Text>
               <TextInput
-                style={[fp.input, { backgroundColor: theme.bg2, borderColor: theme.border, color: theme.text }]}
+                style={[fp.input, { backgroundColor: theme.bg2, borderColor: theme.text, color: theme.text }]}
                 value={String(local.minRating ?? '')}
                 onChangeText={v => patch({ minRating: v })}
                 keyboardType="decimal-pad"
@@ -216,7 +216,7 @@ function FilterPanel({ theme, filters, onFiltersChange, onClose, emotions, avail
             <View style={fp.ratingInput}>
               <Text style={[fp.ratingLbl, { color: theme.textMut }]}>Max</Text>
               <TextInput
-                style={[fp.input, { backgroundColor: theme.bg2, borderColor: theme.border, color: theme.text }]}
+                style={[fp.input, { backgroundColor: theme.bg2, borderColor: theme.text, color: theme.text }]}
                 value={String(local.maxRating ?? '')}
                 onChangeText={v => patch({ maxRating: v })}
                 keyboardType="decimal-pad"
@@ -243,7 +243,7 @@ function FilterPanel({ theme, filters, onFiltersChange, onClose, emotions, avail
                     onPress={() => applyPreset(preset)}
                     style={[fp.chip, active
                       ? { backgroundColor: theme.red, borderColor: theme.red }
-                      : { borderColor: theme.border }
+                      : { borderColor: theme.text }
                     ]}
                   >
                     <Text style={[fp.chipText, { color: active ? '#fff' : theme.textSub }]}>{preset.label}</Text>
@@ -256,7 +256,7 @@ function FilterPanel({ theme, filters, onFiltersChange, onClose, emotions, avail
           {/* Custom From / To */}
           <TouchableOpacity
             onPress={() => { setShowFromPicker(true); setShowToPicker(false) }}
-            style={[fp.dateRow, { backgroundColor: theme.bg2, borderColor: theme.border }]}
+            style={[fp.dateRow, { backgroundColor: theme.bg2, borderColor: theme.text }]}
           >
             <Text style={[fp.dateLbl, { color: theme.textMut }]}>From</Text>
             <Text style={[fp.dateVal, { color: local.startDate ? theme.text : theme.textMut }]}>
@@ -287,7 +287,7 @@ function FilterPanel({ theme, filters, onFiltersChange, onClose, emotions, avail
 
           <TouchableOpacity
             onPress={() => { setShowToPicker(true); setShowFromPicker(false) }}
-            style={[fp.dateRow, { backgroundColor: theme.bg2, borderColor: theme.border, marginTop: 8 }]}
+            style={[fp.dateRow, { backgroundColor: theme.bg2, borderColor: theme.text, marginTop: 8 }]}
           >
             <Text style={[fp.dateLbl, { color: theme.textMut }]}>To</Text>
             <Text style={[fp.dateVal, { color: local.endDate ? theme.text : theme.textMut }]}>
@@ -345,7 +345,7 @@ function FilterPanel({ theme, filters, onFiltersChange, onClose, emotions, avail
       </ScrollView>
 
       {/* Apply button */}
-      <View style={[fp.footer, { borderTopColor: theme.border }]}>
+      <View style={[fp.footer, { borderTopColor: theme.text }]}>
         <TouchableOpacity
           style={[fp.applyBtn, { backgroundColor: theme.red ?? '#dc2626' }]}
           onPress={() => onFiltersChange(local)}
@@ -360,15 +360,24 @@ function FilterPanel({ theme, filters, onFiltersChange, onClose, emotions, avail
 }
 
 const s = StyleSheet.create({
-  bar:       { flexDirection: 'row', alignItems: 'center', borderRadius: 12, borderWidth: 1, paddingVertical: 8, paddingHorizontal: 12, gap: 10 },
+  bar:       {
+    flexDirection: 'row', alignItems: 'center', borderRadius: 4, borderWidth: 2,
+    paddingVertical: 8, paddingHorizontal: 12, gap: 10,
+    shadowColor: '#000', shadowOffset: { width: 3, height: 3 }, shadowOpacity: 0.7, shadowRadius: 0,
+    elevation: 3,
+  },
   filterBtn: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  filterLabel:{ fontSize: 13, fontWeight: '600' },
-  badge:     { backgroundColor: '#dc2626', borderRadius: 8, width: 16, height: 16, alignItems: 'center', justifyContent: 'center' },
+  filterLabel:{ fontSize: 13, fontWeight: '700' },
+  badge:     { backgroundColor: '#dc2626', borderRadius: 3, width: 16, height: 16, alignItems: 'center', justifyContent: 'center' },
   badgeText: { color: '#fff', fontSize: 9, fontWeight: '800' },
-  divider:   { width: 1, height: 20 },
+  divider:   { width: 1.5, height: 20 },
   sortChips: { flexDirection: 'row', gap: 6 },
-  chip:      { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, borderWidth: 1 },
-  chipText:  { fontSize: 11, fontWeight: '500' },
+  chip:      {
+    paddingHorizontal: 10, paddingVertical: 5, borderRadius: 4, borderWidth: 2,
+    shadowColor: '#000', shadowOffset: { width: 2, height: 2 }, shadowOpacity: 0.6, shadowRadius: 0,
+    elevation: 2,
+  },
+  chipText:  { fontSize: 11, fontWeight: '700' },
 })
 
 const fp = StyleSheet.create({
@@ -379,16 +388,26 @@ const fp = StyleSheet.create({
   section:    { marginBottom: 24 },
   sectionLabel:{ fontSize: 13, fontWeight: '700', marginBottom: 10 },
   chips:      { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip:       { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, borderWidth: 1 },
-  chipText:   { fontSize: 13, fontWeight: '600' },
+  chip:       {
+    paddingHorizontal: 12, paddingVertical: 7, borderRadius: 4, borderWidth: 2,
+    shadowColor: '#000', shadowOffset: { width: 2, height: 2 }, shadowOpacity: 0.5, shadowRadius: 0, elevation: 2,
+  },
+  chipText:   { fontSize: 13, fontWeight: '700' },
   ratingRow:  { flexDirection: 'row', gap: 12, alignItems: 'flex-end' },
   ratingInput:{ flex: 1 },
   ratingLbl:  { fontSize: 11, marginBottom: 4 },
-  input:      { borderWidth: 1, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, fontSize: 16 },
-  footer:     { padding: 16, borderTopWidth: StyleSheet.hairlineWidth },
-  applyBtn:   { paddingVertical: 16, borderRadius: 14, alignItems: 'center' },
-  applyText:  { color: '#fff', fontSize: 16, fontWeight: '700' },
-  dateRow:    { flexDirection: 'row', alignItems: 'center', borderRadius: 10, borderWidth: 1, paddingHorizontal: 14, paddingVertical: 12, gap: 8 },
+  input:      {
+    borderWidth: 2, borderRadius: 4, paddingHorizontal: 12, paddingVertical: 10, fontSize: 16,
+    shadowColor: '#000', shadowOffset: { width: 2, height: 2 }, shadowOpacity: 0.5, shadowRadius: 0, elevation: 2,
+  },
+  footer:     { padding: 16, borderTopWidth: 2 },
+  applyBtn:   {
+    paddingVertical: 16, borderRadius: 6, alignItems: 'center',
+    borderWidth: 2, borderColor: '#000',
+    shadowColor: '#000', shadowOffset: { width: 4, height: 4 }, shadowOpacity: 1, shadowRadius: 0, elevation: 4,
+  },
+  applyText:  { color: '#fff', fontSize: 16, fontWeight: '800' },
+  dateRow:    { flexDirection: 'row', alignItems: 'center', borderRadius: 4, borderWidth: 2, paddingHorizontal: 14, paddingVertical: 12, gap: 8 },
   dateLbl:    { fontSize: 13, fontWeight: '600', width: 36 },
   dateVal:    { flex: 1, fontSize: 14 },
   doneBtn:    { alignItems: 'flex-end', paddingVertical: 8, paddingHorizontal: 14 },
