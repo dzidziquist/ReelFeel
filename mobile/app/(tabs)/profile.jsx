@@ -245,15 +245,15 @@ export default function Profile() {
             {profile?.bio ? <Text style={[s.bio, { color: theme.textSub }]}>{profile.bio}</Text> : null}
             {memberSince ? <Text style={[s.memberSince, { color: theme.textMut }]}>Member since {memberSince}</Text> : null}
           </View>
-          <TouchableOpacity onPress={() => setEditOpen(true)} style={[s.editBtn, { borderColor: theme.border }]}>
-            <Text style={[s.editBtnText, { color: theme.textSub }]}>Edit</Text>
+          <TouchableOpacity onPress={() => setEditOpen(true)} style={[s.editBtn, { borderColor: theme.text, backgroundColor: theme.bg1 }]}>
+            <Text style={[s.editBtnText, { color: theme.text }]}>Edit</Text>
           </TouchableOpacity>
         </View>
 
         {error ? <View style={s.errorBox}><Text style={s.errorText}>{error}</Text></View> : null}
 
         {/* Stats */}
-        <View style={[s.section, { backgroundColor: theme.bg1, borderColor: theme.border }]}>
+        <View style={[s.section, { backgroundColor: theme.bg1, borderColor: theme.text }]}>
           <Text style={[s.sectionLabel, { color: theme.textMut }]}>WATCH STATS</Text>
           <View style={s.statsGrid}>
             <StatBox value={insights?.totalMovies}  label="Films"    theme={theme} />
@@ -262,7 +262,7 @@ export default function Profile() {
             <StatBox value={insights?.avgRating ? insights.avgRating.toFixed(1) : null} label="Avg Rating" theme={theme} />
           </View>
           {insights?.totalRuntime > 0 && (
-            <View style={[s.runtimeRow, { borderTopColor: theme.border }]}>
+            <View style={[s.runtimeRow, { borderTopColor: theme.text }]}>
               <Text style={[s.runtimeText, { color: theme.textSub }]}>
                 ⏱ {Math.floor(insights.totalRuntime / 60)}h {insights.totalRuntime % 60}m watched all-time
               </Text>
@@ -271,7 +271,7 @@ export default function Profile() {
         </View>
 
         {/* Appearance */}
-        <View style={[s.section, { backgroundColor: theme.bg1, borderColor: theme.border }]}>
+        <View style={[s.section, { backgroundColor: theme.bg1, borderColor: theme.text }]}>
           <Text style={[s.sectionLabel, { color: theme.textMut }]}>APPEARANCE</Text>
           <View style={s.themeRow}>
             {THEME_MODES.map(m => {
@@ -280,7 +280,7 @@ export default function Profile() {
                 <TouchableOpacity
                   key={m.key}
                   onPress={() => setMode(m.key)}
-                  style={[s.themeBtn, { borderColor: active ? theme.gold : theme.border, backgroundColor: active ? theme.gold + '20' : theme.bg2 }]}
+                  style={[s.themeBtn, { borderColor: active ? theme.gold : theme.text, backgroundColor: active ? theme.gold + '22' : theme.bg2 }]}
                 >
                   <Ionicons name={m.icon} size={18} color={active ? theme.gold : theme.textMut} />
                   <Text style={[s.themeBtnText, { color: active ? theme.gold : theme.textMut }]}>{m.label}</Text>
@@ -291,14 +291,14 @@ export default function Profile() {
         </View>
 
         {/* Navigation */}
-        <View style={[s.section, { backgroundColor: theme.bg1, borderColor: theme.border }]}>
+        <View style={[s.section, { backgroundColor: theme.bg1, borderColor: theme.text }]}>
           <Text style={[s.sectionLabel, { color: theme.textMut }]}>COLLECTION</Text>
           {[
             { icon: 'library-outline',  label: 'My Library',  desc: 'Unique titles watched', route: '/(tabs)/library' },
             { icon: 'journal-outline',  label: 'Watch Diary', desc: 'All watch sessions',     route: '/(tabs)/diary'   },
           ].map(item => (
-            <TouchableOpacity key={item.route} style={[s.linkRow, { borderBottomColor: theme.border }]} onPress={() => router.push(item.route)}>
-              <View style={[s.iconWrap, { backgroundColor: theme.bg2 }]}>
+            <TouchableOpacity key={item.route} style={[s.linkRow, { borderBottomColor: theme.text }]} onPress={() => router.push(item.route)}>
+              <View style={[s.iconWrap, { backgroundColor: theme.bg2, borderColor: theme.text }]}>
                 <Ionicons name={item.icon} size={20} color={theme.gold} />
               </View>
               <View style={{ flex: 1 }}>
@@ -311,10 +311,10 @@ export default function Profile() {
         </View>
 
         {/* Account */}
-        <View style={[s.section, { backgroundColor: theme.bg1, borderColor: theme.border }]}>
+        <View style={[s.section, { backgroundColor: theme.bg1, borderColor: theme.text }]}>
           <Text style={[s.sectionLabel, { color: theme.textMut }]}>ACCOUNT</Text>
           <TouchableOpacity style={s.linkRow} onPress={logout}>
-            <View style={[s.iconWrap, { backgroundColor: theme.bg2 }]}>
+            <View style={[s.iconWrap, { backgroundColor: theme.bg2, borderColor: theme.text }]}>
               <Ionicons name="log-out-outline" size={20} color={theme.textSub} />
             </View>
             <Text style={[s.linkText, { color: theme.text, flex: 1 }]}>Sign Out</Text>
