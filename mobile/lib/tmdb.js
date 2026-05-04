@@ -137,6 +137,21 @@ export async function getTVEpisodes(tmdbId, seasonNumber) {
   }))
 }
 
+// ── Recommendations ──────────────────────────────────────────
+/**
+ * Fetch TMDB recommendations for a single title.
+ * Used to build the "For You" feed from the user's watch history.
+ */
+export async function getRecommendations(tmdbId, mediaType) {
+  const path = (mediaType === 'film' || mediaType === 'movie') ? 'movie' : 'tv'
+  try {
+    const json = await get(`/${path}/${tmdbId}/recommendations`)
+    return (json.results ?? []).map(r => mapResult(r, mediaType === 'tv' ? 'tv' : 'movie'))
+  } catch {
+    return []
+  }
+}
+
 // ── Watch Providers ──────────────────────────────────────────
 /**
  * Fetch streaming / buy / rent providers for a title.

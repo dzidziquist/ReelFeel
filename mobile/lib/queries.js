@@ -318,6 +318,49 @@ export async function getWatchStatesForTmdbIds(tmdbIds) {
   return result
 }
 
+// ── Recommendation seeds ──────────────────────────────────────
+/**
+ * Returns up to 6 seed titles (tmdb_id + media_type) to drive "For You".
+ * Priority: top-rated diary entries (rating ≥ 3), then recent watchlist items.
+ */
+export async function getRecommendationSeeds() {
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const [{ data: diary }, { data: watchlist }] = await Promise.all([
+    supabase
+      .from('diary_entries')
+      .select('rating, media(tmdb_id, media_type)')
+      .eq('user_id', user.id)
+      .gte('rating', 3)
+      .order('rating', { ascending: false })
+      .limit(6),
+    supabase
+      .from('watchlist')
+      .select('media(tmdb_id, media_type)')
+      .eq('user_id', user.id)
+      .order('added_at', { ascending: false })
+      .limit(4),
+  ])
+
+  const seeds = []
+  const seen  = new Set()
+
+  for (const e of (diary ?? [])) {
+    if (e.media && !seen.has(e.media.tmdb_id)) {
+      seeds.push({ tmdb_id: e.media.tmdb_id, media_type: e.media.media_type })
+      seen.add(e.media.tmdb_id)
+    }
+  }
+  for (const w of (watchlist ?? [])) {
+    if (w.media && !seen.has(w.media.tmdb_id)) {
+      seeds.push({ tmdb_id: w.media.tmdb_id, media_type: w.media.media_type })
+      seen.add(w.media.tmdb_id)
+    }
+  }
+
+  return seeds.slice(0, 6)
+}
+
 // ── Account deletion ──────────────────────────────────────────
 export async function deleteAllMyData() {
   const { data: { user } } = await supabase.auth.getUser()
