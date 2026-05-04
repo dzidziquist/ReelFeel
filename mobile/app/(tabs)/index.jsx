@@ -203,14 +203,14 @@ export default function Home() {
         style={s.flex}
         contentContainerStyle={s.content}
         alwaysBounceVertical
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={theme.violet} colors={[theme.violet]} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={theme.red} colors={[theme.red]} />}
       >
         {/* Header */}
         <View style={s.header}>
           <Text style={s.logo}>🎞️</Text>
           <View>
             <Text style={[s.appName, { color: theme.text }]}>ReelFeel</Text>
-            <Text style={[s.subtitle, { color: theme.violetL }]}>what are we watching? 👀</Text>
+            <Text style={[s.subtitle, { color: theme.redL }]}>what are we watching? 👀</Text>
           </View>
         </View>
 
@@ -220,7 +220,7 @@ export default function Home() {
 
         {loading ? (
           <View style={s.loadingBlock}>
-            <ActivityIndicator size="large" color={theme.violet} />
+            <ActivityIndicator size="large" color={theme.red} />
             <Text style={[s.loadingText, { color: theme.textMut }]}>fetching the good stuff 🍿</Text>
           </View>
         ) : (
@@ -253,7 +253,7 @@ export default function Home() {
               <TouchableOpacity onPress={() => setRateModal({ visible: false, item: null, value: 3 })} style={[s.rateCancelBtn, { borderColor: theme.border }]}>
                 <Text style={[s.rateCancelText, { color: theme.textSub }]}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={handleQuickRate} disabled={rateLoading} style={[s.rateConfirmBtn, { backgroundColor: theme.violet }]}>
+              <TouchableOpacity onPress={handleQuickRate} disabled={rateLoading} style={[s.rateConfirmBtn, { backgroundColor: theme.red }]}>
                 {rateLoading
                   ? <ActivityIndicator size="small" color="#fff" />
                   : <Text style={s.rateConfirmText}>Log Rating</Text>
