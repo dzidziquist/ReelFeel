@@ -14,10 +14,10 @@ function Avatar({ name, size = 64, theme }) {
   return (
     <View style={[
       a.avatarRing,
-      { width: size + 8, height: size + 8, borderRadius: (size + 8) / 2, borderColor: theme?.gold ?? '#d4af37' },
+      { width: size + 8, height: size + 8, borderRadius: (size + 8) / 2, borderColor: theme?.violet ?? '#7c3aed' },
     ]}>
       <View style={[a.avatar, { width: size, height: size, borderRadius: size / 2, backgroundColor: theme?.bg2 ?? '#1a1a1a' }]}>
-        <Text style={[a.initials, { fontSize: size * 0.38, color: theme?.gold ?? '#d4af37' }]}>{initials}</Text>
+        <Text style={[a.initials, { fontSize: size * 0.38, color: theme?.violet ?? '#7c3aed' }]}>{initials}</Text>
       </View>
     </View>
   )
@@ -26,7 +26,7 @@ function Avatar({ name, size = 64, theme }) {
 function StatBox({ value, label, theme }) {
   return (
     <View style={s.statBox}>
-      <Text style={[s.statVal, { color: theme?.gold ?? '#d4af37' }]}>{value ?? '—'}</Text>
+      <Text style={[s.statVal, { color: theme?.violet ?? '#7c3aed' }]}>{value ?? '—'}</Text>
       <Text style={[s.statLbl, { color: theme?.textMut ?? '#6b6b6b' }]}>{label}</Text>
     </View>
   )
@@ -61,7 +61,7 @@ function EditModal({ visible, profile, onSave, onCancel, theme = {} }) {
     header:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, paddingTop: 56, borderBottomWidth: 1, borderBottomColor: theme.border ?? '#2a2a2a' },
     title:     { color: theme.text ?? '#fff', fontSize: 16, fontWeight: '700' },
     cancel:    { color: theme.textSub ?? '#a3a3a3', fontSize: 15 },
-    save:      { color: theme.gold ?? '#d4af37', fontSize: 15, fontWeight: '700' },
+    save:      { color: theme.violet ?? '#7c3aed', fontSize: 15, fontWeight: '700' },
     body:      { padding: 20 },
     label:     { color: theme.textSub ?? '#a3a3a3', fontSize: 13, fontWeight: '600', marginBottom: 8 },
     optional:  { color: theme.textMut ?? '#6b6b6b', fontWeight: '400' },
@@ -77,7 +77,7 @@ function EditModal({ visible, profile, onSave, onCancel, theme = {} }) {
           <Text style={mi.title}>Edit Profile</Text>
           <TouchableOpacity onPress={save} disabled={saving}>
             {saving
-              ? <ActivityIndicator color={theme.gold ?? '#d4af37'} />
+              ? <ActivityIndicator color={theme.violet ?? '#7c3aed'} />
               : <Text style={mi.save}>Save</Text>
             }
           </TouchableOpacity>
@@ -212,7 +212,7 @@ export default function Profile() {
   }
 
   if (loading) {
-    return <View style={[s.center, { backgroundColor: theme.bg0 }]}><ActivityIndicator size="large" color={theme.gold} /></View>
+    return <View style={[s.center, { backgroundColor: theme.bg0 }]}><ActivityIndicator size="large" color={theme.violet} /></View>
   }
 
   const displayName = profile?.display_name || profile?.username || 'User'
@@ -234,7 +234,7 @@ export default function Profile() {
       <ScrollView
         style={s.flex}
         contentContainerStyle={s.content}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={theme.gold} colors={[theme.gold]} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={theme.violet} colors={[theme.violet]} />}
       >
         {/* Profile Header */}
         <View style={s.hero}>
@@ -280,10 +280,10 @@ export default function Profile() {
                 <TouchableOpacity
                   key={m.key}
                   onPress={() => setMode(m.key)}
-                  style={[s.themeBtn, { borderColor: active ? theme.gold : theme.border, backgroundColor: active ? theme.gold + '20' : theme.bg2 }]}
+                  style={[s.themeBtn, { borderColor: active ? theme.violet : theme.border, backgroundColor: active ? theme.violet + '20' : theme.bg2 }]}
                 >
-                  <Ionicons name={m.icon} size={18} color={active ? theme.gold : theme.textMut} />
-                  <Text style={[s.themeBtnText, { color: active ? theme.gold : theme.textMut }]}>{m.label}</Text>
+                  <Ionicons name={m.icon} size={18} color={active ? theme.violet : theme.textMut} />
+                  <Text style={[s.themeBtnText, { color: active ? theme.violet : theme.textMut }]}>{m.label}</Text>
                 </TouchableOpacity>
               )
             })}
@@ -299,7 +299,7 @@ export default function Profile() {
           ].map(item => (
             <TouchableOpacity key={item.route} style={[s.linkRow, { borderBottomColor: theme.border }]} onPress={() => router.push(item.route)}>
               <View style={[s.iconWrap, { backgroundColor: theme.bg2 }]}>
-                <Ionicons name={item.icon} size={20} color={theme.gold} />
+                <Ionicons name={item.icon} size={20} color={theme.violet} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={[s.linkText, { color: theme.text }]}>{item.label}</Text>

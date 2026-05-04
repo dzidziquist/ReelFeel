@@ -9,8 +9,9 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         tabBarStyle: { backgroundColor: theme.bg0, borderTopColor: theme.border },
-        tabBarActiveTintColor: theme.gold,
+        tabBarActiveTintColor: theme.violet,
         tabBarInactiveTintColor: theme.textMut,
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
         headerStyle: { backgroundColor: theme.bg1 },
         headerTintColor: theme.text,
         headerTitleStyle: { color: theme.text, fontWeight: '700' },
@@ -19,16 +20,16 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color, size }) => <Ionicons name="home-outline" size={size} color={color} />,
+          title: 'Discover',
+          tabBarIcon: ({ color, size }) => <Ionicons name="telescope-outline" size={size} color={color} />,
           headerShown: false,
         }}
       />
       <Tabs.Screen
         name="diary"
         options={{
-          title: 'Diary',
-          tabBarIcon: ({ color, size }) => <Ionicons name="journal-outline" size={size} color={color} />,
+          title: 'My Diary',
+          tabBarIcon: ({ color, size }) => <Ionicons name="heart-outline" size={size} color={color} />,
         }}
       />
       <Tabs.Screen
@@ -49,8 +50,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profile',
-          tabBarIcon: ({ color, size }) => <Ionicons name="person-outline" size={size} color={color} />,
+          title: 'Me',
+          tabBarIcon: ({ color, size }) => <Ionicons name="person-circle-outline" size={size} color={color} />,
           headerShown: false,
         }}
       />
