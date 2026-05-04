@@ -134,7 +134,7 @@ export default function LogEntry() {
           <Text style={[s.label, { color: theme.textSub }]}>Find a film or TV show</Text>
           <View style={s.searchRow}>
             <TextInput
-              style={[s.searchInput, { backgroundColor: theme.bg2, borderColor: theme.border, color: theme.text }]}
+              style={[s.searchInput, { backgroundColor: theme.bg2, borderColor: theme.text, color: theme.text }]}
               placeholder="Search TMDB…"
               placeholderTextColor={theme.textMut}
               value={searchQ}
@@ -175,7 +175,7 @@ export default function LogEntry() {
 
       {/* Selected media preview */}
       {media && (
-        <View style={[s.mediaCard, { backgroundColor: theme.bg1 }]}>
+        <View style={[s.mediaCard, { backgroundColor: theme.bg1, borderColor: theme.text }]}>
           {media.poster_url
             ? <Image source={{ uri: media.poster_url }} style={s.mediaPoster} resizeMode="cover" />
             : <View style={[s.mediaPoster, { backgroundColor: theme.bg2, alignItems: 'center', justifyContent: 'center' }]}><Text style={{ fontSize: 24 }}>🎬</Text></View>
@@ -206,7 +206,7 @@ export default function LogEntry() {
             <Text style={[s.label, { color: theme.textSub }]}>Watched on</Text>
             <TouchableOpacity
               onPress={() => setShowDatePicker(true)}
-              style={[s.dateBtn, { backgroundColor: theme.bg2, borderColor: theme.border }]}
+              style={[s.dateBtn, { backgroundColor: theme.bg2, borderColor: theme.text }]}
             >
               <Text style={[s.dateBtnText, { color: theme.text }]}>{form.watched_on}</Text>
             </TouchableOpacity>
@@ -270,7 +270,7 @@ export default function LogEntry() {
               Notes <Text style={[s.optional, { color: theme.textMut }]}>(optional)</Text>
             </Text>
             <TextInput
-              style={[s.notesInput, { backgroundColor: theme.bg2, borderColor: theme.border, color: theme.text }]}
+              style={[s.notesInput, { backgroundColor: theme.bg2, borderColor: theme.text, color: theme.text }]}
               placeholder="Any thoughts…"
               placeholderTextColor={theme.textMut}
               multiline
@@ -287,7 +287,7 @@ export default function LogEntry() {
             <Switch
               value={form.rewatch}
               onValueChange={v => setForm(f => ({ ...f, rewatch: v }))}
-              trackColor={{ true: theme.red, false: theme.border }}
+              trackColor={{ true: theme.red, false: theme.bg3 }}
               thumbColor={theme.text}
             />
           </View>
@@ -306,7 +306,7 @@ export default function LogEntry() {
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => router.back()}
-              style={[s.cancelBtn, { borderColor: theme.border }]}
+              style={[s.cancelBtn, { borderColor: theme.text }]}
             >
               <Text style={[s.cancelBtnText, { color: theme.textSub }]}>Cancel</Text>
             </TouchableOpacity>
@@ -320,38 +320,59 @@ export default function LogEntry() {
 const s = StyleSheet.create({
   flex:               { flex: 1 },
   content:            { padding: 16, paddingBottom: 60 },
-  errorBox:           { backgroundColor: '#3f0000', borderWidth: 1, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, marginBottom: 16 },
+  errorBox:           { backgroundColor: '#3f0000', borderWidth: 2, borderRadius: 6, paddingHorizontal: 16, paddingVertical: 12, marginBottom: 16, borderColor: '#dc2626' },
   errorText:          { color: '#fca5a5', fontSize: 13 },
   section:            { marginBottom: 24 },
-  label:              { fontSize: 13, fontWeight: '500', marginBottom: 8 },
+  label:              { fontSize: 13, fontWeight: '700', marginBottom: 8 },
   optional:           { fontWeight: '400' },
   searchRow:          { flexDirection: 'row', gap: 8 },
-  searchInput:        { flex: 1, borderWidth: 1, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, fontSize: 14 },
-  goBtn:              { borderRadius: 12, paddingHorizontal: 16, justifyContent: 'center' },
-  goBtnText:          { color: '#fff', fontWeight: '600' },
+  searchInput:        {
+    flex: 1, borderWidth: 2, borderRadius: 6, paddingHorizontal: 16, paddingVertical: 12, fontSize: 14,
+    shadowColor: '#000', shadowOffset: { width: 2, height: 2 }, shadowOpacity: 0.6, shadowRadius: 0, elevation: 2,
+  },
+  goBtn:              {
+    borderRadius: 6, paddingHorizontal: 16, justifyContent: 'center',
+    borderWidth: 2, borderColor: '#000',
+    shadowColor: '#000', shadowOffset: { width: 3, height: 3 }, shadowOpacity: 0.8, shadowRadius: 0, elevation: 3,
+  },
+  goBtnText:          { color: '#fff', fontWeight: '800' },
   searchResults:      { marginTop: 12, gap: 8 },
-  searchRow2:         { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 12, padding: 10 },
+  searchRow2:         { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 6, padding: 10 },
   miniPoster:         { width: 36, height: 54, borderRadius: 4 },
-  searchResultTitle:  { fontSize: 13, fontWeight: '500' },
+  searchResultTitle:  { fontSize: 13, fontWeight: '600' },
   typeSmall:          { fontSize: 11, marginTop: 2 },
-  mediaCard:          { borderRadius: 12, flexDirection: 'row', gap: 16, padding: 16, marginBottom: 24 },
-  mediaPoster:        { width: 64, height: 96, borderRadius: 8 },
+  mediaCard:          {
+    borderRadius: 6, flexDirection: 'row', gap: 16, padding: 16, marginBottom: 24,
+    borderWidth: 2,
+    shadowColor: '#000', shadowOffset: { width: 3, height: 3 }, shadowOpacity: 0.7, shadowRadius: 0, elevation: 3,
+  },
+  mediaPoster:        { width: 64, height: 96, borderRadius: 4 },
   mediaInfo:          { flex: 1 },
-  mediaTitle:         { fontWeight: '600', fontSize: 15 },
+  mediaTitle:         { fontWeight: '700', fontSize: 15 },
   mediaYear:          { fontSize: 13, marginTop: 2 },
-  typeBadge:          { borderWidth: 1, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2, alignSelf: 'flex-start', marginTop: 6 },
-  typeText:           { fontSize: 11 },
+  typeBadge:          { borderWidth: 2, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2, alignSelf: 'flex-start', marginTop: 6 },
+  typeText:           { fontSize: 11, fontWeight: '700' },
   changeBtn:          { fontSize: 12, marginTop: 6 },
   formFields:         { gap: 20 },
-  dateBtn:            { borderWidth: 1, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12 },
+  dateBtn:            {
+    borderWidth: 2, borderRadius: 6, paddingHorizontal: 16, paddingVertical: 12,
+    shadowColor: '#000', shadowOffset: { width: 2, height: 2 }, shadowOpacity: 0.5, shadowRadius: 0, elevation: 2,
+  },
   dateBtnText:        { fontSize: 14 },
   doneBtn:            { fontSize: 13, textAlign: 'right', marginTop: 8 },
-  notesInput:         { borderWidth: 1, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, fontSize: 14, minHeight: 80 },
+  notesInput:         {
+    borderWidth: 2, borderRadius: 6, paddingHorizontal: 16, paddingVertical: 12, fontSize: 14, minHeight: 80,
+    shadowColor: '#000', shadowOffset: { width: 2, height: 2 }, shadowOpacity: 0.5, shadowRadius: 0, elevation: 2,
+  },
   rewatchRow:         { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   rewatchLabel:       { fontSize: 13 },
   actions:            { flexDirection: 'row', gap: 12, paddingTop: 8 },
-  submitBtn:          { flex: 1, borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
-  submitBtnText:      { color: '#fff', fontWeight: '600' },
-  cancelBtn:          { paddingHorizontal: 20, paddingVertical: 14, borderRadius: 12, borderWidth: 1 },
-  cancelBtnText:      { fontWeight: '500' },
+  submitBtn:          {
+    flex: 1, borderRadius: 6, paddingVertical: 14, alignItems: 'center',
+    borderWidth: 2, borderColor: '#000',
+    shadowColor: '#000', shadowOffset: { width: 3, height: 3 }, shadowOpacity: 0.8, shadowRadius: 0, elevation: 3,
+  },
+  submitBtnText:      { color: '#fff', fontWeight: '800' },
+  cancelBtn:          { paddingHorizontal: 20, paddingVertical: 14, borderRadius: 6, borderWidth: 2 },
+  cancelBtnText:      { fontWeight: '600' },
 })

@@ -34,7 +34,7 @@ export default function EmotionPicker({ emotions = [], selected = [], onChange }
   if (!orderedCats.length) return null
 
   return (
-    <View style={[s.container, { borderColor: theme.border }]}>
+    <View style={[s.container, { borderColor: theme.text }]}>
       {orderedCats.map((cat, ci) => {
         const items = groups[cat]
         // Use the first item's color as the category accent
@@ -42,7 +42,7 @@ export default function EmotionPicker({ emotions = [], selected = [], onChange }
 
         return (
           <View key={cat}>
-            {ci > 0 && <View style={[s.separator, { backgroundColor: theme.border }]} />}
+            {ci > 0 && <View style={[s.separator, { backgroundColor: theme.text }]} />}
             <View style={s.row}>
               {/* Category label */}
               <View style={s.labelCol}>
@@ -95,7 +95,7 @@ export default function EmotionPicker({ emotions = [], selected = [], onChange }
       {selected.length > 0 && (() => {
         const selEmotions = emotions.filter(e => selected.includes(e.id))
         return (
-          <View style={[s.summary, { borderTopColor: theme.border }]}>
+          <View style={[s.summary, { borderTopColor: theme.text }]}>
             {selEmotions.map(e => (
               <TouchableOpacity
                 key={e.id}
@@ -116,17 +116,17 @@ const LABEL_W  = 76
 const EMOJI_SZ = 38
 
 const s = StyleSheet.create({
-  container:  { borderRadius: 14, borderWidth: 1, overflow: 'hidden' },
-  separator:  { height: StyleSheet.hairlineWidth },
+  container:  { borderRadius: 6, borderWidth: 2, overflow: 'hidden' },
+  separator:  { height: 1 },
   row:        { flexDirection: 'row', alignItems: 'center', paddingVertical: 6 },
   labelCol:   { width: LABEL_W, paddingLeft: 14, paddingRight: 4 },
   catLabel:   { fontSize: 13, fontWeight: '700' },
   emojiScroll:{ flex: 1 },
   emojiRow:   { alignItems: 'center', paddingHorizontal: 6, gap: 2 },
-  emojiBtn:   { width: EMOJI_SZ, height: EMOJI_SZ, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  emojiBtn:   { width: EMOJI_SZ, height: EMOJI_SZ, borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
   emoji:      { fontSize: 24, lineHeight: 30 },
   emojiName:  { fontSize: 7, fontWeight: '600', textAlign: 'center', marginTop: 1, width: EMOJI_SZ },
-  summary:    { flexDirection: 'row', flexWrap: 'wrap', gap: 6, padding: 12, borderTopWidth: StyleSheet.hairlineWidth },
-  pill:       { borderWidth: 1, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 },
-  pillText:   { fontSize: 12, fontWeight: '600' },
+  summary:    { flexDirection: 'row', flexWrap: 'wrap', gap: 6, padding: 12, borderTopWidth: 1 },
+  pill:       { borderWidth: 2, borderRadius: 4, paddingHorizontal: 10, paddingVertical: 4 },
+  pillText:   { fontSize: 12, fontWeight: '700' },
 })

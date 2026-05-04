@@ -62,8 +62,8 @@ const s = StyleSheet.create({
   rowLabel:        { fontSize: 11, fontWeight: '600', marginBottom: 8 },
   scroll:          { gap: 12 },
   provider:        { alignItems: 'center', width: 56 },
-  logo:            { width: 44, height: 44, borderRadius: 10 },
-  logoFallback:    { width: 44, height: 44, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  logo:            { width: 44, height: 44, borderRadius: 6 },
+  logoFallback:    { width: 44, height: 44, borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
   logoFallbackText:{ fontSize: 14, fontWeight: '800' },
   providerName:    { fontSize: 9, marginTop: 4, textAlign: 'center', width: 56 },
 })

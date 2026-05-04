@@ -92,7 +92,7 @@ export function StarPicker({ value, onChange }) {
         <TextInput
           style={[s.input, {
             backgroundColor: theme.bg2,
-            borderColor: theme.border,
+            borderColor: theme.text,
             color: GOLD,
           }]}
           value={inputText}
@@ -114,14 +114,15 @@ const s = StyleSheet.create({
   stars:    { flexDirection: 'row', gap: 8 },
   inputRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   input:    {
-    borderWidth: 1,
-    borderRadius: 8,
+    borderWidth: 2,
+    borderRadius: 4,
     paddingHorizontal: 12,
     paddingVertical: 6,
     fontSize: 18,
     fontWeight: '700',
     width: 60,
     textAlign: 'center',
+    shadowColor: '#000', shadowOffset: { width: 2, height: 2 }, shadowOpacity: 0.5, shadowRadius: 0, elevation: 2,
   },
   outOf:    { fontSize: 16, fontWeight: '600' },
   hint:     { fontSize: 11 },

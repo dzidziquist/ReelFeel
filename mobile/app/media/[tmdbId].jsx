@@ -209,7 +209,7 @@ export default function MediaDetail() {
           disabled={wlLoading}
           style={[
             s.wlBtn,
-            { backgroundColor: theme.bg2, borderColor: inWatchlist ? theme.gold : theme.border },
+            { backgroundColor: theme.bg2, borderColor: inWatchlist ? theme.gold : theme.text },
             inWatchlist && { backgroundColor: theme.gold + '20' },
           ]}
         >
@@ -232,7 +232,7 @@ export default function MediaDetail() {
 
       {/* Entries */}
       <View style={s.entriesBlock}>
-        <Text style={[s.entriesHeader, { color: theme.text, borderBottomColor: theme.border }]}>
+        <Text style={[s.entriesHeader, { color: theme.text, borderBottomColor: theme.text }]}>
           Your Entries <Text style={[s.entriesCount, { color: theme.textMut }]}>({entries.length})</Text>
         </Text>
         {entries.length === 0
@@ -257,7 +257,7 @@ const s = StyleSheet.create({
 
   headerRow:        { flexDirection: 'row', gap: 16, paddingHorizontal: 16, paddingBottom: 16, paddingTop: 16 },
   posterWrap:       { position: 'relative' },
-  poster:           { width: 110, height: 165, borderRadius: 12, elevation: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.6, shadowRadius: 8 },
+  poster:           { width: 110, height: 165, borderRadius: 6, elevation: 6, shadowColor: '#000', shadowOffset: { width: 4, height: 4 }, shadowOpacity: 0.9, shadowRadius: 0 },
   posterRating:     { position: 'absolute', bottom: 6, right: 6, backgroundColor: 'rgba(0,0,0,0.8)', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 3 },
   posterRatingText: { fontSize: 11, fontWeight: '700' },
   headerInfo:       { flex: 1, paddingTop: 8 },
@@ -265,8 +265,8 @@ const s = StyleSheet.create({
   tagline:          { fontSize: 12, fontStyle: 'italic', marginTop: 3 },
   mediaYear:        { fontSize: 13, marginTop: 3 },
   metaRow:          { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 6 },
-  typeBadge:        { borderWidth: 1, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 },
-  typeText:         { fontSize: 11 },
+  typeBadge:        { borderWidth: 2, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 },
+  typeText:         { fontSize: 11, fontWeight: '700' },
   genre:            { fontSize: 11 },
   runtime:          { fontSize: 11, marginTop: 4 },
   ratingsRow:       { flexDirection: 'row', gap: 20, marginTop: 10, alignItems: 'flex-end' },
@@ -288,13 +288,17 @@ const s = StyleSheet.create({
   castChar:         { fontSize: 9, textAlign: 'center', marginTop: 1 },
 
   actionRow:        { flexDirection: 'row', gap: 10, marginHorizontal: 16, marginBottom: 24, marginTop: 8 },
-  logBtn:           { flex: 1, borderRadius: 12, paddingVertical: 13, alignItems: 'center' },
-  logBtnText:       { fontWeight: '700', fontSize: 14 },
-  wlBtn:            { flex: 1, borderRadius: 12, paddingVertical: 13, alignItems: 'center', borderWidth: 1, flexDirection: 'row', gap: 6, justifyContent: 'center' },
-  wlBtnText:        { fontWeight: '600', fontSize: 13 },
+  logBtn:           {
+    flex: 1, borderRadius: 6, paddingVertical: 13, alignItems: 'center',
+    borderWidth: 2, borderColor: '#000',
+    shadowColor: '#000', shadowOffset: { width: 3, height: 3 }, shadowOpacity: 0.8, shadowRadius: 0, elevation: 3,
+  },
+  logBtnText:       { fontWeight: '800', fontSize: 14 },
+  wlBtn:            { flex: 1, borderRadius: 6, paddingVertical: 13, alignItems: 'center', borderWidth: 2, flexDirection: 'row', gap: 6, justifyContent: 'center' },
+  wlBtnText:        { fontWeight: '700', fontSize: 13 },
 
   entriesBlock:     { paddingHorizontal: 16 },
-  entriesHeader:    { fontSize: 16, fontWeight: '700', marginBottom: 12, paddingBottom: 8, borderBottomWidth: 1 },
+  entriesHeader:    { fontSize: 16, fontWeight: '800', marginBottom: 12, paddingBottom: 8, borderBottomWidth: 2 },
   entriesCount:     { fontWeight: '400', fontSize: 14 },
   noEntries:        { textAlign: 'center', paddingVertical: 32 },
 })
