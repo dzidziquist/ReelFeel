@@ -80,7 +80,9 @@ export default function FilterSortBar({
                   onPress={() => onSortChange(opt.key)}
                   style={[
                     s.chip,
-                    active ? { backgroundColor: theme.red ?? '#dc2626', borderColor: theme.red } : { borderColor: theme.text },
+                    active
+                      ? { backgroundColor: theme.red ?? '#dc2626', borderColor: theme.red }
+                      : { borderColor: theme.text, backgroundColor: theme.bg1 },
                   ]}
                 >
                   <Text style={[s.chipText, { color: active ? '#fff' : theme.textMut }]}>
@@ -185,7 +187,7 @@ function FilterPanel({ theme, filters, onFiltersChange, onClose, emotions, avail
                     onPress={() => patch({ genre: active ? '' : g })}
                     style={[fp.chip, active
                       ? { backgroundColor: theme.red, borderColor: theme.red }
-                      : { borderColor: theme.text }
+                      : { borderColor: theme.text, backgroundColor: theme.bg2 }
                     ]}
                   >
                     <Text style={[fp.chipText, { color: active ? '#fff' : theme.textSub }]}>{g}</Text>
@@ -243,7 +245,7 @@ function FilterPanel({ theme, filters, onFiltersChange, onClose, emotions, avail
                     onPress={() => applyPreset(preset)}
                     style={[fp.chip, active
                       ? { backgroundColor: theme.red, borderColor: theme.red }
-                      : { borderColor: theme.text }
+                      : { borderColor: theme.text, backgroundColor: theme.bg2 }
                     ]}
                   >
                     <Text style={[fp.chipText, { color: active ? '#fff' : theme.textSub }]}>{preset.label}</Text>
@@ -374,8 +376,6 @@ const s = StyleSheet.create({
   sortChips: { flexDirection: 'row', gap: 6 },
   chip:      {
     paddingHorizontal: 10, paddingVertical: 5, borderRadius: 4, borderWidth: 2,
-    shadowColor: '#000', shadowOffset: { width: 2, height: 2 }, shadowOpacity: 0.6, shadowRadius: 0,
-    elevation: 2,
   },
   chipText:  { fontSize: 11, fontWeight: '700' },
 })
@@ -390,7 +390,6 @@ const fp = StyleSheet.create({
   chips:      { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip:       {
     paddingHorizontal: 12, paddingVertical: 7, borderRadius: 4, borderWidth: 2,
-    shadowColor: '#000', shadowOffset: { width: 2, height: 2 }, shadowOpacity: 0.5, shadowRadius: 0, elevation: 2,
   },
   chipText:   { fontSize: 13, fontWeight: '700' },
   ratingRow:  { flexDirection: 'row', gap: 12, alignItems: 'flex-end' },
