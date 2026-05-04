@@ -2,6 +2,15 @@ import 'react-native-url-polyfill/auto'
 import { createClient } from '@supabase/supabase-js'
 import * as SecureStore from 'expo-secure-store'
 
+const supabaseUrl  = process.env.EXPO_PUBLIC_SUPABASE_URL
+const supabaseKey  = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY
+
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error(
+    'Missing Supabase config. Copy .env.example to .env and fill in EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY.'
+  )
+}
+
 // Chunked storage adapter: SecureStore has a 2 KB/key limit
 const adapter = {
   async getItem(key) {
@@ -25,15 +34,11 @@ const adapter = {
   },
 }
 
-export const supabase = createClient(
-  process.env.EXPO_PUBLIC_SUPABASE_URL,
-  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
-  {
-    auth: {
-      storage: adapter,
-      autoRefreshToken: true,
-      persistSession: true,
-      detectSessionInUrl: false,
-    },
-  }
-)
+export const supabase = createClient(supabaseUrl, supabaseKey, {
+  auth: {
+    storage: adapter,
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: false,
+  },
+})
