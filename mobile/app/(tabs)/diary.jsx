@@ -74,18 +74,18 @@ function InsightsBlock({ insights, entries, showHeatmap, onToggleHeatmap, theme 
   return (
     <View>
       {/* Stats bar */}
-      <View style={[s.insightsBar, { backgroundColor: theme.bg1, borderColor: theme.border }]}>
+      <View style={[s.insightsBar, { backgroundColor: theme.bg1, borderColor: theme.text }]}>
         <View style={s.stat}><Text style={[s.statVal, { color: theme.gold }]}>{totalMovies}</Text><Text style={[s.statLbl, { color: theme.textMut }]}>Films</Text></View>
-        <View style={[s.divider, { backgroundColor: theme.border }]} />
+        <View style={[s.divider, { backgroundColor: theme.text }]} />
         <View style={s.stat}><Text style={[s.statVal, { color: theme.gold }]}>{totalTV}</Text><Text style={[s.statLbl, { color: theme.textMut }]}>TV Shows</Text></View>
-        <View style={[s.divider, { backgroundColor: theme.border }]} />
+        <View style={[s.divider, { backgroundColor: theme.text }]} />
         <View style={s.stat}><Text style={[s.statVal, { color: theme.gold }]}>{avgRating ? avgRating.toFixed(1) : '—'}</Text><Text style={[s.statLbl, { color: theme.textMut }]}>Avg ★</Text></View>
-        <View style={[s.divider, { backgroundColor: theme.border }]} />
+        <View style={[s.divider, { backgroundColor: theme.text }]} />
         <View style={s.stat}><Text style={[s.statVal, { color: theme.gold }]}>{thisMonth}</Text><Text style={[s.statLbl, { color: theme.textMut }]}>This Month</Text></View>
       </View>
 
       {/* Heatmap toggle */}
-      <TouchableOpacity onPress={onToggleHeatmap} style={[s.heatmapToggle, { borderColor: theme.border }]}>
+      <TouchableOpacity onPress={onToggleHeatmap} style={[s.heatmapToggle, { borderBottomColor: theme.text }]}>
         <Ionicons name="calendar-outline" size={14} color={theme.textMut} />
         <Text style={[s.heatmapToggleText, { color: theme.textMut }]}>
           {showHeatmap ? 'Hide Activity' : 'Show Activity Calendar'}
@@ -94,7 +94,7 @@ function InsightsBlock({ insights, entries, showHeatmap, onToggleHeatmap, theme 
       </TouchableOpacity>
 
       {showHeatmap && (
-        <View style={[s.heatmapBox, { backgroundColor: theme.bg1, borderColor: theme.border }]}>
+        <View style={[s.heatmapBox, { backgroundColor: theme.bg1, borderColor: theme.text }]}>
           <CalendarHeatmap entries={entries} />
         </View>
       )}
@@ -248,7 +248,7 @@ export default function Diary() {
         }
         renderItem={({ item }) => {
           if (item.type === 'header') {
-            return <Text style={[s.monthHeader, { color: theme.textMut, borderBottomColor: theme.border }]}>{item.month}</Text>
+            return <Text style={[s.monthHeader, { color: theme.textMut, borderBottomColor: theme.text }]}>{item.month}</Text>
           }
           return (
             <View style={{ marginBottom: 10 }}>
@@ -271,21 +271,28 @@ const s = StyleSheet.create({
   titleRow:        { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14, gap: 12 },
   title:           { fontSize: 24, fontWeight: '800' },
   subtitle:        { fontSize: 11, marginTop: 3 },
-  logBtn:          { borderRadius: 8, paddingHorizontal: 16, paddingVertical: 8, marginTop: 4 },
-  logBtnText:      { color: '#fff', fontWeight: '700', fontSize: 13 },
-  insightsBar:     { flexDirection: 'row', alignItems: 'center', borderRadius: 12, padding: 14, borderWidth: 1, marginBottom: 10 },
+  logBtn:          {
+    borderRadius: 4, paddingHorizontal: 16, paddingVertical: 8, marginTop: 4,
+    borderWidth: 2, borderColor: '#000',
+    shadowColor: '#000', shadowOffset: { width: 3, height: 3 }, shadowOpacity: 0.8, shadowRadius: 0, elevation: 3,
+  },
+  logBtnText:      { color: '#fff', fontWeight: '800', fontSize: 13 },
+  insightsBar:     {
+    flexDirection: 'row', alignItems: 'center', borderRadius: 6, padding: 14, borderWidth: 2, marginBottom: 10,
+    shadowColor: '#000', shadowOffset: { width: 3, height: 3 }, shadowOpacity: 0.7, shadowRadius: 0, elevation: 3,
+  },
   stat:            { flex: 1, alignItems: 'center' },
-  statVal:         { fontSize: 18, fontWeight: '700' },
+  statVal:         { fontSize: 18, fontWeight: '800' },
   statLbl:         { fontSize: 10, marginTop: 2 },
-  divider:         { width: 1, height: 30 },
-  heatmapToggle:   { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 8, paddingHorizontal: 4, borderBottomWidth: StyleSheet.hairlineWidth, marginBottom: 8 },
+  divider:         { width: 2, height: 30 },
+  heatmapToggle:   { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 8, paddingHorizontal: 4, borderBottomWidth: 1.5, marginBottom: 8 },
   heatmapToggleText:{ fontSize: 12, flex: 1 },
-  heatmapBox:      { borderRadius: 12, padding: 14, borderWidth: 1, marginBottom: 10, overflow: 'hidden' },
-  monthHeader:     { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1, marginTop: 16, marginBottom: 10, paddingBottom: 6, borderBottomWidth: StyleSheet.hairlineWidth },
+  heatmapBox:      { borderRadius: 6, padding: 14, borderWidth: 2, marginBottom: 10, overflow: 'hidden' },
+  monthHeader:     { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1, marginTop: 16, marginBottom: 10, paddingBottom: 6, borderBottomWidth: 1.5 },
   empty:           { alignItems: 'center', paddingVertical: 60 },
   emptyEmoji:      { fontSize: 48, marginBottom: 16 },
   emptyTitle:      { fontSize: 17, marginBottom: 8 },
   emptyLink:       { fontSize: 14 },
-  errorBox:        { backgroundColor: '#3f0000', borderWidth: 1, borderColor: '#dc2626', borderRadius: 12, padding: 14, marginBottom: 12 },
+  errorBox:        { backgroundColor: '#3f0000', borderWidth: 2, borderColor: '#dc2626', borderRadius: 6, padding: 14, marginBottom: 12 },
   errorText:       { color: '#fca5a5', fontSize: 13, lineHeight: 18 },
 })

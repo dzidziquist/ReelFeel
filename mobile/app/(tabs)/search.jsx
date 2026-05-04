@@ -128,7 +128,10 @@ export default function Search() {
                 >
                   {saving[r.tmdb_id]
                     ? <ActivityIndicator size="small" color={theme.gold} />
-                    : <Text style={[s.watchlistBtnText, { color: theme.gold }]}>🔖 Save</Text>
+                    : <>
+                        <Ionicons name="bookmark-outline" size={13} color={theme.gold} />
+                        <Text style={[s.watchlistBtnText, { color: theme.gold }]}>Save</Text>
+                      </>
                   }
                 </TouchableOpacity>
               </View>
@@ -174,6 +177,6 @@ const s = StyleSheet.create({
     shadowColor: '#000', shadowOffset: { width: 2, height: 2 }, shadowOpacity: 0.8, shadowRadius: 0, elevation: 2,
   },
   logBtnText:       { color: '#fff', fontSize: 12, fontWeight: '700' },
-  watchlistBtn:     { borderRadius: 4, paddingHorizontal: 12, paddingVertical: 6, flex: 1, alignItems: 'center', borderWidth: 2 },
+  watchlistBtn:     { borderRadius: 4, paddingHorizontal: 12, paddingVertical: 6, flex: 1, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 4, borderWidth: 2 },
   watchlistBtnText: { fontSize: 12, fontWeight: '600' },
 })

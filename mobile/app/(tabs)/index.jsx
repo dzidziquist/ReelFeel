@@ -243,14 +243,14 @@ export default function Home() {
       {/* Quick rate modal */}
       <Modal visible={rateModal.visible} transparent animationType="fade">
         <View style={s.rateBackdrop}>
-          <View style={[s.rateCard, { backgroundColor: theme.bg1, borderColor: theme.border }]}>
+          <View style={[s.rateCard, { backgroundColor: theme.bg1, borderColor: theme.text }]}>
             <Text style={[s.rateTitle, { color: theme.text }]}>Rate "{rateModal.item?.title}"</Text>
             <StarPicker
               value={rateModal.value}
               onChange={v => setRateModal(prev => ({ ...prev, value: v }))}
             />
             <View style={s.rateBtns}>
-              <TouchableOpacity onPress={() => setRateModal({ visible: false, item: null, value: 3 })} style={[s.rateCancelBtn, { borderColor: theme.border }]}>
+              <TouchableOpacity onPress={() => setRateModal({ visible: false, item: null, value: 3 })} style={[s.rateCancelBtn, { borderColor: theme.text }]}>
                 <Text style={[s.rateCancelText, { color: theme.textSub }]}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={handleQuickRate} disabled={rateLoading} style={[s.rateConfirmBtn, { backgroundColor: theme.red }]}>
@@ -279,15 +279,22 @@ const s = StyleSheet.create({
   row:          { paddingHorizontal: 16 },
   loadingBlock: { alignItems: 'center', paddingVertical: 80, gap: 16 },
   loadingText:  { fontSize: 13 },
-  errorBox:     { marginHorizontal: 16, marginBottom: 16, backgroundColor: '#3f0000', borderWidth: 1, borderColor: '#dc2626', borderRadius: 12, padding: 16 },
+  errorBox:     { marginHorizontal: 16, marginBottom: 16, backgroundColor: '#3f0000', borderWidth: 2, borderColor: '#dc2626', borderRadius: 6, padding: 16 },
   errorText:    { color: '#fca5a5', fontSize: 13 },
   // Quick rate modal
   rateBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', alignItems: 'center', justifyContent: 'center', padding: 24 },
-  rateCard:     { width: '100%', borderRadius: 20, padding: 24, borderWidth: 1, gap: 20 },
-  rateTitle:    { fontSize: 17, fontWeight: '700', textAlign: 'center' },
+  rateCard:     {
+    width: '100%', borderRadius: 6, padding: 24, borderWidth: 2, gap: 20,
+    shadowColor: '#000', shadowOffset: { width: 4, height: 4 }, shadowOpacity: 0.9, shadowRadius: 0, elevation: 4,
+  },
+  rateTitle:    { fontSize: 17, fontWeight: '800', textAlign: 'center' },
   rateBtns:     { flexDirection: 'row', gap: 12 },
-  rateCancelBtn:{ flex: 1, paddingVertical: 14, borderRadius: 12, borderWidth: 1, alignItems: 'center' },
-  rateCancelText:{ fontSize: 15, fontWeight: '600' },
-  rateConfirmBtn:{ flex: 1, paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
-  rateConfirmText:{ color: '#fff', fontSize: 15, fontWeight: '700' },
+  rateCancelBtn:{ flex: 1, paddingVertical: 14, borderRadius: 4, borderWidth: 2, alignItems: 'center' },
+  rateCancelText:{ fontSize: 15, fontWeight: '700' },
+  rateConfirmBtn:{
+    flex: 1, paddingVertical: 14, borderRadius: 4, alignItems: 'center',
+    borderWidth: 2, borderColor: '#000',
+    shadowColor: '#000', shadowOffset: { width: 3, height: 3 }, shadowOpacity: 0.8, shadowRadius: 0, elevation: 3,
+  },
+  rateConfirmText:{ color: '#fff', fontSize: 15, fontWeight: '800' },
 })

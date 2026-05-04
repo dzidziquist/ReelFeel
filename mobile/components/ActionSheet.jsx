@@ -26,9 +26,9 @@ export default function ActionSheet({ visible, onClose, title, items = [] }) {
         <View style={s.backdrop} />
       </TouchableWithoutFeedback>
 
-      <View style={[s.sheet, { backgroundColor: theme.bg1, borderTopColor: theme.border }]}>
+      <View style={[s.sheet, { backgroundColor: theme.bg1, borderTopColor: theme.text }]}>
         {title ? (
-          <View style={[s.titleRow, { borderBottomColor: theme.border }]}>
+          <View style={[s.titleRow, { borderBottomColor: theme.text }]}>
             <Text style={[s.title, { color: theme.textMut }]} numberOfLines={2}>{title}</Text>
           </View>
         ) : null}
@@ -36,7 +36,7 @@ export default function ActionSheet({ visible, onClose, title, items = [] }) {
         {items.map((item, i) => (
           <TouchableOpacity
             key={i}
-            style={[s.item, i < items.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.border }]}
+            style={[s.item, i < items.length - 1 && { borderBottomWidth: 1, borderBottomColor: theme.text }]}
             onPress={() => { onClose(); item.onPress?.() }}
             activeOpacity={0.7}
           >
@@ -54,7 +54,7 @@ export default function ActionSheet({ visible, onClose, title, items = [] }) {
         ))}
 
         <TouchableOpacity
-          style={[s.cancelBtn, { backgroundColor: theme.bg2, borderColor: theme.border }]}
+          style={[s.cancelBtn, { backgroundColor: theme.bg2, borderColor: theme.text }]}
           onPress={onClose}
           activeOpacity={0.7}
         >
@@ -68,20 +68,21 @@ export default function ActionSheet({ visible, onClose, title, items = [] }) {
 const s = StyleSheet.create({
   backdrop:  { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)' },
   sheet:     {
-    borderTopLeftRadius: 20, borderTopRightRadius: 20,
-    borderTopWidth: 1,
+    borderTopLeftRadius: 8, borderTopRightRadius: 8,
+    borderTopWidth: 2,
     paddingBottom: 40,
     paddingHorizontal: 16,
     paddingTop: 8,
+    shadowColor: '#000', shadowOffset: { width: 0, height: -3 }, shadowOpacity: 0.4, shadowRadius: 0, elevation: 8,
   },
-  titleRow:  { paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth, marginBottom: 4 },
-  title:     { fontSize: 12, textAlign: 'center', fontWeight: '500' },
+  titleRow:  { paddingVertical: 12, borderBottomWidth: 1, marginBottom: 4 },
+  title:     { fontSize: 12, textAlign: 'center', fontWeight: '700' },
   item:      { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, gap: 14 },
-  iconWrap:  { width: 38, height: 38, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  label:     { fontSize: 16, fontWeight: '500', flex: 1 },
+  iconWrap:  { width: 38, height: 38, borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
+  label:     { fontSize: 16, fontWeight: '600', flex: 1 },
   cancelBtn: {
-    marginTop: 12, paddingVertical: 16, borderRadius: 14,
-    borderWidth: 1, alignItems: 'center',
+    marginTop: 12, paddingVertical: 16, borderRadius: 6,
+    borderWidth: 2, alignItems: 'center',
   },
   cancelText:{ fontSize: 16, fontWeight: '600' },
 })

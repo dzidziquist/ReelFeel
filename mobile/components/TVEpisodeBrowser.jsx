@@ -123,7 +123,7 @@ export default function TVEpisodeBrowser({ tmdbId, seasonNumber, episodeNumber, 
               activeOpacity={0.75}
               style={[
                 s.seasonCard,
-                { borderColor: active ? theme.gold : theme.border, backgroundColor: active ? theme.gold + '18' : theme.bg2 },
+                { borderColor: active ? theme.gold : theme.text, backgroundColor: active ? theme.gold + '18' : theme.bg2 },
               ]}
             >
               {sn.poster_url ? (
@@ -160,7 +160,7 @@ export default function TVEpisodeBrowser({ tmdbId, seasonNumber, episodeNumber, 
                   activeOpacity={0.75}
                   style={[
                     s.episodeRow,
-                    { backgroundColor: active ? theme.gold + '18' : theme.bg2, borderColor: active ? theme.gold : theme.border },
+                    { backgroundColor: active ? theme.gold + '18' : theme.bg2, borderColor: active ? theme.gold : theme.text },
                   ]}
                 >
                   {ep.still_url ? (
@@ -205,8 +205,8 @@ const STILL_H  = 45
 
 const s = StyleSheet.create({
   // Selected summary
-  selectedBar:     { flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: 12, borderWidth: 1, padding: 10 },
-  selectedStill:   { width: 64, height: 40, borderRadius: 6 },
+  selectedBar:     { flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: 6, borderWidth: 2, padding: 10 },
+  selectedStill:   { width: 64, height: 40, borderRadius: 4 },
   selectedLabel:   { fontSize: 13, fontWeight: '800' },
   selectedEpName:  { fontSize: 13, fontWeight: '500', marginTop: 1 },
   selectedSnName:  { fontSize: 11, marginTop: 1 },
@@ -215,14 +215,14 @@ const s = StyleSheet.create({
   clearBtn:        { padding: 2 },
 
   // Placeholder / loading
-  placeholder:     { flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 10, padding: 12 },
+  placeholder:     { flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 6, padding: 12 },
   placeholderText: { fontSize: 13 },
 
   sectionHint:     { fontSize: 11, fontWeight: '600', marginBottom: 10 },
 
   // Season row
   seasonRow:       { gap: 8, paddingBottom: 4 },
-  seasonCard:      { width: SEASON_W, borderRadius: 10, borderWidth: 1.5, overflow: 'hidden' },
+  seasonCard:      { width: SEASON_W, borderRadius: 6, borderWidth: 2, overflow: 'hidden' },
   seasonPoster:    { width: SEASON_W, height: Math.round(SEASON_W * 1.5), },
   seasonName:      { fontSize: 10, fontWeight: '600', paddingHorizontal: 6, paddingTop: 4 },
   seasonEpCount:   { fontSize: 9, paddingHorizontal: 6, paddingBottom: 6 },
@@ -230,8 +230,8 @@ const s = StyleSheet.create({
 
   // Episode list
   episodeList:     { gap: 6, marginTop: 8 },
-  episodeRow:      { flexDirection: 'row', alignItems: 'flex-start', gap: 10, borderRadius: 10, borderWidth: 1, padding: 8 },
-  episodeStill:    { width: STILL_W, height: STILL_H, borderRadius: 6 },
+  episodeRow:      { flexDirection: 'row', alignItems: 'flex-start', gap: 10, borderRadius: 6, borderWidth: 2, padding: 8 },
+  episodeStill:    { width: STILL_W, height: STILL_H, borderRadius: 4 },
   episodeNoFallback:{ fontSize: 12, fontWeight: '700' },
   episodeInfo:     { flex: 1, minWidth: 0 },
   episodeTopRow:   { flexDirection: 'row', alignItems: 'center', gap: 6 },
