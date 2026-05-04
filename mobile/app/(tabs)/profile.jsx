@@ -14,10 +14,10 @@ function Avatar({ name, size = 64, theme }) {
   return (
     <View style={[
       a.avatarRing,
-      { width: size + 8, height: size + 8, borderRadius: (size + 8) / 2, borderColor: theme?.violet ?? '#7c3aed' },
+      { width: size + 8, height: size + 8, borderRadius: (size + 8) / 2, borderColor: theme?.gold ?? '#d4af37' },
     ]}>
       <View style={[a.avatar, { width: size, height: size, borderRadius: size / 2, backgroundColor: theme?.bg2 ?? '#1a1a1a' }]}>
-        <Text style={[a.initials, { fontSize: size * 0.38, color: theme?.violet ?? '#7c3aed' }]}>{initials}</Text>
+        <Text style={[a.initials, { fontSize: size * 0.38, color: theme?.gold ?? '#d4af37' }]}>{initials}</Text>
       </View>
     </View>
   )
@@ -26,7 +26,7 @@ function Avatar({ name, size = 64, theme }) {
 function StatBox({ value, label, theme }) {
   return (
     <View style={s.statBox}>
-      <Text style={[s.statVal, { color: theme?.violet ?? '#7c3aed' }]}>{value ?? '—'}</Text>
+      <Text style={[s.statVal, { color: theme?.gold ?? '#d4af37' }]}>{value ?? '—'}</Text>
       <Text style={[s.statLbl, { color: theme?.textMut ?? '#6b6b6b' }]}>{label}</Text>
     </View>
   )
