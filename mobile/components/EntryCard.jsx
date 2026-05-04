@@ -14,12 +14,12 @@ export default function EntryCard({ entry, onDelete }) {
   const isFilm = media.media_type === 'film' || media.media_type === 'movie'
 
   return (
-    <View style={[s.card, { backgroundColor: theme.bg1 }]}>
+    <View style={[s.card, { backgroundColor: theme.bg1, borderColor: theme.text }]}>
       {/* Poster */}
       <TouchableOpacity onPress={() => router.push(`/media/${media.tmdb_id}`)}>
         {media.poster_url
-          ? <Image source={{ uri: media.poster_url }} style={s.poster} resizeMode="cover" />
-          : <View style={[s.poster, { backgroundColor: theme.bg2, alignItems: 'center', justifyContent: 'center' }]}>
+          ? <Image source={{ uri: media.poster_url }} style={[s.poster, { borderColor: theme.text }]} resizeMode="cover" />
+          : <View style={[s.poster, { backgroundColor: theme.bg2, borderColor: theme.text, alignItems: 'center', justifyContent: 'center' }]}>
               <Text style={{ fontSize: 22 }}>🎬</Text>
             </View>
         }

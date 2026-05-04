@@ -47,7 +47,7 @@ export default function PosterCard({ item, width = 120, onPress, onLongPress, wa
       delayLongPress={350}
       style={[{ width }, style]}
     >
-      <View style={[s.imageWrap, { width, height }]}>
+      <View style={[s.imageWrap, { width, height, borderColor: theme.text }]}>
         {item.poster_url ? (
           <Image source={{ uri: item.poster_url }} style={{ width, height }} resizeMode="cover" />
         ) : (
