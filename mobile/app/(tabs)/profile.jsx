@@ -14,10 +14,10 @@ function Avatar({ name, size = 64, theme }) {
   return (
     <View style={[
       a.avatarRing,
-      { width: size + 8, height: size + 8, borderRadius: (size + 8) / 2, borderColor: theme?.violet ?? '#7c3aed' },
+      { width: size + 8, height: size + 8, borderRadius: (size + 8) / 2, borderColor: theme?.gold ?? '#d4af37' },
     ]}>
       <View style={[a.avatar, { width: size, height: size, borderRadius: size / 2, backgroundColor: theme?.bg2 ?? '#1a1a1a' }]}>
-        <Text style={[a.initials, { fontSize: size * 0.38, color: theme?.violet ?? '#7c3aed' }]}>{initials}</Text>
+        <Text style={[a.initials, { fontSize: size * 0.38, color: theme?.gold ?? '#d4af37' }]}>{initials}</Text>
       </View>
     </View>
   )
@@ -26,7 +26,7 @@ function Avatar({ name, size = 64, theme }) {
 function StatBox({ value, label, theme }) {
   return (
     <View style={s.statBox}>
-      <Text style={[s.statVal, { color: theme?.violet ?? '#7c3aed' }]}>{value ?? '—'}</Text>
+      <Text style={[s.statVal, { color: theme?.gold ?? '#d4af37' }]}>{value ?? '—'}</Text>
       <Text style={[s.statLbl, { color: theme?.textMut ?? '#6b6b6b' }]}>{label}</Text>
     </View>
   )
@@ -364,34 +364,50 @@ const s = StyleSheet.create({
   username:    { fontSize: 13, marginTop: 2 },
   bio:         { fontSize: 13, marginTop: 6, lineHeight: 18 },
   memberSince: { fontSize: 11, marginTop: 6 },
-  editBtn:     { borderWidth: 1, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 6 },
-  editBtnText: { fontSize: 13 },
+  editBtn:     {
+    borderWidth: 2, borderRadius: 4, paddingHorizontal: 14, paddingVertical: 6,
+    shadowColor: '#000', shadowOffset: { width: 2, height: 2 }, shadowOpacity: 0.8, shadowRadius: 0,
+    elevation: 2,
+  },
+  editBtnText: { fontSize: 13, fontWeight: '700' },
 
   // Shared section card
-  section:     { borderRadius: 14, padding: 16, marginBottom: 14, borderWidth: 1 },
-  sectionLabel:{ fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 },
+  section:     {
+    borderRadius: 6, padding: 16, marginBottom: 14, borderWidth: 2,
+    shadowColor: '#000', shadowOffset: { width: 3, height: 3 }, shadowOpacity: 0.7, shadowRadius: 0,
+    elevation: 3,
+  },
+  sectionLabel:{ fontSize: 11, fontWeight: '800', letterSpacing: 1.5, marginBottom: 12 },
 
   // Stats
   statsGrid:   { flexDirection: 'row', flexWrap: 'wrap' },
   statBox:     { width: '50%', paddingVertical: 10, alignItems: 'center' },
-  statVal:     { fontSize: 26, fontWeight: '700' },
-  statLbl:     { fontSize: 11, marginTop: 2 },
-  runtimeRow:  { marginTop: 12, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth },
-  runtimeText: { fontSize: 12, textAlign: 'center' },
+  statVal:     { fontSize: 28, fontWeight: '900' },
+  statLbl:     { fontSize: 11, marginTop: 2, fontWeight: '600' },
+  runtimeRow:  { marginTop: 12, paddingTop: 12, borderTopWidth: 2 },
+  runtimeText: { fontSize: 12, textAlign: 'center', fontWeight: '600' },
 
   // Appearance
   themeRow:    { flexDirection: 'row', gap: 8 },
-  themeBtn:    { flex: 1, paddingVertical: 10, borderRadius: 10, borderWidth: 1, alignItems: 'center', gap: 4 },
-  themeBtnText:{ fontSize: 11, fontWeight: '600' },
+  themeBtn:    {
+    flex: 1, paddingVertical: 10, borderRadius: 4, borderWidth: 2, alignItems: 'center', gap: 4,
+    shadowColor: '#000', shadowOffset: { width: 2, height: 2 }, shadowOpacity: 0.7, shadowRadius: 0,
+    elevation: 2,
+  },
+  themeBtnText:{ fontSize: 11, fontWeight: '700' },
 
   // Links
-  linkRow:     { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, gap: 12, borderBottomWidth: StyleSheet.hairlineWidth },
-  iconWrap:    { width: 36, height: 36, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
-  linkText:    { fontSize: 15, fontWeight: '500' },
+  linkRow:     { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, gap: 12, borderBottomWidth: 1.5 },
+  iconWrap:    { width: 36, height: 36, borderRadius: 4, borderWidth: 1.5, borderColor: '#333', alignItems: 'center', justifyContent: 'center' },
+  linkText:    { fontSize: 15, fontWeight: '700' },
   linkDesc:    { fontSize: 11, marginTop: 1 },
 
   // Danger
-  dangerSection: { backgroundColor: '#1a0000', borderRadius: 14, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: '#5c1414' },
+  dangerSection: {
+    backgroundColor: '#1a0000', borderRadius: 6, padding: 16, marginBottom: 16, borderWidth: 2, borderColor: '#5c1414',
+    shadowColor: '#000', shadowOffset: { width: 3, height: 3 }, shadowOpacity: 0.7, shadowRadius: 0,
+    elevation: 3,
+  },
   dangerLabel:   { color: '#ef4444', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 },
   dangerRow:     { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, gap: 12 },
   dangerTitle:   { color: '#a3a3a3', fontSize: 14, fontWeight: '600' },
@@ -404,7 +420,11 @@ const s = StyleSheet.create({
 
 // Avatar sub-styles (static — colors applied inline in Avatar component)
 const a = StyleSheet.create({
-  avatarRing: { borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  avatarRing: {
+    borderWidth: 3, alignItems: 'center', justifyContent: 'center',
+    shadowColor: '#000', shadowOffset: { width: 3, height: 3 }, shadowOpacity: 0.9, shadowRadius: 0,
+    elevation: 3,
+  },
   avatar:     { alignItems: 'center', justifyContent: 'center' },
-  initials:   { fontWeight: '800' },
+  initials:   { fontWeight: '900' },
 })
