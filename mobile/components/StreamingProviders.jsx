@@ -1,18 +1,26 @@
-import { View, Text, ScrollView, Image, StyleSheet } from 'react-native'
+import { View, Text, ScrollView, Image, TouchableOpacity, Linking, StyleSheet } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import { useTheme } from '../context/ThemeContext'
 
 /**
  * Horizontal row of streaming platform logos.
  *
  * Props:
- *   streaming – [{ id, name, logo_url }]  (flatrate/subscription services)
- *   rent      – [{ id, name, logo_url }]  (optional)
- *   buy       – [{ id, name, logo_url }]  (optional)
+ *   streaming  – [{ id, name, logo_url }]  (flatrate/subscription services)
+ *   rent       – [{ id, name, logo_url }]  (optional)
+ *   buy        – [{ id, name, logo_url }]  (optional)
+ *   inTheatres – boolean
+ *   title      – string (used for ticket search link)
  */
-export default function StreamingProviders({ streaming = [], rent = [], buy = [], inTheatres = false }) {
+export default function StreamingProviders({ streaming = [], rent = [], buy = [], inTheatres = false, title = '' }) {
   const { theme } = useTheme()
 
   if (!streaming.length && !rent.length && !buy.length && !inTheatres) return null
+
+  function buyTickets() {
+    const q = encodeURIComponent(title)
+    Linking.openURL(`https://www.fandango.com/search?q=${q}`)
+  }
 
   function ProviderLogo({ p }) {
     return (
@@ -49,9 +57,19 @@ export default function StreamingProviders({ streaming = [], rent = [], buy = []
     <View style={[s.container, { borderTopColor: theme.border }]}>
       <Text style={[s.header, { color: theme.textSub }]}>Where to Watch</Text>
       {inTheatres && (
-        <View style={[s.theatreRow, { backgroundColor: theme.bg2, borderColor: theme.gold }]}>
-          <Text style={s.theatreEmoji}>🎟</Text>
-          <Text style={[s.theatreText, { color: theme.gold }]}>Now in Theatres</Text>
+        <View style={s.theatreBlock}>
+          <View style={[s.theatreRow, { backgroundColor: theme.bg2, borderColor: theme.gold }]}>
+            <Text style={s.theatreEmoji}>🎟</Text>
+            <Text style={[s.theatreText, { color: theme.gold }]}>Now in Theatres</Text>
+          </View>
+          <TouchableOpacity
+            onPress={buyTickets}
+            style={[s.ticketBtn, { backgroundColor: theme.gold, borderColor: '#000' }]}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="ticket-outline" size={15} color="#000" />
+            <Text style={s.ticketBtnText}>Buy Tickets</Text>
+          </TouchableOpacity>
         </View>
       )}
       <Row label="Stream"  items={streaming} />
@@ -64,9 +82,16 @@ export default function StreamingProviders({ streaming = [], rent = [], buy = []
 const s = StyleSheet.create({
   container:       { paddingTop: 16, marginBottom: 8 },
   header:          { fontSize: 13, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10, paddingHorizontal: 16 },
-  theatreRow:      { flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: 16, marginBottom: 12, paddingHorizontal: 12, paddingVertical: 10, borderRadius: 4, borderWidth: 2 },
+  theatreBlock:    { marginHorizontal: 16, marginBottom: 12, gap: 8 },
+  theatreRow:      { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12, paddingVertical: 10, borderRadius: 4, borderWidth: 2 },
   theatreEmoji:    { fontSize: 16 },
   theatreText:     { fontSize: 13, fontWeight: '800' },
+  ticketBtn:       {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7,
+    paddingVertical: 12, borderRadius: 4, borderWidth: 2,
+    shadowColor: '#000', shadowOffset: { width: 3, height: 3 }, shadowOpacity: 0.8, shadowRadius: 0, elevation: 3,
+  },
+  ticketBtnText:   { fontSize: 14, fontWeight: '800', color: '#000' },
   row:             { marginBottom: 12, paddingHorizontal: 16 },
   rowLabel:        { fontSize: 11, fontWeight: '600', marginBottom: 8 },
   scroll:          { gap: 12 },

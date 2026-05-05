@@ -199,6 +199,7 @@ export default function MediaDetail() {
         rent={providers.rent}
         buy={providers.buy}
         inTheatres={inTheatres}
+        title={media.title}
       />
 
       {/* Action Buttons */}
