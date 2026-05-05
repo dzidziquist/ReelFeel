@@ -9,10 +9,10 @@ import { useTheme } from '../context/ThemeContext'
  *   rent      – [{ id, name, logo_url }]  (optional)
  *   buy       – [{ id, name, logo_url }]  (optional)
  */
-export default function StreamingProviders({ streaming = [], rent = [], buy = [] }) {
+export default function StreamingProviders({ streaming = [], rent = [], buy = [], inTheatres = false }) {
   const { theme } = useTheme()
 
-  if (!streaming.length && !rent.length && !buy.length) return null
+  if (!streaming.length && !rent.length && !buy.length && !inTheatres) return null
 
   function ProviderLogo({ p }) {
     return (
@@ -48,6 +48,12 @@ export default function StreamingProviders({ streaming = [], rent = [], buy = []
   return (
     <View style={[s.container, { borderTopColor: theme.border }]}>
       <Text style={[s.header, { color: theme.textSub }]}>Where to Watch</Text>
+      {inTheatres && (
+        <View style={[s.theatreRow, { backgroundColor: theme.bg2, borderColor: theme.gold }]}>
+          <Text style={s.theatreEmoji}>🎟</Text>
+          <Text style={[s.theatreText, { color: theme.gold }]}>Now in Theatres</Text>
+        </View>
+      )}
       <Row label="Stream"  items={streaming} />
       <Row label="Rent"    items={rent} />
       <Row label="Buy"     items={buy} />
@@ -58,6 +64,9 @@ export default function StreamingProviders({ streaming = [], rent = [], buy = []
 const s = StyleSheet.create({
   container:       { paddingTop: 16, marginBottom: 8 },
   header:          { fontSize: 13, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10, paddingHorizontal: 16 },
+  theatreRow:      { flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: 16, marginBottom: 12, paddingHorizontal: 12, paddingVertical: 10, borderRadius: 4, borderWidth: 2 },
+  theatreEmoji:    { fontSize: 16 },
+  theatreText:     { fontSize: 13, fontWeight: '800' },
   row:             { marginBottom: 12, paddingHorizontal: 16 },
   rowLabel:        { fontSize: 11, fontWeight: '600', marginBottom: 8 },
   scroll:          { gap: 12 },

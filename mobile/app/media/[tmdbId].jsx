@@ -6,7 +6,7 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { getMedia, deleteEntry, addToWatchlist, removeFromWatchlistByTmdbId, isInWatchlist } from '../../lib/queries'
-import { getWatchProviders } from '../../lib/tmdb'
+import { getWatchProviders, checkInTheatres } from '../../lib/tmdb'
 import EntryCard from '../../components/EntryCard'
 import { StarDisplay } from '../../components/StarRating'
 import StreamingProviders from '../../components/StreamingProviders'
@@ -22,6 +22,7 @@ export default function MediaDetail() {
   const [inWatchlist, setInWatchlist] = useState(false)
   const [wlLoading,   setWlLoading]   = useState(false)
   const [providers,   setProviders]   = useState({ streaming: [], rent: [], buy: [] })
+  const [inTheatres,  setInTheatres]  = useState(false)
 
   const load = useCallback(async () => {
     try {
@@ -31,10 +32,13 @@ export default function MediaDetail() {
         const wl = await isInWatchlist(d.media.id)
         setInWatchlist(wl)
       }
-      // Fetch streaming providers (non-blocking)
-      getWatchProviders(Number(tmdbId), d.media.media_type || type || 'film')
-        .then(p => setProviders(p))
-        .catch(() => {})
+      // Fetch streaming providers + theatre status (non-blocking)
+      const mediaType = d.media.media_type || type || 'film'
+      getWatchProviders(Number(tmdbId), mediaType).then(p => setProviders(p)).catch(() => {})
+      const isFilmType = mediaType === 'film' || mediaType === 'movie'
+      if (isFilmType) {
+        checkInTheatres(Number(tmdbId)).then(v => setInTheatres(v)).catch(() => {})
+      }
     } catch (err) {
       Alert.alert('Error', err.message)
       router.back()
@@ -194,6 +198,7 @@ export default function MediaDetail() {
         streaming={providers.streaming}
         rent={providers.rent}
         buy={providers.buy}
+        inTheatres={inTheatres}
       />
 
       {/* Action Buttons */}
