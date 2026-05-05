@@ -15,7 +15,7 @@ import { useTheme } from '../../context/ThemeContext'
 const CARD_WIDTH = 120
 const CARD_GAP   = 12
 
-function Section({ title, emoji, data, onItemPress, onItemLongPress, watchStates }) {
+function Section({ title, emoji, data, onItemPress, onItemLongPress, watchStates, inTheatres }) {
   const { theme } = useTheme()
   if (!data?.length) return null
   return (
@@ -30,6 +30,7 @@ function Section({ title, emoji, data, onItemPress, onItemLongPress, watchStates
             onPress={() => onItemPress(item)}
             onLongPress={() => onItemLongPress(item)}
             watchState={watchStates?.get(item.tmdb_id)}
+            inTheatres={inTheatres}
             style={{ marginRight: CARD_GAP }}
           />
         ))}
@@ -263,7 +264,7 @@ export default function Home() {
               onItemLongPress={openSheet}
               watchStates={watchStates}
             />
-            <Section title="Now Playing" emoji="🎟" data={nowPlaying} onItemPress={openMovie} onItemLongPress={openSheet} watchStates={watchStates} />
+            <Section title="Now Playing" emoji="🎟" data={nowPlaying} onItemPress={openMovie} onItemLongPress={openSheet} watchStates={watchStates} inTheatres />
             <Section title="Trending This Week" emoji="🔥" data={trending} onItemPress={openMovie} onItemLongPress={openSheet} watchStates={watchStates} />
             <Section title="Popular TV Shows" emoji="📺" data={popularTV} onItemPress={openMovie} onItemLongPress={openSheet} watchStates={watchStates} />
           </>
