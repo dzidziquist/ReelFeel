@@ -17,7 +17,7 @@ import { useTheme } from '../context/ThemeContext'
  *   watchState – { watched, liked, rated, inWatchlist } (optional)
  *   style      – optional extra container style
  */
-export default function PosterCard({ item, width = 120, onPress, onLongPress, watchState, inTheatres, style }) {
+export default function PosterCard({ item, width = 120, onPress, onLongPress, watchState, style }) {
   const { theme } = useTheme()
   const height    = Math.round(width * 1.5)
   const isFilm    = item.media_type === 'film' || item.media_type === 'movie'
@@ -61,13 +61,6 @@ export default function PosterCard({ item, width = 120, onPress, onLongPress, wa
           <Text style={s.typeText}>{isFilm ? 'F' : 'TV'}</Text>
         </View>
 
-        {/* In-theatres badge — top right */}
-        {inTheatres && (
-          <View style={s.theatreBadge}>
-            <Text style={s.theatreText}>🎟 NOW</Text>
-          </View>
-        )}
-
         {/* Rating badge — bottom right */}
         {item.tmdb_rating != null && (
           <View style={s.ratingBadge}>
@@ -101,8 +94,6 @@ const s = StyleSheet.create({
   fallbackEmoji:{ fontSize: 28 },
   typeBadge:    { position: 'absolute', top: 4, left: 4, borderRadius: 3, paddingHorizontal: 5, paddingVertical: 2 },
   typeText:     { fontSize: 10, fontWeight: '800', color: '#fff' },
-  theatreBadge: { position: 'absolute', top: 4, right: 4, borderRadius: 3, paddingHorizontal: 5, paddingVertical: 2, backgroundColor: 'rgba(212,175,55,0.92)' },
-  theatreText:  { fontSize: 8, fontWeight: '800', color: '#000' },
   ratingBadge:  {
     position: 'absolute', bottom: 6, right: 6,
     backgroundColor: 'rgba(0,0,0,0.85)',

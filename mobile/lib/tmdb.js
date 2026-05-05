@@ -152,6 +152,27 @@ export async function getRecommendations(tmdbId, mediaType) {
   }
 }
 
+// ── Theatrical Status ────────────────────────────────────────
+/**
+ * Returns true if the movie has a theatrical release (type 3) in the given
+ * country within the past 90 days (still in theatres window).
+ */
+export async function checkInTheatres(tmdbId, country = 'US') {
+  try {
+    const data = await get(`/movie/${tmdbId}/release_dates`)
+    const region = (data.results ?? []).find(r => r.iso_3166_1 === country)
+      ?? (data.results ?? []).find(r => r.iso_3166_1 === 'US')
+    if (!region) return false
+    const today  = new Date()
+    const cutoff = new Date(today - 90 * 24 * 60 * 60 * 1000)
+    return (region.release_dates ?? []).some(rd =>
+      rd.type === 3 && new Date(rd.release_date) <= today && new Date(rd.release_date) >= cutoff
+    )
+  } catch {
+    return false
+  }
+}
+
 // ── Watch Providers ──────────────────────────────────────────
 /**
  * Fetch streaming / buy / rent providers for a title.
