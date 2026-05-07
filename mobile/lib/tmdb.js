@@ -1,6 +1,7 @@
 const KEY  = process.env.EXPO_PUBLIC_TMDB_API_KEY
 const BASE = 'https://api.themoviedb.org/3'
-const IMG  = 'https://image.tmdb.org/t/p'
+export const TMDB_IMG = 'https://image.tmdb.org/t/p'
+const IMG = TMDB_IMG
 
 function extractYear(item) {
   const d = item.release_date || item.first_air_date || ''

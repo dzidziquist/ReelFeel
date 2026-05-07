@@ -1,9 +1,8 @@
 import { supabase } from './supabase'
-import { fetchTMDBDetail } from './tmdb'
+import { fetchTMDBDetail, TMDB_IMG } from './tmdb'
 
-const IMG        = 'https://image.tmdb.org/t/p'
-const toURL      = p => p ? `${IMG}/w500${p}`      : null
-const toBackdrop = p => p ? `${IMG}/original${p}`  : null
+const toURL      = p => p ? `${TMDB_IMG}/w500${p}`      : null
+const toBackdrop = p => p ? `${TMDB_IMG}/original${p}`  : null
 
 function fmtMedia(m) {
   return { ...m, poster_url: toURL(m.poster_path), backdrop_url: toBackdrop(m.backdrop_path) }
