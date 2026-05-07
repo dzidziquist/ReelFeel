@@ -90,9 +90,14 @@ export default function MediaDetail() {
   if (!data) return null
 
   const { media, entries, avg_rating } = data
-  const genres = Array.isArray(media.genres) ? media.genres : []
-  const cast   = Array.isArray(media.cast)   ? media.cast   : []
-  const isFilm = media.media_type === 'film' || media.media_type === 'movie'
+  const genres     = Array.isArray(media.genres) ? media.genres : []
+  const cast       = Array.isArray(media.cast)   ? media.cast   : []
+  const isFilm     = media.media_type === 'film' || media.media_type === 'movie'
+  const hasBackdrop = !!media.backdrop_url
+  // Text over the dark backdrop must always be white regardless of theme
+  const overBg      = hasBackdrop ? '#fff'                  : theme.text
+  const overBgSub   = hasBackdrop ? 'rgba(255,255,255,0.8)' : theme.textSub
+  const overBgMut   = hasBackdrop ? 'rgba(255,255,255,0.65)': theme.textMut
 
   return (
     <ScrollView style={[s.flex, { backgroundColor: theme.bg0 }]} contentContainerStyle={{ paddingBottom: 60 }}>
@@ -121,9 +126,9 @@ export default function MediaDetail() {
         </View>
 
         <View style={s.headerInfo}>
-          <Text style={[s.mediaTitle, { color: theme.text }]}>{media.title}</Text>
-          {media.tagline ? <Text style={[s.tagline, { color: theme.textMut }]}>"{media.tagline}"</Text> : null}
-          {media.year    ? <Text style={[s.mediaYear, { color: theme.textSub }]}>{media.year}</Text> : null}
+          <Text style={[s.mediaTitle, { color: overBg }]}>{media.title}</Text>
+          {media.tagline ? <Text style={[s.tagline, { color: overBgMut }]}>"{media.tagline}"</Text> : null}
+          {media.year    ? <Text style={[s.mediaYear, { color: overBgSub }]}>{media.year}</Text> : null}
 
           <View style={s.metaRow}>
             <View style={[s.typeBadge, { borderColor: isFilm ? theme.red : theme.gold }]}>
@@ -132,12 +137,12 @@ export default function MediaDetail() {
               </Text>
             </View>
             {genres.slice(0, 3).map(g => (
-              <Text key={g} style={[s.genre, { color: theme.textMut }]}>{g}</Text>
+              <Text key={g} style={[s.genre, { color: overBgMut }]}>{g}</Text>
             ))}
           </View>
 
           {media.runtime ? (
-            <Text style={[s.runtime, { color: theme.textMut }]}>
+            <Text style={[s.runtime, { color: overBgMut }]}>
               {Math.floor(media.runtime / 60)}h {media.runtime % 60}m
             </Text>
           ) : null}
@@ -146,13 +151,13 @@ export default function MediaDetail() {
             {avg_rating != null && (
               <View style={s.ratingBox}>
                 <Text style={[s.avgRating, { color: theme.gold }]}>{Number(avg_rating).toFixed(1)}</Text>
-                <Text style={[s.ratingLabel, { color: theme.textMut }]}>your avg</Text>
+                <Text style={[s.ratingLabel, { color: overBgMut }]}>your avg</Text>
               </View>
             )}
             {media.tmdb_rating != null && (
               <View style={s.ratingBox}>
                 <Text style={[s.tmdbRating, { color: theme.goldL }]}>{Number(media.tmdb_rating).toFixed(1)}</Text>
-                <Text style={[s.ratingLabel, { color: theme.textMut }]}>
+                <Text style={[s.ratingLabel, { color: overBgMut }]}>
                   TMDB{media.vote_count ? ` (${(media.vote_count / 1000).toFixed(0)}k)` : ''}
                 </Text>
               </View>
