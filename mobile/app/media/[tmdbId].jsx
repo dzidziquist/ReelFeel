@@ -90,9 +90,15 @@ export default function MediaDetail() {
   if (!data) return null
 
   const { media, entries, avg_rating } = data
-  const genres  = Array.isArray(media.genres) ? media.genres : []
-  const cast    = Array.isArray(media.cast)   ? media.cast   : []
-  const isFilm  = media.media_type === 'film' || media.media_type === 'movie'
+  const genres      = Array.isArray(media.genres) ? media.genres : []
+  const cast        = Array.isArray(media.cast)   ? media.cast   : []
+  const isFilm      = media.media_type === 'film' || media.media_type === 'movie'
+  const hasBackdrop = !!media.backdrop_url
+  // Title/tagline/year sit in the ~54px that overlaps the dark backdrop overlay —
+  // force white so they're readable in light mode too.
+  const titleColor  = hasBackdrop ? '#fff'                   : theme.text
+  const subColor    = hasBackdrop ? 'rgba(255,255,255,0.85)' : theme.textSub
+  const mutColor    = hasBackdrop ? 'rgba(255,255,255,0.7)'  : theme.textMut
 
   return (
     <ScrollView style={[s.flex, { backgroundColor: theme.bg0 }]} contentContainerStyle={{ paddingBottom: 60 }}>
@@ -103,9 +109,9 @@ export default function MediaDetail() {
         </ImageBackground>
       ) : <View style={s.backdropEmpty} />}
 
-      {/* Header row — poster overlaps backdrop, text stays below it on page bg */}
-      <View style={s.headerRow}>
-        <View style={[s.posterWrap, { marginTop: media.backdrop_url ? -70 : 0, width: 110, height: 165 }]}>
+      {/* Header row — whole row lifts into backdrop so poster and title align */}
+      <View style={[s.headerRow, { marginTop: hasBackdrop ? -70 : 0 }]}>
+        <View style={[s.posterWrap, { width: 110, height: 165 }]}>
           {media.poster_url ? (
             <Image source={{ uri: media.poster_url }} style={s.poster} resizeMode="cover" />
           ) : (
@@ -121,9 +127,9 @@ export default function MediaDetail() {
         </View>
 
         <View style={s.headerInfo}>
-          <Text style={[s.mediaTitle, { color: theme.text }]}>{media.title}</Text>
-          {media.tagline ? <Text style={[s.tagline, { color: theme.textMut }]}>"{media.tagline}"</Text> : null}
-          {media.year    ? <Text style={[s.mediaYear, { color: theme.textSub }]}>{media.year}</Text> : null}
+          <Text style={[s.mediaTitle, { color: titleColor }]}>{media.title}</Text>
+          {media.tagline ? <Text style={[s.tagline, { color: mutColor }]}>"{media.tagline}"</Text> : null}
+          {media.year    ? <Text style={[s.mediaYear, { color: subColor }]}>{media.year}</Text> : null}
 
           <View style={s.metaRow}>
             <View style={[s.typeBadge, { borderColor: isFilm ? theme.red : theme.gold }]}>
