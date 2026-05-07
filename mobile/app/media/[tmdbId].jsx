@@ -105,7 +105,7 @@ export default function MediaDetail() {
 
       {/* Header row — poster overlaps backdrop, text stays below it on page bg */}
       <View style={s.headerRow}>
-        <View style={[s.posterWrap, { marginTop: media.backdrop_url ? -70 : 0 }]}>
+        <View style={[s.posterWrap, { marginTop: media.backdrop_url ? -70 : 0, width: 110, height: 165 }]}>
           {media.poster_url ? (
             <Image source={{ uri: media.poster_url }} style={s.poster} resizeMode="cover" />
           ) : (
