@@ -275,11 +275,11 @@ const s = StyleSheet.create({
   typeText:         { fontSize: 11, fontWeight: '700' },
   genre:            { fontSize: 11 },
   runtime:          { fontSize: 11, marginTop: 4 },
-  ratingsRow:       { flexDirection: 'row', gap: 20, marginTop: 10, alignItems: 'flex-end' },
-  ratingBox:        { alignItems: 'center' },
-  avgRating:        { fontSize: 22, fontWeight: '700' },
-  tmdbRating:       { fontSize: 18, fontWeight: '700' },
-  ratingLabel:      { fontSize: 10, marginTop: 1 },
+  ratingsRow:       { flexDirection: 'row', gap: 24, marginTop: 10, alignItems: 'flex-start' },
+  ratingBox:        { alignItems: 'flex-start' },
+  avgRating:        { fontSize: 22, fontWeight: '800' },
+  tmdbRating:       { fontSize: 22, fontWeight: '800' },
+  ratingLabel:      { fontSize: 10, marginTop: 2 },
 
   overview:         { fontSize: 13, paddingHorizontal: 16, marginBottom: 16, lineHeight: 20 },
 
