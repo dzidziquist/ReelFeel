@@ -105,7 +105,7 @@ export default function MediaDetail() {
 
       {/* Header row — poster overlaps backdrop, text stays below it on page bg */}
       <View style={s.headerRow}>
-        <View style={[s.posterWrap, { marginTop: media.backdrop_url ? -70 : 0, width: 110, height: 165 }]}>
+        <View style={[s.posterWrap, { width: 110, height: 165 }]}>
           {media.poster_url ? (
             <Image source={{ uri: media.poster_url }} style={s.poster} resizeMode="cover" />
           ) : (
@@ -266,7 +266,7 @@ const s = StyleSheet.create({
   poster:           { width: 110, height: 165, borderRadius: 6, elevation: 6, shadowColor: '#000', shadowOffset: { width: 4, height: 4 }, shadowOpacity: 0.9, shadowRadius: 0 },
   posterRating:     { position: 'absolute', bottom: 6, right: 6, backgroundColor: 'rgba(0,0,0,0.8)', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 3 },
   posterRatingText: { fontSize: 11, fontWeight: '700' },
-  headerInfo:       { flex: 1, paddingTop: 8 },
+  headerInfo:       { flex: 1 },
   mediaTitle:       { fontSize: 20, fontWeight: '800', lineHeight: 26 },
   tagline:          { fontSize: 12, fontStyle: 'italic', marginTop: 3 },
   mediaYear:        { fontSize: 13, marginTop: 3 },
