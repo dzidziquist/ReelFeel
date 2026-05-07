@@ -90,14 +90,9 @@ export default function MediaDetail() {
   if (!data) return null
 
   const { media, entries, avg_rating } = data
-  const genres     = Array.isArray(media.genres) ? media.genres : []
-  const cast       = Array.isArray(media.cast)   ? media.cast   : []
-  const isFilm     = media.media_type === 'film' || media.media_type === 'movie'
-  const hasBackdrop = !!media.backdrop_url
-  // Text over the dark backdrop must always be white regardless of theme
-  const overBg      = hasBackdrop ? '#fff'                  : theme.text
-  const overBgSub   = hasBackdrop ? 'rgba(255,255,255,0.8)' : theme.textSub
-  const overBgMut   = hasBackdrop ? 'rgba(255,255,255,0.65)': theme.textMut
+  const genres  = Array.isArray(media.genres) ? media.genres : []
+  const cast    = Array.isArray(media.cast)   ? media.cast   : []
+  const isFilm  = media.media_type === 'film' || media.media_type === 'movie'
 
   return (
     <ScrollView style={[s.flex, { backgroundColor: theme.bg0 }]} contentContainerStyle={{ paddingBottom: 60 }}>
@@ -108,9 +103,9 @@ export default function MediaDetail() {
         </ImageBackground>
       ) : <View style={s.backdropEmpty} />}
 
-      {/* Header row */}
-      <View style={[s.headerRow, { marginTop: media.backdrop_url ? -70 : 0 }]}>
-        <View style={s.posterWrap}>
+      {/* Header row — poster overlaps backdrop, text stays below it on page bg */}
+      <View style={s.headerRow}>
+        <View style={[s.posterWrap, { marginTop: media.backdrop_url ? -70 : 0 }]}>
           {media.poster_url ? (
             <Image source={{ uri: media.poster_url }} style={s.poster} resizeMode="cover" />
           ) : (
@@ -126,9 +121,9 @@ export default function MediaDetail() {
         </View>
 
         <View style={s.headerInfo}>
-          <Text style={[s.mediaTitle, { color: overBg }]}>{media.title}</Text>
-          {media.tagline ? <Text style={[s.tagline, { color: overBgMut }]}>"{media.tagline}"</Text> : null}
-          {media.year    ? <Text style={[s.mediaYear, { color: overBgSub }]}>{media.year}</Text> : null}
+          <Text style={[s.mediaTitle, { color: theme.text }]}>{media.title}</Text>
+          {media.tagline ? <Text style={[s.tagline, { color: theme.textMut }]}>"{media.tagline}"</Text> : null}
+          {media.year    ? <Text style={[s.mediaYear, { color: theme.textSub }]}>{media.year}</Text> : null}
 
           <View style={s.metaRow}>
             <View style={[s.typeBadge, { borderColor: isFilm ? theme.red : theme.gold }]}>
@@ -137,12 +132,12 @@ export default function MediaDetail() {
               </Text>
             </View>
             {genres.slice(0, 3).map(g => (
-              <Text key={g} style={[s.genre, { color: overBgMut }]}>{g}</Text>
+              <Text key={g} style={[s.genre, { color: theme.textMut }]}>{g}</Text>
             ))}
           </View>
 
           {media.runtime ? (
-            <Text style={[s.runtime, { color: overBgMut }]}>
+            <Text style={[s.runtime, { color: theme.textMut }]}>
               {Math.floor(media.runtime / 60)}h {media.runtime % 60}m
             </Text>
           ) : null}
@@ -151,13 +146,13 @@ export default function MediaDetail() {
             {avg_rating != null && (
               <View style={s.ratingBox}>
                 <Text style={[s.avgRating, { color: theme.gold }]}>{Number(avg_rating).toFixed(1)}</Text>
-                <Text style={[s.ratingLabel, { color: overBgMut }]}>your avg</Text>
+                <Text style={[s.ratingLabel, { color: theme.textMut }]}>your avg</Text>
               </View>
             )}
             {media.tmdb_rating != null && (
               <View style={s.ratingBox}>
                 <Text style={[s.tmdbRating, { color: theme.goldL }]}>{Number(media.tmdb_rating).toFixed(1)}</Text>
-                <Text style={[s.ratingLabel, { color: overBgMut }]}>
+                <Text style={[s.ratingLabel, { color: theme.textMut }]}>
                   TMDB{media.vote_count ? ` (${(media.vote_count / 1000).toFixed(0)}k)` : ''}
                 </Text>
               </View>
@@ -272,8 +267,8 @@ const s = StyleSheet.create({
   posterRating:     { position: 'absolute', bottom: 6, right: 6, backgroundColor: 'rgba(0,0,0,0.8)', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 3 },
   posterRatingText: { fontSize: 11, fontWeight: '700' },
   headerInfo:       { flex: 1, paddingTop: 8 },
-  mediaTitle:       { fontSize: 20, fontWeight: '800', lineHeight: 26, textShadowColor: 'rgba(0,0,0,0.9)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 6 },
-  tagline:          { fontSize: 12, fontStyle: 'italic', marginTop: 3, textShadowColor: 'rgba(0,0,0,0.9)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4 },
+  mediaTitle:       { fontSize: 20, fontWeight: '800', lineHeight: 26 },
+  tagline:          { fontSize: 12, fontStyle: 'italic', marginTop: 3 },
   mediaYear:        { fontSize: 13, marginTop: 3 },
   metaRow:          { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 6 },
   typeBadge:        { borderWidth: 2, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 },
