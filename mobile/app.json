@@ -24,7 +24,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#111827"
-      }
+      },
+      "package": "com.reelfeel.app"
     },
     "scheme": "reelfeel",
     "web": {
@@ -32,14 +33,21 @@
     },
     "plugins": [
       "expo-router",
-      "expo-secure-store"
+      "expo-secure-store",
+      "@react-native-community/datetimepicker"
     ],
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "85357484-25ba-4506-a0b9-fe41bfde69b1"
+        "projectId": "407fbd5f-4d39-484d-a33b-a6cc17da488b"
       }
     },
-    "owner": "dzidziquist"
+    "owner": "dzidziquist",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/407fbd5f-4d39-484d-a33b-a6cc17da488b"
+    }
   }
 }
