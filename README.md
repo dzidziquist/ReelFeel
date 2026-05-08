@@ -21,7 +21,7 @@ A personal movie and TV diary. Log what you watch, rate it, tag how it made you 
 ## Project layout
 
 ```
-SceneIT/
+ReelFeel/
 ├── mobile/          # Expo React Native app  ← main client
 ├── frontend/        # React + Vite web app
 ├── apps/            # Django REST API
