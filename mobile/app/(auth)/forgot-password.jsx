@@ -18,6 +18,7 @@ export default function ForgotPassword() {
 
   async function handleReset() {
     if (!email) { setError('Enter your email address.'); return }
+    if (!/\S+@\S+\.\S+/.test(email)) { setError('Please enter a valid email address.'); return }
     setError('')
     setLoading(true)
     try {

@@ -1,7 +1,9 @@
 import { useEffect } from 'react'
+import { View, ActivityIndicator } from 'react-native'
 import { Stack, useRouter, useSegments } from 'expo-router'
 import { AuthProvider, useAuth } from '../context/AuthContext'
 import { ThemeProvider, useTheme } from '../context/ThemeContext'
+import ErrorBoundary from '../components/ErrorBoundary'
 
 function AuthGuard() {
   const { user, loading } = useAuth()
@@ -31,13 +33,34 @@ function AppStack() {
   )
 }
 
+function AppContent() {
+  const { theme } = useTheme()
+  const { loading } = useAuth()
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, backgroundColor: theme.bg0, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator size="large" color={theme.red} />
+      </View>
+    )
+  }
+
+  return (
+    <>
+      <AuthGuard />
+      <AppStack />
+    </>
+  )
+}
+
 export default function RootLayout() {
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <AuthGuard />
-        <AppStack />
-      </AuthProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   )
 }

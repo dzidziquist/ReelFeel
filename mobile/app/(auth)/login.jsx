@@ -19,6 +19,7 @@ export default function Login() {
 
   async function handleLogin() {
     if (!email || !password) { setError('Fill in all fields.'); return }
+    if (!/\S+@\S+\.\S+/.test(email)) { setError('Please enter a valid email address.'); return }
     setError('')
     setLoading(true)
     try {

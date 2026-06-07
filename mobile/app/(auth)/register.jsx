@@ -20,6 +20,8 @@ export default function Register() {
 
   async function handleRegister() {
     if (!email || !password) { setError('Email and password are required.'); return }
+    if (!/\S+@\S+\.\S+/.test(email)) { setError('Please enter a valid email address.'); return }
+    if (password.length < 8) { setError('Password must be at least 8 characters.'); return }
     setError('')
     setLoading(true)
     try {

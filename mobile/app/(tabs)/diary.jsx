@@ -148,8 +148,12 @@ export default function Diary() {
       {
         text: 'Delete', style: 'destructive',
         onPress: async () => {
-          await deleteEntry(id)
-          setEntries(prev => prev.filter(e => e.id !== id))
+          try {
+            await deleteEntry(id)
+            setEntries(prev => prev.filter(e => e.id !== id))
+          } catch (err) {
+            Alert.alert('Error', 'Could not delete entry. Please try again.')
+          }
         },
       },
     ])

@@ -1,5 +1,11 @@
 const KEY  = process.env.EXPO_PUBLIC_TMDB_API_KEY
 const BASE = 'https://api.themoviedb.org/3'
+
+if (!KEY) {
+  throw new Error(
+    'Missing TMDB API key. Copy .env.example to .env and fill in EXPO_PUBLIC_TMDB_API_KEY.'
+  )
+}
 export const TMDB_IMG = 'https://image.tmdb.org/t/p'
 const IMG = TMDB_IMG
 
@@ -32,11 +38,17 @@ function mapResult(r, fallbackType = null) {
   }
 }
 
-async function get(path, params = {}) {
-  const qs = new URLSearchParams({ api_key: KEY, ...params }).toString()
-  const res = await fetch(`${BASE}${path}?${qs}`)
-  if (!res.ok) throw new Error(`TMDB ${res.status}: ${path}`)
-  return res.json()
+async function get(path, params = {}, timeoutMs = 10000) {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), timeoutMs)
+  try {
+    const qs = new URLSearchParams({ api_key: KEY, ...params }).toString()
+    const res = await fetch(`${BASE}${path}?${qs}`, { signal: controller.signal })
+    if (!res.ok) throw new Error(`TMDB ${res.status}: ${path}`)
+    return res.json()
+  } finally {
+    clearTimeout(timer)
+  }
 }
 
 // ── Search ───────────────────────────────────────────────────

@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import {
   View, Text, TextInput, FlatList, TouchableOpacity,
-  Image, ActivityIndicator, StyleSheet,
+  Image, ActivityIndicator, Alert, StyleSheet,
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
@@ -44,8 +44,9 @@ export default function Search() {
     setSaving(prev => ({ ...prev, [r.tmdb_id]: true }))
     try {
       await addToWatchlist(r.tmdb_id, r.media_type)
-    } catch (_) {}
-    finally {
+    } catch (err) {
+      Alert.alert('Error', 'Could not save to watchlist. Please try again.')
+    } finally {
       setSaving(prev => ({ ...prev, [r.tmdb_id]: false }))
     }
   }

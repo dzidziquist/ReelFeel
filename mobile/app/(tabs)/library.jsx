@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import {
   View, Text, FlatList, TouchableOpacity, ActivityIndicator,
-  RefreshControl, Dimensions, StyleSheet,
+  RefreshControl, Dimensions, Alert, StyleSheet,
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { getLibrary } from '../../lib/queries'
@@ -20,10 +20,16 @@ export default function Library() {
   const [filter,     setFilter]     = useState('')
   const router = useRouter()
 
+  const [error, setError] = useState('')
+
   const load = useCallback(async (type) => {
+    setError('')
     try {
       setItems(await getLibrary(type || undefined))
-    } catch (_) {}
+    } catch (err) {
+      setError(err.message)
+      Alert.alert('Error', 'Could not load your library. Please try again.')
+    }
   }, [])
 
   useEffect(() => {

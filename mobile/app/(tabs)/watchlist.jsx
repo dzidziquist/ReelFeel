@@ -52,8 +52,12 @@ export default function Watchlist() {
       {
         text: 'Remove', style: 'destructive',
         onPress: async () => {
-          await removeFromWatchlist(item.media.id)
-          setItems(prev => prev.filter(i => i.id !== item.id))
+          try {
+            await removeFromWatchlist(item.media.id)
+            setItems(prev => prev.filter(i => i.id !== item.id))
+          } catch (err) {
+            Alert.alert('Error', 'Could not remove from watchlist. Please try again.')
+          }
         },
       },
     ])
