@@ -319,50 +319,89 @@ export async function getWatchStatesForTmdbIds(tmdbIds) {
 
 // ── Recommendation seeds ──────────────────────────────────────
 /**
- * Returns up to 6 seed titles ordered by how much the user loved them:
- *   1. Loved    — rated 4.5–5★
- *   2. Enjoyed  — rated 3.5–4.4★
- *   3. Watchlist — titles saved but not yet watched
- * Seeds with lower ratings or plain watchlist items only fill in if the
- * higher tiers don't produce enough seeds.
+ * Returns up to 6 seed titles ranked by a recency-weighted score:
+ *   score = (rating / 5) * (1 / (1 + daysSinceWatch / 90))
+ * Watchlist items fill remaining slots with a fixed lower score.
+ * Each seed includes `title` and `tier` so callers can build "why" labels.
  */
 export async function getRecommendationSeeds() {
   const { data: { user } } = await supabase.auth.getUser()
 
-  const [{ data: loved }, { data: enjoyed }, { data: wl }] = await Promise.all([
+  const [{ data: entries }, { data: wl }] = await Promise.all([
     supabase.from('diary_entries')
-      .select('rating, media(tmdb_id, media_type)')
+      .select('rating, watched_on, media(tmdb_id, media_type, title)')
       .eq('user_id', user.id)
-      .gte('rating', 4.5)
+      .gte('rating', 3.5)
       .order('rating', { ascending: false })
-      .limit(5),
-    supabase.from('diary_entries')
-      .select('rating, media(tmdb_id, media_type)')
-      .eq('user_id', user.id)
-      .gte('rating', 3.5).lt('rating', 4.5)
-      .order('rating', { ascending: false })
-      .limit(4),
+      .limit(20),
     supabase.from('watchlist')
-      .select('media(tmdb_id, media_type)')
+      .select('added_at, media(tmdb_id, media_type, title)')
       .eq('user_id', user.id)
       .order('added_at', { ascending: false })
-      .limit(3),
+      .limit(5),
   ])
 
-  const seeds = []
+  const today = new Date()
   const seen  = new Set()
+  const candidates = []
 
-  for (const rows of [loved ?? [], enjoyed ?? [], wl ?? []]) {
-    for (const row of rows) {
-      const m = row.media
-      if (m && !seen.has(m.tmdb_id)) {
-        seeds.push({ tmdb_id: m.tmdb_id, media_type: m.media_type })
-        seen.add(m.tmdb_id)
-      }
-    }
+  for (const row of (entries ?? [])) {
+    const m = row.media
+    if (!m || seen.has(m.tmdb_id)) continue
+    const daysSince = row.watched_on
+      ? Math.max(0, (today - new Date(row.watched_on)) / 86400000)
+      : 365
+    const recency = 1 / (1 + daysSince / 90)
+    candidates.push({
+      tmdb_id:    m.tmdb_id,
+      media_type: m.media_type,
+      title:      m.title,
+      tier:       'entry',
+      score:      (Number(row.rating) / 5) * recency,
+    })
+    seen.add(m.tmdb_id)
   }
 
-  return seeds.slice(0, 6)
+  candidates.sort((a, b) => b.score - a.score)
+
+  for (const row of (wl ?? [])) {
+    const m = row.media
+    if (!m || seen.has(m.tmdb_id)) continue
+    candidates.push({
+      tmdb_id:    m.tmdb_id,
+      media_type: m.media_type,
+      title:      m.title,
+      tier:       'watchlist',
+      score:      0,
+    })
+    seen.add(m.tmdb_id)
+  }
+
+  return candidates.slice(0, 6)
+}
+
+/**
+ * Returns the user's top 5 preferred genres (by name) derived from
+ * their highest-rated diary entries.
+ */
+export async function getUserGenreAffinity() {
+  const { data: { user } } = await supabase.auth.getUser()
+  const { data: entries } = await supabase.from('diary_entries')
+    .select('media(genres)')
+    .eq('user_id', user.id)
+    .gte('rating', 3.5)
+    .limit(20)
+  if (!entries?.length) return []
+  const tally = {}
+  for (const e of entries) {
+    for (const genre of (e.media?.genres ?? [])) {
+      tally[genre] = (tally[genre] ?? 0) + 1
+    }
+  }
+  return Object.entries(tally)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([g]) => g)
 }
 
 // ── Account deletion ──────────────────────────────────────────

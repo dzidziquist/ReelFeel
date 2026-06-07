@@ -23,6 +23,9 @@ export const DARK = {
   inputBg:   '#1c1c1e',
   tabBg:     '#000000',
   headerBg:  '#111111',
+  // Shadows
+  shadowColor: '#ffffff',
+  shadowOpacity: 0.18,
   // Status bar
   statusBar: 'light-content',
 }
@@ -52,6 +55,9 @@ export const LIGHT = {
   inputBg:   '#f2f2f7',
   tabBg:     '#f8f8f8',
   headerBg:  '#ffffff',
+  // Shadows
+  shadowColor: '#000000',
+  shadowOpacity: 0.8,
   // Status bar
   statusBar: 'dark-content',
 }

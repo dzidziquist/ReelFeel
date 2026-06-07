@@ -14,7 +14,7 @@ function Avatar({ name, size = 64, theme }) {
   return (
     <View style={[
       a.avatarRing,
-      { width: size + 8, height: size + 8, borderRadius: (size + 8) / 2, borderColor: theme?.gold ?? '#d4af37' },
+      { width: size + 8, height: size + 8, borderRadius: (size + 8) / 2, borderColor: theme?.gold ?? '#d4af37', shadowColor: theme?.shadowColor ?? '#000', shadowOpacity: theme?.shadowOpacity ?? 0.25 },
     ]}>
       <View style={[a.avatar, { width: size, height: size, borderRadius: size / 2, backgroundColor: theme?.bg2 ?? '#1a1a1a' }]}>
         <Text style={[a.initials, { fontSize: size * 0.38, color: theme?.gold ?? '#d4af37' }]}>{initials}</Text>
@@ -245,7 +245,7 @@ export default function Profile() {
             {profile?.bio ? <Text style={[s.bio, { color: theme.textSub }]}>{profile.bio}</Text> : null}
             {memberSince ? <Text style={[s.memberSince, { color: theme.textMut }]}>Member since {memberSince}</Text> : null}
           </View>
-          <TouchableOpacity onPress={() => setEditOpen(true)} style={[s.editBtn, { borderColor: theme.text, backgroundColor: theme.bg1 }]}>
+          <TouchableOpacity onPress={() => setEditOpen(true)} style={[s.editBtn, { borderColor: theme.text, backgroundColor: theme.bg1, shadowColor: theme.shadowColor, shadowOpacity: theme.shadowOpacity }]}>
             <Text style={[s.editBtnText, { color: theme.text }]}>Edit</Text>
           </TouchableOpacity>
         </View>
@@ -253,7 +253,7 @@ export default function Profile() {
         {error ? <View style={s.errorBox}><Text style={s.errorText}>{error}</Text></View> : null}
 
         {/* Stats */}
-        <View style={[s.section, { backgroundColor: theme.bg1, borderColor: theme.text }]}>
+        <View style={[s.section, { backgroundColor: theme.bg1, borderColor: theme.text, shadowColor: theme.shadowColor, shadowOpacity: theme.shadowOpacity }]}>
           <Text style={[s.sectionLabel, { color: theme.textMut }]}>WATCH STATS</Text>
           <View style={s.statsGrid}>
             <StatBox value={insights?.totalMovies}  label="Films"    theme={theme} />
@@ -271,7 +271,7 @@ export default function Profile() {
         </View>
 
         {/* Appearance */}
-        <View style={[s.section, { backgroundColor: theme.bg1, borderColor: theme.text }]}>
+        <View style={[s.section, { backgroundColor: theme.bg1, borderColor: theme.text, shadowColor: theme.shadowColor, shadowOpacity: theme.shadowOpacity }]}>
           <Text style={[s.sectionLabel, { color: theme.textMut }]}>APPEARANCE</Text>
           <View style={s.themeRow}>
             {THEME_MODES.map(m => {
@@ -280,10 +280,15 @@ export default function Profile() {
                 <TouchableOpacity
                   key={m.key}
                   onPress={() => setMode(m.key)}
-                  style={[s.themeBtn, { borderColor: active ? theme.gold : theme.text, backgroundColor: active ? theme.gold + '44' : theme.bg2 }]}
+                  style={[
+                    s.themeBtn,
+                    active
+                      ? { borderColor: '#000', backgroundColor: theme.gold, shadowColor: theme.shadowColor, shadowOpacity: theme.shadowOpacity }
+                      : { borderColor: theme.text, backgroundColor: theme.bg2, shadowColor: theme.shadowColor, shadowOpacity: theme.shadowOpacity },
+                  ]}
                 >
-                  <Ionicons name={m.icon} size={18} color={active ? theme.gold : theme.textMut} />
-                  <Text style={[s.themeBtnText, { color: active ? theme.gold : theme.textMut }]}>{m.label}</Text>
+                  <Ionicons name={m.icon} size={18} color={active ? '#000' : theme.textSub} />
+                  <Text style={[s.themeBtnText, { color: active ? '#000' : theme.textSub }]}>{m.label}</Text>
                 </TouchableOpacity>
               )
             })}
@@ -291,7 +296,7 @@ export default function Profile() {
         </View>
 
         {/* Navigation */}
-        <View style={[s.section, { backgroundColor: theme.bg1, borderColor: theme.text }]}>
+        <View style={[s.section, { backgroundColor: theme.bg1, borderColor: theme.text, shadowColor: theme.shadowColor, shadowOpacity: theme.shadowOpacity }]}>
           <Text style={[s.sectionLabel, { color: theme.textMut }]}>COLLECTION</Text>
           {[
             { icon: 'library-outline',  label: 'My Library',  desc: 'Unique titles watched', route: '/(tabs)/library' },
@@ -311,7 +316,7 @@ export default function Profile() {
         </View>
 
         {/* Account */}
-        <View style={[s.section, { backgroundColor: theme.bg1, borderColor: theme.text }]}>
+        <View style={[s.section, { backgroundColor: theme.bg1, borderColor: theme.text, shadowColor: theme.shadowColor, shadowOpacity: theme.shadowOpacity }]}>
           <Text style={[s.sectionLabel, { color: theme.textMut }]}>ACCOUNT</Text>
           <TouchableOpacity style={s.linkRow} onPress={logout}>
             <View style={[s.iconWrap, { backgroundColor: theme.bg2, borderColor: theme.text }]}>
@@ -391,6 +396,7 @@ const s = StyleSheet.create({
   themeRow:    { flexDirection: 'row', gap: 8 },
   themeBtn:    {
     flex: 1, paddingVertical: 10, borderRadius: 4, borderWidth: 2, alignItems: 'center', gap: 4,
+    shadowColor: '#000', shadowOffset: { width: 3, height: 3 }, shadowOpacity: 0.5, shadowRadius: 0, elevation: 2,
   },
   themeBtnText:{ fontSize: 11, fontWeight: '700' },
 
@@ -420,7 +426,7 @@ const s = StyleSheet.create({
 const a = StyleSheet.create({
   avatarRing: {
     borderWidth: 3, alignItems: 'center', justifyContent: 'center',
-    shadowColor: '#000', shadowOffset: { width: 3, height: 3 }, shadowOpacity: 0.9, shadowRadius: 0,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 8,
     elevation: 3,
   },
   avatar:     { alignItems: 'center', justifyContent: 'center' },

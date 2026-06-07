@@ -6,7 +6,7 @@ import {
 } from 'react-native'
 import { useRouter, useFocusEffect } from 'expo-router'
 import { getTrending, getNowPlaying, getPopularTV, getRecommendations } from '../../lib/tmdb'
-import { addToWatchlist, createEntry, getWatchStatesForTmdbIds, getRecommendationSeeds } from '../../lib/queries'
+import { addToWatchlist, createEntry, deleteEntry, getWatchStatesForTmdbIds, getRecommendationSeeds, getUserGenreAffinity } from '../../lib/queries'
 import { StarPicker } from '../../components/StarRating'
 import PosterCard from '../../components/PosterCard'
 import ActionSheet from '../../components/ActionSheet'
@@ -15,7 +15,7 @@ import { useTheme } from '../../context/ThemeContext'
 const CARD_WIDTH = 120
 const CARD_GAP   = 12
 
-function Section({ title, emoji, data, onItemPress, onItemLongPress, watchStates }) {
+function Section({ title, emoji, data, onItemPress, onItemLongPress, watchStates, showReason = false }) {
   const { theme } = useTheme()
   if (!data?.length) return null
   return (
@@ -30,6 +30,7 @@ function Section({ title, emoji, data, onItemPress, onItemLongPress, watchStates
             onPress={() => onItemPress(item)}
             onLongPress={() => onItemLongPress(item)}
             watchState={watchStates?.get(item.tmdb_id)}
+            reason={showReason ? item._reason : null}
             style={{ marginRight: CARD_GAP }}
           />
         ))}
@@ -87,40 +88,81 @@ export default function Home() {
   }, [])
 
   async function loadForYou() {
-    const seeds = await getRecommendationSeeds()
+    const [seeds, affinityGenres] = await Promise.all([
+      getRecommendationSeeds(),
+      getUserGenreAffinity().catch(() => []),
+    ])
     if (!seeds.length) return
 
     const batches = await Promise.all(
       seeds.map(s => getRecommendations(s.tmdb_id, s.media_type))
     )
 
-    // Round-robin interleave so every loved title contributes to the feed
+    // Round-robin interleave — attach _reason from seed that produced each item
     const seen  = new Set()
     const items = []
     const maxLen = Math.max(...batches.map(b => b.length))
     for (let i = 0; i < maxLen; i++) {
-      for (const batch of batches) {
+      for (let j = 0; j < batches.length; j++) {
+        const batch = batches[j]
         if (i >= batch.length) continue
         const item = batch[i]
         if (!seen.has(item.tmdb_id) && item.poster_path) {
           seen.add(item.tmdb_id)
-          items.push(item)
+          const seed   = seeds[j]
+          const reason = seed.tier === 'watchlist'
+            ? `Watchlist: ${seed.title}`
+            : `Loved: ${seed.title}`
+          items.push({ ...item, _reason: reason })
         }
       }
     }
-    setForYou(items.slice(0, 24))
+
+    // Genre filter — only drop items if there are enough survivors
+    let filtered = items
+    if (affinityGenres.length) {
+      const genreFiltered = items.filter(item =>
+        (item.genres ?? []).some(g => affinityGenres.includes(g))
+      )
+      if (genreFiltered.length >= 12) filtered = genreFiltered
+    }
+
+    setForYou(filtered.slice(0, 24))
   }
 
   useEffect(() => {
     load().finally(() => setLoading(false))
   }, [load])
 
+  const forYouRef      = useRef([])
+  const nowPlayingRef  = useRef([])
+  const trendingRef    = useRef([])
+  const popularTVRef   = useRef([])
+
+  useEffect(() => { forYouRef.current     = forYou    }, [forYou])
+  useEffect(() => { nowPlayingRef.current = nowPlaying }, [nowPlaying])
+  useEffect(() => { trendingRef.current   = trending   }, [trending])
+  useEffect(() => { popularTVRef.current  = popularTV  }, [popularTV])
+
   useFocusEffect(
     useCallback(() => {
       const FIVE_MIN = 5 * 60 * 1000
       if (Date.now() - lastLoadRef.current > FIVE_MIN) {
         load()
+        return
       }
+      // Lightweight watch-state refresh so newly-logged titles vanish immediately
+      const allItems = [
+        ...forYouRef.current,
+        ...nowPlayingRef.current,
+        ...trendingRef.current,
+        ...popularTVRef.current,
+      ]
+      const ids = [...new Set(allItems.map(i => i.tmdb_id))]
+      if (!ids.length) return
+      getWatchStatesForTmdbIds(ids)
+        .then(states => setWatchStates(states))
+        .catch(() => {})
     }, [load])
   )
 
@@ -140,7 +182,7 @@ export default function Home() {
 
   async function quickLog(item) {
     try {
-      await createEntry({
+      const entry = await createEntry({
         tmdb_id:    item.tmdb_id,
         media_type: item.media_type,
         rating:     3,
@@ -149,13 +191,32 @@ export default function Home() {
         rewatch:    false,
         emotion_ids: [],
       })
-      // Update watch state badge
       setWatchStates(prev => {
         const map = new Map(prev)
         map.set(item.tmdb_id, { watched: true, liked: false, rated: true, inWatchlist: false })
         return map
       })
-      Alert.alert('Marked watched', `"${item.title}" logged with 3★`)
+      Alert.alert(
+        'Logged with 3★',
+        `"${item.title}" added to your diary.`,
+        [
+          {
+            text: 'Undo',
+            style: 'destructive',
+            onPress: async () => {
+              try {
+                await deleteEntry(entry.id)
+                setWatchStates(prev => {
+                  const map = new Map(prev)
+                  map.delete(item.tmdb_id)
+                  return map
+                })
+              } catch (_) {}
+            },
+          },
+          { text: 'OK', style: 'cancel' },
+        ]
+      )
     } catch (err) {
       Alert.alert('Error', err.message)
     }
@@ -245,7 +306,12 @@ export default function Home() {
         </View>
 
         {error ? (
-          <View style={s.errorBox}><Text style={s.errorText}>{error}</Text></View>
+          <View style={s.errorBox}>
+            <Text style={s.errorText}>{error}</Text>
+            <TouchableOpacity onPress={load} style={s.retryBtn}>
+              <Text style={s.retryText}>Retry</Text>
+            </TouchableOpacity>
+          </View>
         ) : null}
 
         {loading ? (
@@ -262,6 +328,7 @@ export default function Home() {
               onItemPress={openMovie}
               onItemLongPress={openSheet}
               watchStates={watchStates}
+              showReason
             />
             <Section title="Now Playing" emoji="🎟" data={nowPlaying} onItemPress={openMovie} onItemLongPress={openSheet} watchStates={watchStates} />
             <Section title="Trending This Week" emoji="🔥" data={trending} onItemPress={openMovie} onItemLongPress={openSheet} watchStates={watchStates} />
@@ -281,7 +348,7 @@ export default function Home() {
       {/* Quick rate modal */}
       <Modal visible={rateModal.visible} transparent animationType="fade">
         <View style={s.rateBackdrop}>
-          <View style={[s.rateCard, { backgroundColor: theme.bg1, borderColor: theme.text }]}>
+          <View style={[s.rateCard, { backgroundColor: theme.bg1, borderColor: theme.text, shadowColor: theme.shadowColor, shadowOpacity: theme.shadowOpacity }]}>
             <Text style={[s.rateTitle, { color: theme.text }]}>Rate "{rateModal.item?.title}"</Text>
             <StarPicker
               value={rateModal.value}
@@ -309,16 +376,18 @@ const s = StyleSheet.create({
   flex:         { flex: 1 },
   content:      { paddingBottom: 48, minHeight: Dimensions.get('window').height },
   header:       { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingTop: 56, paddingBottom: 20 },
-  logo:         { fontSize: 36 },
-  appName:      { fontSize: 22, fontWeight: '800' },
+  logo:         { fontSize: 24 },
+  appName:      { fontSize: 28, fontWeight: '900' },
   subtitle:     { fontSize: 12, marginTop: 2 },
   section:      { marginBottom: 28 },
   sectionTitle: { fontSize: 17, fontWeight: '800', marginBottom: 12, paddingHorizontal: 16 },
   row:          { paddingHorizontal: 16 },
   loadingBlock: { alignItems: 'center', paddingVertical: 80, gap: 16 },
   loadingText:  { fontSize: 13 },
-  errorBox:     { marginHorizontal: 16, marginBottom: 16, backgroundColor: '#3f0000', borderWidth: 2, borderColor: '#dc2626', borderRadius: 6, padding: 16 },
+  errorBox:     { marginHorizontal: 16, marginBottom: 16, backgroundColor: '#3f0000', borderWidth: 2, borderColor: '#dc2626', borderRadius: 6, padding: 16, gap: 12 },
   errorText:    { color: '#fca5a5', fontSize: 13 },
+  retryBtn:     { alignSelf: 'flex-start', borderWidth: 1.5, borderColor: '#fca5a5', borderRadius: 4, paddingHorizontal: 12, paddingVertical: 6 },
+  retryText:    { color: '#fca5a5', fontSize: 12, fontWeight: '700' },
   // Quick rate modal
   rateBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', alignItems: 'center', justifyContent: 'center', padding: 24 },
   rateCard:     {
@@ -331,8 +400,8 @@ const s = StyleSheet.create({
   rateCancelText:{ fontSize: 15, fontWeight: '700' },
   rateConfirmBtn:{
     flex: 1, paddingVertical: 14, borderRadius: 4, alignItems: 'center',
-    borderWidth: 2, borderColor: '#000',
-    shadowColor: '#000', shadowOffset: { width: 3, height: 3 }, shadowOpacity: 0.8, shadowRadius: 0, elevation: 3,
+    borderWidth: 2, borderColor: 'rgba(0,0,0,0.6)',
+    shadowColor: 'rgba(0,0,0,0.8)', shadowOffset: { width: 3, height: 3 }, shadowOpacity: 0.8, shadowRadius: 0, elevation: 3,
   },
   rateConfirmText:{ color: '#fff', fontSize: 15, fontWeight: '800' },
 })

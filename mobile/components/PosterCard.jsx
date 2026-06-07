@@ -17,7 +17,7 @@ import { useTheme } from '../context/ThemeContext'
  *   watchState – { watched, liked, rated, inWatchlist } (optional)
  *   style      – optional extra container style
  */
-export default function PosterCard({ item, width = 120, onPress, onLongPress, watchState, style }) {
+export default function PosterCard({ item, width = 120, onPress, onLongPress, watchState, comingSoon = false, reason = null, style }) {
   const { theme } = useTheme()
   const height    = Math.round(width * 1.5)
   const isFilm    = item.media_type === 'film' || item.media_type === 'movie'
@@ -46,8 +46,10 @@ export default function PosterCard({ item, width = 120, onPress, onLongPress, wa
       activeOpacity={0.82}
       delayLongPress={350}
       style={[{ width }, style]}
+      accessibilityLabel={item.title}
+      accessibilityRole="button"
     >
-      <View style={[s.imageWrap, { width, height, borderColor: theme.text }]}>
+      <View style={[s.imageWrap, { width, height, borderColor: theme.text, shadowColor: theme.shadowColor, shadowOpacity: theme.shadowOpacity }]}>
         {item.poster_url ? (
           <Image source={{ uri: item.poster_url }} style={{ width, height }} resizeMode="cover" />
         ) : (
@@ -58,8 +60,11 @@ export default function PosterCard({ item, width = 120, onPress, onLongPress, wa
 
         {/* Type badge — top left */}
         <View style={[s.typeBadge, { backgroundColor: isFilm ? 'rgba(140,15,15,0.85)' : 'rgba(100,70,0,0.85)' }]}>
-          <Text style={s.typeText}>{isFilm ? 'F' : 'TV'}</Text>
+          <Text style={s.typeText}>{isFilm ? 'Film' : 'TV'}</Text>
         </View>
+
+        {/* Coming Soon indicator — top right: blue dot, details in search chip */}
+        {comingSoon && <View style={s.comingSoonBadge} />}
 
         {/* Rating badge — bottom right */}
         {item.tmdb_rating != null && (
@@ -79,6 +84,7 @@ export default function PosterCard({ item, width = 120, onPress, onLongPress, wa
 
       <Text style={[s.title, { width, color: theme.textSub }]} numberOfLines={1}>{item.title}</Text>
       {item.year ? <Text style={[s.year, { color: theme.textMut }]}>{item.year}</Text> : null}
+      {reason ? <Text style={[s.reason, { width, color: theme.textMut }]} numberOfLines={2}>{reason}</Text> : null}
     </TouchableOpacity>
   )
 }
@@ -108,6 +114,13 @@ const s = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
     borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)',
   },
-  title:        { fontSize: 11, marginTop: 5, fontWeight: '600' },
-  year:         { fontSize: 10 },
+  title:           { fontSize: 11, marginTop: 5, fontWeight: '600' },
+  year:            { fontSize: 10 },
+  reason:          { fontSize: 9, marginTop: 1, fontStyle: 'italic' },
+  comingSoonBadge: {
+    position: 'absolute', top: 6, right: 6,
+    width: 8, height: 8, borderRadius: 4,
+    backgroundColor: 'rgba(59,130,246,0.9)',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.4)',
+  },
 })

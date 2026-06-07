@@ -2,20 +2,23 @@ import { View, Text, ScrollView, Image, TouchableOpacity, Linking, StyleSheet } 
 import { Ionicons } from '@expo/vector-icons'
 import { useTheme } from '../context/ThemeContext'
 
-/**
- * Horizontal row of streaming platform logos.
- *
- * Props:
- *   streaming  – [{ id, name, logo_url }]  (flatrate/subscription services)
- *   rent       – [{ id, name, logo_url }]  (optional)
- *   buy        – [{ id, name, logo_url }]  (optional)
- *   inTheatres – boolean
- *   title      – string (used for ticket search link)
- */
-export default function StreamingProviders({ streaming = [], rent = [], buy = [], inTheatres = false, title = '' }) {
+export default function StreamingProviders({
+  streaming = [], rent = [], buy = [],
+  inTheatres = false,
+  comingSoonTheatres = false,
+  comingSoonStreaming = false,
+  theatreDate = null,
+  streamingDate = null,
+  title = '',
+}) {
   const { theme } = useTheme()
 
-  if (!streaming.length && !rent.length && !buy.length && !inTheatres) return null
+  if (!streaming.length && !rent.length && !buy.length && !inTheatres && !comingSoonTheatres && !comingSoonStreaming) return null
+
+  function formatDate(iso) {
+    if (!iso) return null
+    return new Date(iso).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+  }
 
   function buyTickets() {
     const q = encodeURIComponent(title)
@@ -72,6 +75,32 @@ export default function StreamingProviders({ streaming = [], rent = [], buy = []
           </TouchableOpacity>
         </View>
       )}
+      {comingSoonTheatres && !inTheatres && (
+        <View style={s.comingSoonBlock}>
+          <View style={[s.comingSoonRow, { backgroundColor: theme.bg2, borderColor: theme.info ?? '#3b82f6' }]}>
+            <Text style={s.comingSoonEmoji}>📅</Text>
+            <View>
+              <Text style={[s.comingSoonText, { color: theme.info ?? '#3b82f6' }]}>Coming Soon to Theatres</Text>
+              {formatDate(theatreDate) && (
+                <Text style={[s.comingSoonDate, { color: theme.textMut }]}>{formatDate(theatreDate)}</Text>
+              )}
+            </View>
+          </View>
+        </View>
+      )}
+      {comingSoonStreaming && (
+        <View style={s.comingSoonBlock}>
+          <View style={[s.comingSoonRow, { backgroundColor: theme.bg2, borderColor: theme.violet ?? '#8b5cf6' }]}>
+            <Text style={s.comingSoonEmoji}>🎞</Text>
+            <View>
+              <Text style={[s.comingSoonText, { color: theme.violet ?? '#8b5cf6' }]}>Coming Soon to Streaming</Text>
+              {formatDate(streamingDate) && (
+                <Text style={[s.comingSoonDate, { color: theme.textMut }]}>{formatDate(streamingDate)}</Text>
+              )}
+            </View>
+          </View>
+        </View>
+      )}
       <Row label="Stream"  items={streaming} />
       <Row label="Rent"    items={rent} />
       <Row label="Buy"     items={buy} />
@@ -92,6 +121,11 @@ const s = StyleSheet.create({
     shadowColor: '#000', shadowOffset: { width: 3, height: 3 }, shadowOpacity: 0.8, shadowRadius: 0, elevation: 3,
   },
   ticketBtnText:   { fontSize: 14, fontWeight: '800', color: '#000' },
+  comingSoonBlock: { marginHorizontal: 16, marginBottom: 12 },
+  comingSoonRow:   { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12, paddingVertical: 10, borderRadius: 4, borderWidth: 2 },
+  comingSoonEmoji: { fontSize: 16 },
+  comingSoonText:  { fontSize: 13, fontWeight: '800' },
+  comingSoonDate:  { fontSize: 11, marginTop: 2 },
   row:             { marginBottom: 12, paddingHorizontal: 16 },
   rowLabel:        { fontSize: 11, fontWeight: '600', marginBottom: 8 },
   scroll:          { gap: 12 },

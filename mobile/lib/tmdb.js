@@ -1,5 +1,6 @@
 const KEY  = process.env.EXPO_PUBLIC_TMDB_API_KEY
 const BASE = 'https://api.themoviedb.org/3'
+const COMING_SOON_DAYS = 120
 
 if (!KEY) {
   throw new Error(
@@ -22,12 +23,19 @@ function normalizeType(raw) {
 }
 
 function mapResult(r, fallbackType = null) {
-  const mediaType = normalizeType(r.media_type || fallbackType || 'movie')
+  const mediaType  = normalizeType(r.media_type || fallbackType || 'movie')
+  const rawDate    = r.release_date ?? null
+  const today      = new Date()
+  const futureCut  = new Date(today.getTime() + COMING_SOON_DAYS * 86400000)
+  const rdDate     = rawDate ? new Date(rawDate) : null
+  const comingSoon = mediaType !== 'tv' && rdDate != null && rdDate > today && rdDate <= futureCut
   return {
     tmdb_id:      r.id,
     media_type:   mediaType,
     title:        r.title || r.name,
     year:         extractYear(r),
+    release_date: rawDate,
+    comingSoon,
     poster_path:  r.poster_path  ?? '',
     poster_url:   r.poster_path  ? `${IMG}/w500${r.poster_path}`    : null,
     backdrop_url: r.backdrop_path ? `${IMG}/original${r.backdrop_path}` : null,
@@ -183,6 +191,51 @@ export async function checkInTheatres(tmdbId, country = 'US') {
     )
   } catch {
     return false
+  }
+}
+
+/**
+ * Returns full release status for a movie — in theatres now, coming soon to
+ * theatres (type 3), or coming soon to digital/streaming (type 4).
+ */
+export async function checkReleaseStatus(tmdbId, country = 'US') {
+  const defaultResult = {
+    inTheatres: false,
+    comingSoonTheatres: false,
+    comingSoonStreaming: false,
+    theatreDate: null,
+    streamingDate: null,
+  }
+  try {
+    const data   = await get(`/movie/${tmdbId}/release_dates`)
+    const region = (data.results ?? []).find(r => r.iso_3166_1 === country)
+               ?? (data.results ?? []).find(r => r.iso_3166_1 === 'US')
+    if (!region) return defaultResult
+
+    const today     = new Date()
+    const pastCut   = new Date(today.getTime() - 90 * 86400000)
+    const futureCut = new Date(today.getTime() + COMING_SOON_DAYS * 86400000)
+
+    let inTheatres = false, comingSoonTheatres = false, comingSoonStreaming = false
+    let theatreDate = null, streamingDate = null
+
+    for (const rd of (region.release_dates ?? [])) {
+      const d = new Date(rd.release_date)
+      if (rd.type === 3) {
+        if (d <= today && d >= pastCut) inTheatres = true
+        if (d > today && d <= futureCut) {
+          comingSoonTheatres = true
+          if (!theatreDate || d < new Date(theatreDate)) theatreDate = rd.release_date
+        }
+      }
+      if (rd.type === 4 && d > today && d <= futureCut) {
+        comingSoonStreaming = true
+        if (!streamingDate || d < new Date(streamingDate)) streamingDate = rd.release_date
+      }
+    }
+    return { inTheatres, comingSoonTheatres, comingSoonStreaming, theatreDate, streamingDate }
+  } catch {
+    return defaultResult
   }
 }
 

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   View, Text, FlatList, TouchableOpacity, ActivityIndicator,
-  Alert, RefreshControl, StyleSheet,
+  Alert, RefreshControl, Dimensions, StyleSheet,
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
@@ -10,7 +10,12 @@ import EntryCard from '../../components/EntryCard'
 import SwipeableRow from '../../components/SwipeableRow'
 import FilterSortBar from '../../components/FilterSortBar'
 import CalendarHeatmap from '../../components/CalendarHeatmap'
+import PosterCard from '../../components/PosterCard'
 import { useTheme } from '../../context/ThemeContext'
+
+const NUM_COLS   = 3
+const GAP        = 10
+const ITEM_WIDTH = (Dimensions.get('window').width - 32 - GAP * (NUM_COLS - 1)) / NUM_COLS
 
 function groupByMonth(entries) {
   const groups = []
@@ -113,6 +118,7 @@ export default function Diary() {
   const [refreshing, setRefreshing] = useState(false)
   const [error,      setError]      = useState('')
   const [showHeatmap,setShowHeatmap]= useState(false)
+  const [viewMode,   setViewMode]   = useState('list')   // 'list' | 'grid'
   const [filters,    setFilters]    = useState({ genre: '', minRating: '', maxRating: '', emotionIds: [], startDate: '', endDate: '' })
   const [sort,       setSort]       = useState('watched_on_desc')
 
@@ -187,69 +193,123 @@ export default function Diary() {
 
   if (loading) return <View style={[s.center, { backgroundColor: theme.bg0 }]}><ActivityIndicator size="large" color={theme.gold} /></View>
 
+  const sharedHeader = (
+    <View style={s.headerBlock}>
+      <View style={s.titleRow}>
+        <View style={{ flex: 1 }}>
+          <Text style={[s.title, { color: theme.text }]}>My Diary</Text>
+          <Text style={[s.subtitle, { color: theme.textMut }]}>Every watch session with date, rating & notes</Text>
+        </View>
+        <View style={s.headerActions}>
+          <TouchableOpacity
+            onPress={() => setViewMode(v => v === 'list' ? 'grid' : 'list')}
+            style={[s.viewToggle, { borderColor: theme.text, backgroundColor: theme.bg2 }]}
+          >
+            <Ionicons
+              name={viewMode === 'list' ? 'grid-outline' : 'list-outline'}
+              size={16}
+              color={theme.text}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push('/log')} style={[s.logBtn, { backgroundColor: theme.red }]}>
+            <Text style={s.logBtnText}>+ Log</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {error ? (
+        <View style={s.errorBox}><Text style={s.errorText}>{error}</Text></View>
+      ) : (
+        <InsightsBlock
+          insights={insights}
+          entries={entries}
+          showHeatmap={showHeatmap}
+          onToggleHeatmap={() => setShowHeatmap(v => !v)}
+          theme={theme}
+        />
+      )}
+
+      <View style={{ marginTop: 12 }}>
+        <FilterSortBar
+          filters={filters}
+          onFiltersChange={setFilters}
+          sort={sort}
+          onSortChange={setSort}
+          emotions={emotions}
+          availableGenres={availableGenres}
+          mode="diary"
+          activeCount={activeFilterCount}
+        />
+      </View>
+    </View>
+  )
+
+  const emptyComponent = !error ? (
+    <View style={s.empty}>
+      <Text style={s.emptyEmoji}>📔</Text>
+      <Text style={[s.emptyTitle, { color: theme.textSub }]}>
+        {activeFilterCount > 0 ? 'No entries match your filters.' : 'No entries yet.'}
+      </Text>
+      {activeFilterCount > 0
+        ? <TouchableOpacity onPress={() => setFilters({ genre: '', minRating: '', maxRating: '', emotionIds: [], startDate: '', endDate: '' })}>
+            <Text style={[s.emptyLink, { color: theme.gold }]}>Clear filters</Text>
+          </TouchableOpacity>
+        : <TouchableOpacity onPress={() => router.push('/(tabs)/search')}>
+            <Text style={[s.emptyLink, { color: theme.gold }]}>Search for something to watch</Text>
+          </TouchableOpacity>
+      }
+    </View>
+  ) : null
+
+  if (viewMode === 'grid') {
+    const padded = [...displayed]
+    while (padded.length % NUM_COLS !== 0) padded.push(null)
+
+    return (
+      <View style={[s.flex, { backgroundColor: theme.bg0 }]}>
+        <FlatList
+          key="grid"
+          data={padded}
+          keyExtractor={(item, i) => item ? `g-${item.id}` : `pad-${i}`}
+          numColumns={NUM_COLS}
+          contentContainerStyle={s.list}
+          columnWrapperStyle={s.gridRow}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={theme.gold} colors={[theme.gold]} />}
+          ListHeaderComponent={sharedHeader}
+          ListEmptyComponent={emptyComponent}
+          renderItem={({ item }) => {
+            if (!item) return <View style={{ width: ITEM_WIDTH }} />
+            const watchState = {
+              watched: true,
+              liked:   Number(item.rating) >= 4,
+              rated:   true,
+              inWatchlist: false,
+            }
+            return (
+              <PosterCard
+                item={item.media}
+                width={ITEM_WIDTH}
+                watchState={watchState}
+                onPress={() => router.push(`/media/${item.media.tmdb_id}?type=${item.media.media_type}`)}
+                onLongPress={() => handleDelete(item.id)}
+              />
+            )
+          }}
+        />
+      </View>
+    )
+  }
+
   return (
     <View style={[s.flex, { backgroundColor: theme.bg0 }]}>
       <FlatList
+        key="list"
         data={listData}
         keyExtractor={item => item.key}
         contentContainerStyle={s.list}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={theme.gold} colors={[theme.gold]} />}
-        ListHeaderComponent={
-          <View style={s.headerBlock}>
-            <View style={s.titleRow}>
-              <View>
-                <Text style={[s.title, { color: theme.text }]}>My Diary</Text>
-                <Text style={[s.subtitle, { color: theme.textMut }]}>Every watch session with date, rating & notes</Text>
-              </View>
-              <TouchableOpacity onPress={() => router.push('/log')} style={[s.logBtn, { backgroundColor: theme.red }]}>
-                <Text style={s.logBtnText}>+ Log</Text>
-              </TouchableOpacity>
-            </View>
-
-            {error ? (
-              <View style={s.errorBox}><Text style={s.errorText}>{error}</Text></View>
-            ) : (
-              <InsightsBlock
-                insights={insights}
-                entries={entries}
-                showHeatmap={showHeatmap}
-                onToggleHeatmap={() => setShowHeatmap(v => !v)}
-                theme={theme}
-              />
-            )}
-
-            <View style={{ marginTop: 12 }}>
-              <FilterSortBar
-                filters={filters}
-                onFiltersChange={setFilters}
-                sort={sort}
-                onSortChange={setSort}
-                emotions={emotions}
-                availableGenres={availableGenres}
-                mode="diary"
-                activeCount={activeFilterCount}
-              />
-            </View>
-          </View>
-        }
-        ListEmptyComponent={
-          !error ? (
-            <View style={s.empty}>
-              <Text style={s.emptyEmoji}>📔</Text>
-              <Text style={[s.emptyTitle, { color: theme.textSub }]}>
-                {activeFilterCount > 0 ? 'No entries match your filters.' : 'No entries yet.'}
-              </Text>
-              {activeFilterCount > 0
-                ? <TouchableOpacity onPress={() => setFilters({ genre: '', minRating: '', maxRating: '', emotionIds: [], startDate: '', endDate: '' })}>
-                    <Text style={[s.emptyLink, { color: theme.gold }]}>Clear filters</Text>
-                  </TouchableOpacity>
-                : <TouchableOpacity onPress={() => router.push('/(tabs)/search')}>
-                    <Text style={[s.emptyLink, { color: theme.gold }]}>Search for something to watch</Text>
-                  </TouchableOpacity>
-              }
-            </View>
-          ) : null
-        }
+        ListHeaderComponent={sharedHeader}
+        ListEmptyComponent={emptyComponent}
         renderItem={({ item }) => {
           if (item.type === 'header') {
             return <Text style={[s.monthHeader, { color: theme.textMut, borderBottomColor: theme.text }]}>{item.month}</Text>
@@ -275,6 +335,13 @@ const s = StyleSheet.create({
   titleRow:        { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14, gap: 12 },
   title:           { fontSize: 24, fontWeight: '800' },
   subtitle:        { fontSize: 11, marginTop: 3 },
+  headerActions:   { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 },
+  viewToggle:      {
+    width: 36, height: 36, borderRadius: 4, borderWidth: 2,
+    alignItems: 'center', justifyContent: 'center',
+    shadowColor: '#000', shadowOffset: { width: 2, height: 2 }, shadowOpacity: 0.6, shadowRadius: 0, elevation: 2,
+  },
+  gridRow:         { gap: GAP, marginBottom: GAP },
   logBtn:          {
     borderRadius: 4, paddingHorizontal: 16, paddingVertical: 8, marginTop: 4,
     borderWidth: 2, borderColor: '#000',

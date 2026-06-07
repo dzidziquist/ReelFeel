@@ -56,7 +56,7 @@ export default function FilterSortBar({
   return (
     <View style={{ marginBottom: 12 }}>
       {/* Collapsed bar */}
-      <View style={[s.bar, { backgroundColor: theme.bg1, borderColor: theme.text }]}>
+      <View style={[s.bar, { backgroundColor: theme.bg1, borderColor: theme.text, shadowColor: theme.shadowColor, shadowOpacity: theme.shadowOpacity }]}>
         <TouchableOpacity style={s.filterBtn} onPress={() => setOpen(true)} activeOpacity={0.8}>
           <Ionicons name="options-outline" size={16} color={theme.textSub} />
           <Text style={[s.filterLabel, { color: theme.textSub }]}>Filter</Text>
@@ -205,7 +205,7 @@ function FilterPanel({ theme, filters, onFiltersChange, onClose, emotions, avail
             <View style={fp.ratingInput}>
               <Text style={[fp.ratingLbl, { color: theme.textMut }]}>Min</Text>
               <TextInput
-                style={[fp.input, { backgroundColor: theme.bg2, borderColor: theme.text, color: theme.text }]}
+                style={[fp.input, { backgroundColor: theme.bg2, borderColor: theme.text, color: theme.text, shadowColor: theme.shadowColor, shadowOpacity: theme.shadowOpacity }]}
                 value={String(local.minRating ?? '')}
                 onChangeText={v => patch({ minRating: v })}
                 keyboardType="decimal-pad"
@@ -218,7 +218,7 @@ function FilterPanel({ theme, filters, onFiltersChange, onClose, emotions, avail
             <View style={fp.ratingInput}>
               <Text style={[fp.ratingLbl, { color: theme.textMut }]}>Max</Text>
               <TextInput
-                style={[fp.input, { backgroundColor: theme.bg2, borderColor: theme.text, color: theme.text }]}
+                style={[fp.input, { backgroundColor: theme.bg2, borderColor: theme.text, color: theme.text, shadowColor: theme.shadowColor, shadowOpacity: theme.shadowOpacity }]}
                 value={String(local.maxRating ?? '')}
                 onChangeText={v => patch({ maxRating: v })}
                 keyboardType="decimal-pad"
@@ -402,8 +402,8 @@ const fp = StyleSheet.create({
   footer:     { padding: 16, borderTopWidth: 2 },
   applyBtn:   {
     paddingVertical: 16, borderRadius: 6, alignItems: 'center',
-    borderWidth: 2, borderColor: '#000',
-    shadowColor: '#000', shadowOffset: { width: 4, height: 4 }, shadowOpacity: 1, shadowRadius: 0, elevation: 4,
+    borderWidth: 2, borderColor: 'rgba(0,0,0,0.7)',
+    shadowColor: 'rgba(0,0,0,0.85)', shadowOffset: { width: 4, height: 4 }, shadowOpacity: 1, shadowRadius: 0, elevation: 4,
   },
   applyText:  { color: '#fff', fontSize: 16, fontWeight: '800' },
   dateRow:    { flexDirection: 'row', alignItems: 'center', borderRadius: 4, borderWidth: 2, paddingHorizontal: 14, paddingVertical: 12, gap: 8 },

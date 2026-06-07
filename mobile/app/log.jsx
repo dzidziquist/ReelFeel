@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import {
   View, Text, TextInput, TouchableOpacity, ScrollView,
   Image, ActivityIndicator, Switch, Platform, Alert, StyleSheet,
+  KeyboardAvoidingView,
 } from 'react-native'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { useLocalSearchParams, useRouter } from 'expo-router'
@@ -116,6 +117,10 @@ export default function LogEntry() {
   const isFilm   = form.media_type === 'film' || form.media_type === 'movie'
 
   return (
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={s.flex}
+    >
     <ScrollView
       style={[s.flex, { backgroundColor: theme.bg0 }]}
       contentContainerStyle={s.content}
@@ -256,7 +261,6 @@ export default function LogEntry() {
 
           {/* Emotions */}
           <View>
-            <Text style={[s.label, { color: theme.textSub }]}>How did it make you feel?</Text>
             <EmotionPicker
               emotions={emotions}
               selected={form.emotion_ids}
@@ -314,6 +318,7 @@ export default function LogEntry() {
         </View>
       )}
     </ScrollView>
+    </KeyboardAvoidingView>
   )
 }
 

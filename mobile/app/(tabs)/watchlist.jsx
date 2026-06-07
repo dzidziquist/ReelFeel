@@ -24,6 +24,13 @@ function applySort(items, sort) {
   return result
 }
 
+const CURRENT_YEAR = new Date().getFullYear()
+
+function isComingSoon(item) {
+  if (item.media.media_type === 'tv') return false
+  return item.media.year != null && item.media.year >= CURRENT_YEAR
+}
+
 export default function Watchlist() {
   const { theme }  = useTheme()
   const router     = useRouter()
@@ -133,6 +140,7 @@ export default function Watchlist() {
                 width={ITEM_WIDTH}
                 onPress={() => router.push(`/media/${item.media.tmdb_id}?type=${item.media.media_type}`)}
                 onLongPress={() => confirmRemove(item)}
+                comingSoon={isComingSoon(item)}
               />
               <TouchableOpacity
                 onPress={() => router.push(`/log?tmdb_id=${item.media.tmdb_id}&type=${item.media.media_type}`)}
