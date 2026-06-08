@@ -1,4 +1,4 @@
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native'
+import { View, Text, Image, TouchableOpacity, StyleSheet, Share } from 'react-native'
 import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { StarDisplay } from './StarRating'
@@ -12,6 +12,14 @@ export default function EntryCard({ entry, onDelete }) {
   if (!media) return null  // guard against broken diary entry join
 
   const isFilm = media.media_type === 'film' || media.media_type === 'movie'
+
+  async function handleShare() {
+    try {
+      await Share.share({
+        message: `I watched ${media.title} and rated it ${Number(entry.rating).toFixed(1)}/5 ⭐ on ReelFeel`,
+      })
+    } catch {}
+  }
 
   return (
     <View style={[s.card, { backgroundColor: theme.bg1, borderColor: theme.text, shadowColor: theme.shadowColor, shadowOpacity: theme.shadowOpacity }]}>
@@ -98,6 +106,14 @@ export default function EntryCard({ entry, onDelete }) {
             accessibilityRole="button"
           >
             <Ionicons name="trash-outline" size={14} color={theme.red} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={handleShare}
+            style={[s.actionBtn, { backgroundColor: theme.bg2, borderColor: theme.text }]}
+            accessibilityLabel="Share entry"
+            accessibilityRole="button"
+          >
+            <Ionicons name="share-social-outline" size={14} color={theme.textMut} />
           </TouchableOpacity>
         </View>
       )}

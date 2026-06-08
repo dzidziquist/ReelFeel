@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import {
   View, Text, ScrollView, Image, TouchableOpacity,
-  ActivityIndicator, Alert, ImageBackground, StyleSheet,
+  ActivityIndicator, Alert, ImageBackground, StyleSheet, Share,
 } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
@@ -63,6 +63,20 @@ export default function MediaDetail() {
         },
       },
     ])
+  }
+
+  async function handleShare() {
+    if (!data?.media) return
+    const { media } = data
+    const typeSlug = media.media_type === 'film' || media.media_type === 'movie' ? 'movie' : 'tv'
+    const url = `https://www.themoviedb.org/${typeSlug}/${tmdbId}`
+    const snippet = media.overview ? media.overview.slice(0, 120) + (media.overview.length > 120 ? '…' : '') : ''
+    const message = [
+      `Check out ${media.title}${media.year ? ` (${media.year})` : ''} on ReelFeel 🎬`,
+      snippet,
+      url,
+    ].filter(Boolean).join('\n')
+    Share.share({ message })
   }
 
   async function toggleWatchlist() {
@@ -167,6 +181,16 @@ export default function MediaDetail() {
               </View>
             )}
           </View>
+
+          <TouchableOpacity
+            onPress={handleShare}
+            style={[s.shareBtn, { borderColor: theme.text, backgroundColor: theme.bg2 }]}
+            accessibilityLabel="Share"
+            accessibilityRole="button"
+          >
+            <Ionicons name="share-social-outline" size={15} color={theme.textSub} />
+            <Text style={[s.shareBtnText, { color: theme.textSub }]}>Share</Text>
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -293,6 +317,9 @@ const s = StyleSheet.create({
   avgRating:        { fontSize: 22, fontWeight: '800' },
   tmdbRating:       { fontSize: 22, fontWeight: '800' },
   ratingLabel:      { fontSize: 10, marginTop: 2 },
+
+  shareBtn:         { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 12, alignSelf: 'flex-start', borderWidth: 2, borderRadius: 4, paddingHorizontal: 10, paddingVertical: 6 },
+  shareBtnText:     { fontSize: 12, fontWeight: '700' },
 
   overview:         { fontSize: 13, paddingHorizontal: 16, marginBottom: 16, lineHeight: 20 },
 
