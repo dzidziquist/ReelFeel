@@ -18,10 +18,15 @@ const PROVIDER_LINKS = {
   37:  { app: 'showtime://',                   web: 'https://www.sho.com' },
 }
 
-async function openProvider(provider, title) {
+function justWatchFallback(title, justWatchLink) {
+  if (justWatchLink) return justWatchLink
+  return `https://www.justwatch.com/us/search?q=${encodeURIComponent(title || '')}`
+}
+
+async function openProvider(provider, title, justWatchLink) {
   const known = PROVIDER_LINKS[provider.id]
   if (!known) {
-    Linking.openURL(`https://www.justwatch.com/us/search?q=${encodeURIComponent(title || provider.name)}`)
+    Linking.openURL(justWatchFallback(title, justWatchLink))
     return
   }
   if (known.app) {
@@ -30,7 +35,7 @@ async function openProvider(provider, title) {
       if (canOpen) { Linking.openURL(known.app); return }
     } catch (_) {}
   }
-  Linking.openURL(known.web)
+  Linking.openURL(justWatchFallback(title, justWatchLink))
 }
 
 export default function StreamingProviders({
@@ -60,7 +65,7 @@ export default function StreamingProviders({
   function ProviderLogo({ p }) {
     return (
       <TouchableOpacity
-        onPress={() => openProvider(p, title)}
+        onPress={() => openProvider(p, title, justWatchLink)}
         style={s.provider}
         activeOpacity={0.7}
       >
@@ -96,9 +101,9 @@ export default function StreamingProviders({
     <View style={[s.container, { borderTopColor: theme.border }]}>
       <View style={s.headerRow}>
         <Text style={[s.header, { color: theme.textSub }]}>Where to Watch</Text>
-        {title && (
+        {(justWatchLink || title) && (
           <TouchableOpacity
-            onPress={() => Linking.openURL(`https://www.justwatch.com/us/search?q=${encodeURIComponent(title)}`)}
+            onPress={() => Linking.openURL(justWatchFallback(title, justWatchLink))}
             activeOpacity={0.7}
           >
             <Text style={[s.justWatch, { color: theme.textMut }]}>More options →</Text>
