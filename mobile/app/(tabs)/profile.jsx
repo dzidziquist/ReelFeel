@@ -217,8 +217,19 @@ export default function Profile() {
           <View style={s.heroTop}>
             <Avatar name={displayName} size={72} theme={theme} />
             <View style={s.heroNames}>
-              <Text style={[s.heroName, { color: theme.text }]}>{displayName}</Text>
-              {username ? <Text style={[s.heroHandle, { color: theme.gold }]}>{username}</Text> : null}
+              <View style={s.heroNameRow}>
+                <View style={s.heroNameBlock}>
+                  <Text style={[s.heroName, { color: theme.text }]}>{displayName}</Text>
+                  {username ? <Text style={[s.heroHandle, { color: theme.gold }]}>{username}</Text> : null}
+                </View>
+                <TouchableOpacity
+                  onPress={() => setEditOpen(true)}
+                  style={[s.editIconBtn, { borderColor: theme.border, backgroundColor: theme.bg1 }]}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Ionicons name="pencil-outline" size={15} color={theme.textSub} />
+                </TouchableOpacity>
+              </View>
               {mediaParts.length > 0 && (
                 <Text style={[s.heroMedia, { color: theme.textMut }]}>
                   {mediaParts.join('  ·  ')}
@@ -226,13 +237,6 @@ export default function Profile() {
               )}
               {memberSince ? <Text style={[s.heroSince, { color: theme.textMut }]}>Member since {memberSince}</Text> : null}
               {profile?.bio ? <Text style={[s.heroBio, { color: theme.textSub }]}>{profile.bio}</Text> : null}
-              <TouchableOpacity
-                onPress={() => setEditOpen(true)}
-                style={[s.editBtn, { borderColor: theme.border, backgroundColor: theme.bg1 }]}
-              >
-                <Ionicons name="pencil-outline" size={13} color={theme.textSub} />
-                <Text style={[s.editBtnText, { color: theme.textSub }]}>Edit Profile</Text>
-              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -426,20 +430,21 @@ const s = StyleSheet.create({
   content: { paddingBottom: 140 },
 
   // Hero
-  hero:       { paddingBottom: 24, paddingHorizontal: 16 },
-  heroTop:    { flexDirection: 'row', alignItems: 'flex-start', gap: 14 },
-  heroNames:  { flex: 1, gap: 3 },
-  heroName:   { fontSize: 24, fontWeight: '900', letterSpacing: -0.5 },
-  heroHandle: { fontSize: 13, fontWeight: '700' },
-  heroBio:    { fontSize: 13, lineHeight: 19, marginTop: 2 },
-  heroMedia:  { fontSize: 12, letterSpacing: 0.2, marginTop: 2 },
-  heroSince:  { fontSize: 11 },
-  editBtn:    {
-    flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start',
-    marginTop: 6, paddingHorizontal: 14, paddingVertical: 8,
-    borderRadius: 20, borderWidth: StyleSheet.hairlineWidth,
+  hero:         { paddingBottom: 24, paddingHorizontal: 16 },
+  heroTop:      { flexDirection: 'row', alignItems: 'flex-start', gap: 14 },
+  heroNames:    { flex: 1, gap: 3 },
+  heroNameRow:  { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
+  heroNameBlock:{ flex: 1, gap: 2 },
+  heroName:     { fontSize: 24, fontWeight: '900', letterSpacing: -0.5 },
+  heroHandle:   { fontSize: 13, fontWeight: '700' },
+  heroBio:      { fontSize: 13, lineHeight: 19, marginTop: 2 },
+  heroMedia:    { fontSize: 12, letterSpacing: 0.2, marginTop: 2 },
+  heroSince:    { fontSize: 11 },
+  editIconBtn:  {
+    width: 32, height: 32, borderRadius: 16,
+    alignItems: 'center', justifyContent: 'center',
+    borderWidth: StyleSheet.hairlineWidth, marginLeft: 8,
   },
-  editBtnText: { fontSize: 12, fontWeight: '600' },
 
   // Stats band
   statsBand: {

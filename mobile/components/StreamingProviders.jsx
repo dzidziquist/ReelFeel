@@ -35,7 +35,7 @@ async function openProvider(provider, title, justWatchLink) {
       if (canOpen) { Linking.openURL(known.app); return }
     } catch (_) {}
   }
-  Linking.openURL(justWatchFallback(title, justWatchLink))
+  Linking.openURL(known.web)
 }
 
 export default function StreamingProviders({
