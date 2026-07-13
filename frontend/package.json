@@ -7,9 +7,11 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "release": "node scripts/add-release.mjs && npm run build && vercel --prod"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.108.2",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-router-dom": "^7.13.2"

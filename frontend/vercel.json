@@ -1,0 +1,12 @@
+{
+  "headers": [
+    {
+      "source": "/.well-known/apple-app-site-association",
+      "headers": [{ "key": "Content-Type", "value": "application/json" }]
+    }
+  ],
+  "rewrites": [
+    { "source": "/media/:tmdbId", "destination": "/api/media/:tmdbId" },
+    { "source": "/((?!api|\\.).*)", "destination": "/index.html" }
+  ]
+}

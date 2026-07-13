@@ -1,30 +1,17 @@
-/** Display-only star rating */
 export function StarDisplay({ rating, size = 'sm' }) {
-  const sizeClass = size === 'lg' ? 'text-2xl' : 'text-base'
-  const stars = []
-  for (let i = 1; i <= 5; i++) {
-    if (rating >= i) {
-      stars.push(<span key={i} className={`${sizeClass} text-yellow-400`}>★</span>)
-    } else if (rating >= i - 0.5) {
-      stars.push(
-        <span key={i} className={`${sizeClass}`}
-          style={{ background: 'linear-gradient(90deg,#facc15 50%,#4b5563 50%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-          ★
-        </span>
-      )
-    } else {
-      stars.push(<span key={i} className={`${sizeClass} text-gray-600`}>★</span>)
-    }
-  }
-  return <span className="inline-flex gap-px">{stars}</span>
+  const cls = size === 'lg' ? 'text-2xl' : 'text-base'
+  return (
+    <span className="inline-flex gap-px">
+      {[1,2,3,4,5].map(i => (
+        <span key={i} className={`${cls} ${rating >= i ? 'text-gold' : rating >= i - 0.5 ? 'text-gold opacity-50' : 'text-[#2a2a2a]'}`}>★</span>
+      ))}
+    </span>
+  )
 }
 
-/** Interactive star picker */
 export function StarPicker({ value, onChange }) {
   function handleClick(i) {
-    // click same whole-star → half star
-    const newVal = value === i ? i - 0.5 : i
-    onChange(newVal)
+    onChange(value === i ? i - 0.5 : i)
   }
 
   return (
@@ -34,9 +21,8 @@ export function StarPicker({ value, onChange }) {
           key={i}
           type="button"
           onClick={() => handleClick(i)}
-          onMouseEnter={() => {}}
-          className={`text-3xl transition-colors leading-none ${
-            value >= i ? 'text-yellow-400' : value >= i - 0.5 ? 'text-yellow-300' : 'text-gray-600 hover:text-yellow-400'
+          className={`text-3xl leading-none transition-colors ${
+            value >= i ? 'text-gold' : value >= i - 0.5 ? 'text-gold opacity-50' : 'text-[#2a2a2a] hover:text-gold'
           }`}
         >
           ★
