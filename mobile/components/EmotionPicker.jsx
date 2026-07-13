@@ -140,7 +140,7 @@ export default function EmotionPicker({ emotions = [], selected = [], onChange }
 const s = StyleSheet.create({
   header:         {
     flexDirection: 'row', alignItems: 'center', gap: 8,
-    borderWidth: 2, borderRadius: 6, paddingHorizontal: 12, paddingVertical: 10,
+    borderWidth: StyleSheet.hairlineWidth, borderRadius: 6, paddingHorizontal: 12, paddingVertical: 10,
   },
   headerArrow:    { width: 14 },
   headerLabel:    { fontSize: 13, fontWeight: '600', flex: 1 },
@@ -148,7 +148,7 @@ const s = StyleSheet.create({
   collapsedPills: { flexDirection: 'row', gap: 6, alignItems: 'center' },
   collapsedPill:  { fontSize: 12, fontWeight: '600' },
 
-  expanded:       { borderWidth: 2, borderTopWidth: 0, borderRadius: 6, borderTopLeftRadius: 0, borderTopRightRadius: 0, overflow: 'hidden' },
+  expanded:       { borderWidth: StyleSheet.hairlineWidth, borderTopWidth: 0, borderRadius: 6, borderTopLeftRadius: 0, borderTopRightRadius: 0, overflow: 'hidden' },
 
   tabBar:         { borderBottomWidth: 1 },
   tabBarContent:  { flexDirection: 'row', paddingHorizontal: 4 },
@@ -156,11 +156,11 @@ const s = StyleSheet.create({
   tabText:        { fontSize: 13 },
 
   grid:           { flexDirection: 'row', flexWrap: 'wrap', gap: 8, padding: 12 },
-  chip:           { flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 2, borderRadius: 6, paddingHorizontal: 10, paddingVertical: 7 },
+  chip:           { flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: StyleSheet.hairlineWidth, borderRadius: 6, paddingHorizontal: 10, paddingVertical: 7 },
   chipEmoji:      { fontSize: 18 },
   chipName:       { fontSize: 13, fontWeight: '600', flexShrink: 1 },
 
   summary:        { flexDirection: 'row', flexWrap: 'wrap', gap: 6, padding: 10, borderTopWidth: 1 },
-  pill:           { borderWidth: 2, borderRadius: 4, paddingHorizontal: 10, paddingVertical: 4 },
+  pill:           { borderWidth: StyleSheet.hairlineWidth, borderRadius: 4, paddingHorizontal: 10, paddingVertical: 4 },
   pillText:       { fontSize: 12, fontWeight: '700' },
 })

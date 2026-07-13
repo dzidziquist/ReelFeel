@@ -360,7 +360,7 @@ export { FilterPanel }
 
 const s = StyleSheet.create({
   bar:       {
-    flexDirection: 'row', alignItems: 'center', borderRadius: 4, borderWidth: 2,
+    flexDirection: 'row', alignItems: 'center', borderRadius: 4, borderWidth: StyleSheet.hairlineWidth,
     paddingVertical: 8, paddingHorizontal: 12, gap: 10,
     shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8,
     elevation: 3,
@@ -369,10 +369,10 @@ const s = StyleSheet.create({
   filterLabel:{ fontSize: 13, fontWeight: '700' },
   badge:     { backgroundColor: '#dc2626', borderRadius: 3, width: 16, height: 16, alignItems: 'center', justifyContent: 'center' },
   badgeText: { color: '#fff', fontSize: 9, fontWeight: '800' },
-  divider:   { width: 1.5, height: 20 },
+  divider:   { width: StyleSheet.hairlineWidth, height: 20 },
   sortChips: { flexDirection: 'row', gap: 6 },
   chip:      {
-    paddingHorizontal: 10, paddingVertical: 5, borderRadius: 4, borderWidth: 2,
+    paddingHorizontal: 10, paddingVertical: 5, borderRadius: 4, borderWidth: StyleSheet.hairlineWidth,
   },
   chipText:  { fontSize: 11, fontWeight: '700' },
 })
@@ -386,14 +386,14 @@ const fp = StyleSheet.create({
   sectionLabel:{ fontSize: 13, fontWeight: '700', marginBottom: 10 },
   chips:      { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip:       {
-    paddingHorizontal: 12, paddingVertical: 7, borderRadius: 4, borderWidth: 2,
+    paddingHorizontal: 12, paddingVertical: 7, borderRadius: 4, borderWidth: StyleSheet.hairlineWidth,
   },
   chipText:   { fontSize: 13, fontWeight: '700' },
   ratingRow:  { flexDirection: 'row', gap: 12, alignItems: 'flex-end' },
   ratingInput:{ flex: 1 },
   ratingLbl:  { fontSize: 11, marginBottom: 4 },
   input:      {
-    borderWidth: 2, borderRadius: 4, paddingHorizontal: 12, paddingVertical: 10, fontSize: 16,
+    borderWidth: StyleSheet.hairlineWidth, borderRadius: 4, paddingHorizontal: 12, paddingVertical: 10, fontSize: 16,
     shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 2,
   },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 12 },
@@ -401,7 +401,7 @@ const fp = StyleSheet.create({
     paddingVertical: 8, paddingHorizontal: 18, borderRadius: 20, alignItems: 'center',
   },
   applyText:  { color: '#000', fontSize: 14, fontWeight: '700' },
-  dateRow:    { flexDirection: 'row', alignItems: 'center', borderRadius: 4, borderWidth: 2, paddingHorizontal: 14, paddingVertical: 12, gap: 8 },
+  dateRow:    { flexDirection: 'row', alignItems: 'center', borderRadius: 4, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 14, paddingVertical: 12, gap: 8 },
   dateLbl:    { fontSize: 13, fontWeight: '600', width: 36 },
   dateVal:    { flex: 1, fontSize: 14 },
   doneBtn:    { alignItems: 'flex-end', paddingVertical: 8, paddingHorizontal: 14 },

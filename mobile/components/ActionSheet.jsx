@@ -69,11 +69,11 @@ const s = StyleSheet.create({
   backdrop:  { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)' },
   sheet:     {
     borderTopLeftRadius: 8, borderTopRightRadius: 8,
-    borderTopWidth: 2,
+    borderTopWidth: StyleSheet.hairlineWidth,
     paddingBottom: 40,
     paddingHorizontal: 16,
     paddingTop: 8,
-    shadowColor: '#000', shadowOffset: { width: 0, height: -3 }, shadowOpacity: 0.4, shadowRadius: 0, elevation: 8,
+    shadowColor: '#000', shadowOffset: { width: 0, height: -2 }, shadowOpacity: 0.1, shadowRadius: 12, elevation: 8,
   },
   titleRow:  { paddingVertical: 12, borderBottomWidth: 1, marginBottom: 4 },
   title:     { fontSize: 12, textAlign: 'center', fontWeight: '700' },
@@ -82,7 +82,7 @@ const s = StyleSheet.create({
   label:     { fontSize: 16, fontWeight: '600', flex: 1 },
   cancelBtn: {
     marginTop: 12, paddingVertical: 16, borderRadius: 6,
-    borderWidth: 2, alignItems: 'center',
+    borderWidth: StyleSheet.hairlineWidth, alignItems: 'center',
   },
   cancelText:{ fontSize: 16, fontWeight: '600' },
 })

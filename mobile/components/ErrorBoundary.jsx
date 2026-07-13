@@ -34,6 +34,6 @@ const s = StyleSheet.create({
   emoji:     { fontSize: 48, marginBottom: 16 },
   title:     { color: '#fff', fontSize: 20, fontWeight: '800', marginBottom: 10, textAlign: 'center' },
   message:   { color: '#a3a3a3', fontSize: 13, textAlign: 'center', lineHeight: 20, marginBottom: 28 },
-  btn:       { backgroundColor: '#dc2626', borderRadius: 6, paddingHorizontal: 28, paddingVertical: 13, borderWidth: 2, borderColor: '#000' },
+  btn:       { backgroundColor: '#dc2626', borderRadius: 6, paddingHorizontal: 28, paddingVertical: 13 },
   btnText:   { color: '#fff', fontWeight: '800', fontSize: 15 },
 })

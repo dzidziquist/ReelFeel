@@ -375,7 +375,7 @@ const s = StyleSheet.create({
   sheetOptionText: { fontSize: 15 },
   recsHeader:       { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 28, marginBottom: 4 },
   recsTitle:        { fontSize: 17, fontWeight: '800' },
-  errorBox:         { backgroundColor: '#3f0000', borderWidth: 2, borderRadius: 6, paddingHorizontal: 16, paddingVertical: 12, marginTop: 12 },
+  errorBox:         { backgroundColor: '#3f0000', borderWidth: StyleSheet.hairlineWidth, borderRadius: 6, paddingHorizontal: 16, paddingVertical: 12, marginTop: 12 },
   errorText:        { color: '#fca5a5', fontSize: 13 },
   noResults:        { textAlign: 'center', marginTop: 40 },
   recReason:        { fontSize: 10, fontStyle: 'italic', marginTop: 2 },

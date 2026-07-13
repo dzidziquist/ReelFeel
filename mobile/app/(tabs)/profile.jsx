@@ -62,14 +62,14 @@ function EditModal({ visible, profile, onSave, onCancel, theme = {} }) {
 
   const mi = {
     container: { flex: 1, backgroundColor: theme.bg0 ?? '#000' },
-    header:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, paddingTop: 56, borderBottomWidth: 2, borderBottomColor: theme.text ?? '#fff' },
+    header:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, paddingTop: 56, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.text ?? '#fff' },
     title:     { color: theme.text ?? '#fff', fontSize: 16, fontWeight: '700' },
     cancel:    { color: theme.textSub ?? '#a3a3a3', fontSize: 15 },
     save:      { color: theme.gold ?? '#d4af37', fontSize: 15, fontWeight: '700' },
     body:      { padding: 20 },
     label:     { color: theme.textSub ?? '#a3a3a3', fontSize: 13, fontWeight: '600', marginBottom: 8 },
     optional:  { color: theme.textMut ?? '#6b6b6b', fontWeight: '400' },
-    input:     { backgroundColor: theme.bg1 ?? '#111', borderWidth: 2, borderColor: theme.text ?? '#fff', borderRadius: 6, paddingHorizontal: 16, paddingVertical: 12, color: theme.text ?? '#fff', fontSize: 14, marginBottom: 20 },
+    input:     { backgroundColor: theme.bg1 ?? '#111', borderWidth: StyleSheet.hairlineWidth, borderColor: theme.text ?? '#fff', borderRadius: 6, paddingHorizontal: 16, paddingVertical: 12, color: theme.text ?? '#fff', fontSize: 14, marginBottom: 20 },
     charCount: { color: theme.textMut ?? '#6b6b6b', fontSize: 11, textAlign: 'right', marginTop: -16, marginBottom: 20 },
   }
 
@@ -473,8 +473,8 @@ const s = StyleSheet.create({
   sectionSub:   { fontSize: 11, marginBottom: 14 },
 
   // Segmented theme control
-  segmented:    { flexDirection: 'row', borderRadius: 6, borderWidth: 1.5, padding: 3, gap: 3 },
-  segment:      { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, paddingVertical: 8, borderRadius: 4, borderWidth: 1.5, borderColor: 'transparent' },
+  segmented:    { flexDirection: 'row', borderRadius: 6, borderWidth: StyleSheet.hairlineWidth, padding: 3, gap: 3 },
+  segment:      { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, paddingVertical: 8, borderRadius: 4 },
   segmentText:  { fontSize: 12, fontWeight: '700' },
 
   // Switch row
@@ -500,7 +500,7 @@ const s = StyleSheet.create({
   dangerDesc:    { color: '#6b6b6b', fontSize: 11, marginTop: 2 },
   dangerDivider: { height: StyleSheet.hairlineWidth, backgroundColor: '#3f0000', marginVertical: 4 },
 
-  errorBox:  { marginHorizontal: 16, backgroundColor: '#3f0000', borderWidth: 2, borderColor: '#dc2626', borderRadius: 6, padding: 14, marginBottom: 14 },
+  errorBox:  { marginHorizontal: 16, backgroundColor: '#3f0000', borderWidth: StyleSheet.hairlineWidth, borderColor: '#dc2626', borderRadius: 6, padding: 14, marginBottom: 14 },
   errorText: { color: '#fca5a5', fontSize: 13 },
 })
 

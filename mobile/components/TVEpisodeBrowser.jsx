@@ -211,18 +211,18 @@ const s = StyleSheet.create({
   row:           { flexDirection: 'row', gap: 8, alignItems: 'center' },
   dropdown:      {
     flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    borderWidth: 2, borderRadius: 6, paddingHorizontal: 12, paddingVertical: 12,
+    borderWidth: StyleSheet.hairlineWidth, borderRadius: 6, paddingHorizontal: 12, paddingVertical: 12,
     gap: 8,
-    shadowColor: '#000', shadowOffset: { width: 2, height: 2 }, shadowOpacity: 0.5, shadowRadius: 0, elevation: 2,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 6, elevation: 2,
   },
   dropdownText:  { flex: 1, fontSize: 13, fontWeight: '600' },
-  clearBtn:      { borderWidth: 2, borderRadius: 6, width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  clearBtn:      { borderWidth: StyleSheet.hairlineWidth, borderRadius: 6, width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   placeholder:   { flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 6, padding: 12 },
   placeholderText:{ fontSize: 13 },
 
   backdrop:      { flex: 1, backgroundColor: 'rgba(0,0,0,0.55)' },
-  sheet:         { maxHeight: '70%', borderTopWidth: 2, borderTopLeftRadius: 8, borderTopRightRadius: 8, paddingTop: 0 },
-  sheetHeader:   { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: 1.5 },
+  sheet:         { maxHeight: '70%', borderTopWidth: StyleSheet.hairlineWidth, borderTopLeftRadius: 8, borderTopRightRadius: 8, paddingTop: 0 },
+  sheetHeader:   { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth },
   sheetTitle:    { fontSize: 14, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.8 },
 
   option:        { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, gap: 10, borderBottomWidth: 1 },

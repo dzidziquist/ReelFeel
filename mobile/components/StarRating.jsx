@@ -116,7 +116,7 @@ const s = StyleSheet.create({
   stars:    { flexDirection: 'row', gap: 8 },
   inputRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   input:    {
-    borderWidth: 2,
+    borderWidth: StyleSheet.hairlineWidth,
     borderRadius: 4,
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -124,7 +124,7 @@ const s = StyleSheet.create({
     fontWeight: '700',
     width: 60,
     textAlign: 'center',
-    shadowColor: '#000', shadowOffset: { width: 2, height: 2 }, shadowOpacity: 0.5, shadowRadius: 0, elevation: 2,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 6, elevation: 2,
   },
   outOf:    { fontSize: 16, fontWeight: '600' },
   hint:     { fontSize: 11 },
