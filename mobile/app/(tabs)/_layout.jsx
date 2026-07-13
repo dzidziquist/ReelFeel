@@ -1,17 +1,18 @@
 import { Tabs } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { useTheme } from '../../context/ThemeContext'
+import FloatingTabBar from '../../components/FloatingTabBar'
+import { TabBarProvider } from '../../context/TabBarContext'
 
 export default function TabLayout() {
   const { theme } = useTheme()
 
   return (
+    <TabBarProvider>
     <Tabs
+      tabBar={props => <FloatingTabBar {...props} />}
+
       screenOptions={{
-        tabBarStyle: { backgroundColor: theme.bg0, borderTopColor: theme.border },
-        tabBarActiveTintColor: theme.gold,
-        tabBarInactiveTintColor: theme.textMut,
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
         headerStyle: { backgroundColor: theme.bg1 },
         headerTintColor: theme.text,
         headerTitleStyle: { color: theme.text, fontWeight: '700' },
@@ -30,6 +31,7 @@ export default function TabLayout() {
         options={{
           title: 'My Diary',
           tabBarIcon: ({ color, size }) => <Ionicons name="heart-outline" size={size} color={color} />,
+          headerShown: false,
         }}
       />
       <Tabs.Screen
@@ -45,6 +47,7 @@ export default function TabLayout() {
         options={{
           title: 'Search',
           tabBarIcon: ({ color, size }) => <Ionicons name="search-outline" size={size} color={color} />,
+          headerShown: false,
         }}
       />
       <Tabs.Screen
@@ -61,8 +64,10 @@ export default function TabLayout() {
         options={{
           title: 'Library',
           href: null,
+          headerShown: false,
         }}
       />
     </Tabs>
+    </TabBarProvider>
   )
 }

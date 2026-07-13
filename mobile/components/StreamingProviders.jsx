@@ -2,8 +2,40 @@ import { View, Text, ScrollView, Image, TouchableOpacity, Linking, StyleSheet } 
 import { Ionicons } from '@expo/vector-icons'
 import { useTheme } from '../context/ThemeContext'
 
+// TMDB provider IDs → app URI scheme + web fallback
+const PROVIDER_LINKS = {
+  8:   { app: 'nflx://www.netflix.com',       web: 'https://www.netflix.com' },
+  9:   { app: 'aiv://',                         web: 'https://www.amazon.com/gp/video' },
+  337: { app: 'disneyplus://',                 web: 'https://www.disneyplus.com' },
+  15:  { app: 'hulu://',                        web: 'https://www.hulu.com' },
+  384: { app: 'max://',                         web: 'https://www.max.com' },
+  2:   { app: 'videos://',                      web: 'https://tv.apple.com' },
+  387: { app: 'peacocktv://',                  web: 'https://www.peacocktv.com' },
+  531: { app: 'paramountplus://',              web: 'https://www.paramountplus.com' },
+  283: { app: 'crunchyroll://',               web: 'https://www.crunchyroll.com' },
+  300: { app: 'tubi://',                       web: 'https://tubitv.com' },
+  43:  { app: 'starz://',                      web: 'https://www.starz.com' },
+  37:  { app: 'showtime://',                   web: 'https://www.sho.com' },
+}
+
+async function openProvider(provider, title) {
+  const known = PROVIDER_LINKS[provider.id]
+  if (!known) {
+    Linking.openURL(`https://www.justwatch.com/us/search?q=${encodeURIComponent(title || provider.name)}`)
+    return
+  }
+  if (known.app) {
+    try {
+      const canOpen = await Linking.canOpenURL(known.app)
+      if (canOpen) { Linking.openURL(known.app); return }
+    } catch (_) {}
+  }
+  Linking.openURL(known.web)
+}
+
 export default function StreamingProviders({
   streaming = [], rent = [], buy = [],
+  justWatchLink = null,
   inTheatres = false,
   comingSoonTheatres = false,
   comingSoonStreaming = false,
@@ -27,7 +59,11 @@ export default function StreamingProviders({
 
   function ProviderLogo({ p }) {
     return (
-      <View style={s.provider}>
+      <TouchableOpacity
+        onPress={() => openProvider(p, title)}
+        style={s.provider}
+        activeOpacity={0.7}
+      >
         {p.logo_url ? (
           <Image source={{ uri: p.logo_url }} style={s.logo} resizeMode="cover" />
         ) : (
@@ -40,7 +76,7 @@ export default function StreamingProviders({
         <Text style={[s.providerName, { color: theme.textMut }]} numberOfLines={1}>
           {p.name?.split(' ')[0]}
         </Text>
-      </View>
+      </TouchableOpacity>
     )
   }
 
@@ -58,7 +94,17 @@ export default function StreamingProviders({
 
   return (
     <View style={[s.container, { borderTopColor: theme.border }]}>
-      <Text style={[s.header, { color: theme.textSub }]}>Where to Watch</Text>
+      <View style={s.headerRow}>
+        <Text style={[s.header, { color: theme.textSub }]}>Where to Watch</Text>
+        {title && (
+          <TouchableOpacity
+            onPress={() => Linking.openURL(`https://www.justwatch.com/us/search?q=${encodeURIComponent(title)}`)}
+            activeOpacity={0.7}
+          >
+            <Text style={[s.justWatch, { color: theme.textMut }]}>More options →</Text>
+          </TouchableOpacity>
+        )}
+      </View>
       {inTheatres && (
         <View style={s.theatreBlock}>
           <View style={[s.theatreRow, { backgroundColor: theme.bg2, borderColor: theme.gold }]}>
@@ -110,7 +156,9 @@ export default function StreamingProviders({
 
 const s = StyleSheet.create({
   container:       { paddingTop: 16, marginBottom: 8 },
-  header:          { fontSize: 13, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10, paddingHorizontal: 16 },
+  headerRow:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, marginBottom: 10 },
+  header:          { fontSize: 13, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
+  justWatch:       { fontSize: 12, fontWeight: '600' },
   theatreBlock:    { marginHorizontal: 16, marginBottom: 12, gap: 8 },
   theatreRow:      { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12, paddingVertical: 10, borderRadius: 4, borderWidth: 2 },
   theatreEmoji:    { fontSize: 16 },

@@ -96,6 +96,22 @@ export async function getPopularTV() {
   return (json.results ?? []).map(r => mapResult(r, 'tv'))
 }
 
+/**
+ * Upcoming movies (not yet released).
+ */
+export async function getUpcoming() {
+  const json = await get('/movie/upcoming')
+  return (json.results ?? []).map(r => mapResult(r, 'movie'))
+}
+
+/**
+ * TV shows with episodes airing today.
+ */
+export async function getAiringToday() {
+  const json = await get('/tv/airing_today')
+  return (json.results ?? []).map(r => mapResult(r, 'tv'))
+}
+
 // ── Detail ───────────────────────────────────────────────────
 /**
  * Fetch full details + credits for a movie or TV show.
@@ -156,6 +172,22 @@ export async function getTVEpisodes(tmdbId, seasonNumber) {
     vote_average:   e.vote_average ?? null,
     air_date:       e.air_date ?? null,
   }))
+}
+
+// ── Genre Discover ───────────────────────────────────────────
+/**
+ * Discover titles by genre IDs. Uses OR logic so any matching ID qualifies.
+ * @param {number[]} genreIds  TMDB genre IDs
+ * @param {'movie'|'tv'} mediaType
+ */
+export async function discoverByGenre(genreIds, mediaType = 'movie') {
+  const type = mediaType === 'tv' ? 'tv' : 'movie'
+  const json = await get(`/discover/${type}`, {
+    with_genres:   genreIds.join('|'),
+    sort_by:       'popularity.desc',
+    include_adult: false,
+  })
+  return (json.results ?? []).map(r => mapResult(r, type))
 }
 
 // ── Recommendations ──────────────────────────────────────────
@@ -257,6 +289,7 @@ export async function getWatchProviders(tmdbId, mediaType, country = 'US') {
       logo_url: p.logo_path ? `${IMG}/w92${p.logo_path}` : null,
     })
     return {
+      link:      region.link ?? null,
       streaming: (region.flatrate ?? []).map(toProvider),
       rent:      (region.rent     ?? []).map(toProvider),
       buy:       (region.buy      ?? []).map(toProvider),

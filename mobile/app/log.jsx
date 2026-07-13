@@ -20,7 +20,7 @@ function toDateString(d) {
 export default function LogEntry() {
   const params   = useLocalSearchParams()
   const router   = useRouter()
-  const { theme } = useTheme()
+  const { theme, isDark } = useTheme()
 
   const tmdbId = params.tmdb_id || null
   const type   = params.type    || 'film'
@@ -220,6 +220,7 @@ export default function LogEntry() {
                 value={new Date(form.watched_on + 'T00:00:00')}
                 mode="date"
                 display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                themeVariant={isDark ? 'dark' : 'light'}
                 maximumDate={new Date()}
                 onChange={(_, date) => {
                   setShowDatePicker(Platform.OS === 'ios')
@@ -328,17 +329,17 @@ const s = StyleSheet.create({
   errorBox:           { backgroundColor: '#3f0000', borderWidth: 2, borderRadius: 6, paddingHorizontal: 16, paddingVertical: 12, marginBottom: 16, borderColor: '#dc2626' },
   errorText:          { color: '#fca5a5', fontSize: 13 },
   section:            { marginBottom: 24 },
-  label:              { fontSize: 13, fontWeight: '700', marginBottom: 8 },
+  label:              { fontSize: 11, fontWeight: '800', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 1 },
   optional:           { fontWeight: '400' },
   searchRow:          { flexDirection: 'row', gap: 8 },
   searchInput:        {
     flex: 1, borderWidth: 2, borderRadius: 6, paddingHorizontal: 16, paddingVertical: 12, fontSize: 14,
-    shadowColor: '#000', shadowOffset: { width: 2, height: 2 }, shadowOpacity: 0.6, shadowRadius: 0, elevation: 2,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 2,
   },
   goBtn:              {
     borderRadius: 6, paddingHorizontal: 16, justifyContent: 'center',
     borderWidth: 2, borderColor: '#000',
-    shadowColor: '#000', shadowOffset: { width: 3, height: 3 }, shadowOpacity: 0.8, shadowRadius: 0, elevation: 3,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 2,
   },
   goBtnText:          { color: '#fff', fontWeight: '800' },
   searchResults:      { marginTop: 12, gap: 8 },
@@ -349,7 +350,7 @@ const s = StyleSheet.create({
   mediaCard:          {
     borderRadius: 6, flexDirection: 'row', gap: 16, padding: 16, marginBottom: 24,
     borderWidth: 2,
-    shadowColor: '#000', shadowOffset: { width: 3, height: 3 }, shadowOpacity: 0.7, shadowRadius: 0, elevation: 3,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 2,
   },
   mediaPoster:        { width: 64, height: 96, borderRadius: 4 },
   mediaInfo:          { flex: 1 },
@@ -361,13 +362,13 @@ const s = StyleSheet.create({
   formFields:         { gap: 20 },
   dateBtn:            {
     borderWidth: 2, borderRadius: 6, paddingHorizontal: 16, paddingVertical: 12,
-    shadowColor: '#000', shadowOffset: { width: 2, height: 2 }, shadowOpacity: 0.5, shadowRadius: 0, elevation: 2,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 2,
   },
   dateBtnText:        { fontSize: 14 },
   doneBtn:            { fontSize: 13, textAlign: 'right', marginTop: 8 },
   notesInput:         {
     borderWidth: 2, borderRadius: 6, paddingHorizontal: 16, paddingVertical: 12, fontSize: 14, minHeight: 80,
-    shadowColor: '#000', shadowOffset: { width: 2, height: 2 }, shadowOpacity: 0.5, shadowRadius: 0, elevation: 2,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 2,
   },
   rewatchRow:         { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   rewatchLabel:       { fontSize: 13 },
@@ -375,7 +376,7 @@ const s = StyleSheet.create({
   submitBtn:          {
     flex: 1, borderRadius: 6, paddingVertical: 14, alignItems: 'center',
     borderWidth: 2, borderColor: '#000',
-    shadowColor: '#000', shadowOffset: { width: 3, height: 3 }, shadowOpacity: 0.8, shadowRadius: 0, elevation: 3,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 2,
   },
   submitBtnText:      { color: '#fff', fontWeight: '800' },
   cancelBtn:          { paddingHorizontal: 20, paddingVertical: 14, borderRadius: 6, borderWidth: 2 },

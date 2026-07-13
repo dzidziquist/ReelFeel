@@ -1,10 +1,10 @@
 // ── Dark theme (default) ─────────────────────────────────────
 export const DARK = {
-  bg0:       '#000000',   // page backgrounds
-  bg1:       '#111111',   // card / header backgrounds
-  bg2:       '#1c1c1e',   // inputs, secondary surfaces
-  bg3:       '#2c2c2e',   // elevated surfaces
-  border:    '#2a2a2a',   // subtle border
+  bg0:       '#000000',
+  bg1:       '#111111',
+  bg2:       '#1c1c1e',
+  bg3:       '#2c2c2e',
+  border:    '#2a2a2a',
   text:      '#ffffff',
   textSub:   '#a3a3a3',
   textMut:   '#6b6b6b',
@@ -18,28 +18,25 @@ export const DARK = {
   pinkL:     '#f472b6',
   success:   '#22c55e',
   info:      '#3b82f6',
-  // Semantic
   card:      '#111111',
   inputBg:   '#1c1c1e',
   tabBg:     '#000000',
   headerBg:  '#111111',
-  // Shadows
   shadowColor: '#ffffff',
   shadowOpacity: 0.18,
-  // Status bar
   statusBar: 'light-content',
 }
 
 // ── Light theme ───────────────────────────────────────────────
 export const LIGHT = {
-  bg0:       '#f2f2f7',   // page backgrounds
-  bg1:       '#ffffff',   // card / header backgrounds
-  bg2:       '#e5e5ea',   // inputs, secondary surfaces
-  bg3:       '#d1d1d6',   // elevated surfaces
-  border:    '#c6c6c8',   // subtle border
+  bg0:       '#f2f2f7',
+  bg1:       '#ffffff',
+  bg2:       '#e5e5ea',
+  bg3:       '#d1d1d6',
+  border:    '#c6c6c8',
   text:      '#000000',
-  textSub:   '#1c1c1e',   // near-black — primary secondary text
-  textMut:   '#3c3c43',   // dark gray — muted/hint text
+  textSub:   '#1c1c1e',
+  textMut:   '#3c3c43',
   red:       '#dc2626',
   redL:      '#ef4444',
   gold:      '#b8860b',
@@ -50,16 +47,19 @@ export const LIGHT = {
   pinkL:     '#ec4899',
   success:   '#16a34a',
   info:      '#2563eb',
-  // Semantic
   card:      '#ffffff',
   inputBg:   '#f2f2f7',
   tabBg:     '#f8f8f8',
   headerBg:  '#ffffff',
-  // Shadows
   shadowColor: '#000000',
   shadowOpacity: 0.8,
-  // Status bar
   statusBar: 'dark-content',
+}
+
+// Theme variant matrix: brightness → theme
+export const THEME_VARIANTS = {
+  dark:  DARK,
+  light: LIGHT,
 }
 
 // Default export stays DARK for backward-compat with existing imports

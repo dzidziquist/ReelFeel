@@ -4,6 +4,7 @@ import {
   ActivityIndicator, Alert, ImageBackground, StyleSheet, Share,
 } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { getMedia, deleteEntry, addToWatchlist, removeFromWatchlistByTmdbId, isInWatchlist } from '../../lib/queries'
 import { getWatchProviders, checkReleaseStatus } from '../../lib/tmdb'
@@ -16,12 +17,13 @@ export default function MediaDetail() {
   const { tmdbId, type } = useLocalSearchParams()
   const router           = useRouter()
   const { theme }        = useTheme()
+  const insets           = useSafeAreaInsets()
 
   const [data,        setData]        = useState(null)
   const [loading,     setLoading]     = useState(true)
   const [inWatchlist, setInWatchlist] = useState(false)
   const [wlLoading,   setWlLoading]   = useState(false)
-  const [providers,     setProviders]     = useState({ streaming: [], rent: [], buy: [] })
+  const [providers,     setProviders]     = useState({ link: null, streaming: [], rent: [], buy: [] })
   const [releaseStatus, setReleaseStatus] = useState({
     inTheatres: false, comingSoonTheatres: false, comingSoonStreaming: false,
     theatreDate: null, streamingDate: null,
@@ -68,15 +70,22 @@ export default function MediaDetail() {
   async function handleShare() {
     if (!data?.media) return
     const { media } = data
-    const typeSlug = media.media_type === 'film' || media.media_type === 'movie' ? 'movie' : 'tv'
-    const url = `https://www.themoviedb.org/${typeSlug}/${tmdbId}`
-    const snippet = media.overview ? media.overview.slice(0, 120) + (media.overview.length > 120 ? '…' : '') : ''
+    const webUrl    = process.env.EXPO_PUBLIC_WEB_URL ?? 'https://reelfeel.me'
+    const typeSlug  = media.media_type === 'film' || media.media_type === 'movie' ? 'movie' : 'tv'
+    const url       = `${webUrl}/media/${tmdbId}?type=${typeSlug}`
+    const snippet   = media.overview ? media.overview.slice(0, 120) + (media.overview.length > 120 ? '…' : '') : ''
+    const ratingLine = data.avg_rating != null ? `I rated it ${Number(data.avg_rating).toFixed(1)}/5 ⭐` : null
     const message = [
       `Check out ${media.title}${media.year ? ` (${media.year})` : ''} on ReelFeel 🎬`,
+      ratingLine,
       snippet,
       url,
     ].filter(Boolean).join('\n')
-    Share.share({ message })
+    try {
+      await Share.share({ message })
+    } catch {
+      Alert.alert('Share failed', 'Could not open the share sheet.')
+    }
   }
 
   async function toggleWatchlist() {
@@ -110,15 +119,30 @@ export default function MediaDetail() {
   const genres      = Array.isArray(media.genres) ? media.genres : []
   const cast        = Array.isArray(media.cast)   ? media.cast   : []
   const isFilm      = media.media_type === 'film' || media.media_type === 'movie'
+  const isUnreleased = isFilm && (
+    releaseStatus.comingSoonTheatres ||
+    (media.year && Number(media.year) > new Date().getFullYear())
+  )
   const hasBackdrop = !!media.backdrop_url
   // Title/tagline/year sit in the ~54px that overlaps the dark backdrop overlay —
   // force white so they're readable in light mode too.
-  const titleColor  = hasBackdrop ? '#fff'                   : theme.text
-  const subColor    = hasBackdrop ? 'rgba(255,255,255,0.85)' : theme.textSub
-  const mutColor    = hasBackdrop ? 'rgba(255,255,255,0.7)'  : theme.textMut
+  const titleColor  = hasBackdrop ? '#fff' : theme.text
+  const subColor    = hasBackdrop ? '#fff' : theme.textSub
+  const mutColor    = hasBackdrop ? 'rgba(255,255,255,0.92)' : theme.textMut
+  const textShadow  = hasBackdrop ? { textShadowColor: 'rgba(0,0,0,0.9)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4 } : {}
 
   return (
-    <ScrollView style={[s.flex, { backgroundColor: theme.bg0 }]} contentContainerStyle={{ paddingBottom: 60 }}>
+    <View style={[s.flex, { backgroundColor: theme.bg0 }]}>
+    {/* Floating back pill */}
+    <TouchableOpacity
+      onPress={() => router.back()}
+      style={[s.backPill, { top: insets.top + 8, backgroundColor: theme.bg1, borderColor: theme.text }]}
+      activeOpacity={0.85}
+    >
+      <Ionicons name="chevron-back" size={18} color={theme.text} />
+    </TouchableOpacity>
+
+    <ScrollView style={s.flex} contentContainerStyle={{ paddingBottom: 60 }}>
       {/* Backdrop */}
       {media.backdrop_url ? (
         <ImageBackground source={{ uri: media.backdrop_url }} style={s.backdrop} resizeMode="cover">
@@ -144,9 +168,9 @@ export default function MediaDetail() {
         </View>
 
         <View style={s.headerInfo}>
-          <Text style={[s.mediaTitle, { color: titleColor }]}>{media.title}</Text>
-          {media.tagline ? <Text style={[s.tagline, { color: mutColor }]}>"{media.tagline}"</Text> : null}
-          {media.year    ? <Text style={[s.mediaYear, { color: subColor }]}>{media.year}</Text> : null}
+          <Text style={[s.mediaTitle, { color: titleColor }, textShadow]}>{media.title}</Text>
+          {media.tagline ? <Text style={[s.tagline, { color: mutColor }, textShadow]}>"{media.tagline}"</Text> : null}
+          {media.year    ? <Text style={[s.mediaYear, { color: subColor }, textShadow]}>{media.year}</Text> : null}
 
           <View style={s.metaRow}>
             <View style={[s.typeBadge, { borderColor: isFilm ? theme.red : theme.gold }]}>
@@ -182,15 +206,6 @@ export default function MediaDetail() {
             )}
           </View>
 
-          <TouchableOpacity
-            onPress={handleShare}
-            style={[s.shareBtn, { borderColor: theme.text, backgroundColor: theme.bg2 }]}
-            accessibilityLabel="Share"
-            accessibilityRole="button"
-          >
-            <Ionicons name="share-social-outline" size={15} color={theme.textSub} />
-            <Text style={[s.shareBtnText, { color: theme.textSub }]}>Share</Text>
-          </TouchableOpacity>
         </View>
       </View>
 
@@ -231,6 +246,7 @@ export default function MediaDetail() {
         streaming={providers.streaming}
         rent={providers.rent}
         buy={providers.buy}
+        justWatchLink={providers.link}
         inTheatres={releaseStatus.inTheatres}
         comingSoonTheatres={releaseStatus.comingSoonTheatres}
         comingSoonStreaming={releaseStatus.comingSoonStreaming}
@@ -241,12 +257,19 @@ export default function MediaDetail() {
 
       {/* Action Buttons */}
       <View style={s.actionRow}>
-        <TouchableOpacity
-          onPress={() => router.push(`/log?tmdb_id=${media.tmdb_id}&type=${media.media_type || type}`)}
-          style={[s.logBtn, { backgroundColor: theme.red }]}
-        >
-          <Text style={[s.logBtnText, { color: '#fff' }]}>+ Log Entry</Text>
-        </TouchableOpacity>
+        {isUnreleased ? (
+          <View style={[s.logBtn, s.unreleasedBtn, { borderColor: theme.border, backgroundColor: theme.bg2 }]}>
+            <Ionicons name="time-outline" size={15} color={theme.textMut} />
+            <Text style={[s.logBtnText, { color: theme.textMut }]}>Not released yet</Text>
+          </View>
+        ) : (
+          <TouchableOpacity
+            onPress={() => router.push(`/log?tmdb_id=${media.tmdb_id}&type=${media.media_type || type}`)}
+            style={[s.logBtn, { backgroundColor: theme.red }]}
+          >
+            <Text style={[s.logBtnText, { color: '#fff' }]}>+ Log Entry</Text>
+          </TouchableOpacity>
+        )}
         <TouchableOpacity
           onPress={toggleWatchlist}
           disabled={wlLoading}
@@ -271,6 +294,14 @@ export default function MediaDetail() {
             </>
           )}
         </TouchableOpacity>
+        <TouchableOpacity
+          onPress={handleShare}
+          style={[s.shareIconBtn, { backgroundColor: theme.bg2, borderColor: theme.text }]}
+          accessibilityLabel="Share"
+          accessibilityRole="button"
+        >
+          <Ionicons name="share-social-outline" size={18} color={theme.textSub} />
+        </TouchableOpacity>
       </View>
 
       {/* Entries */}
@@ -288,19 +319,26 @@ export default function MediaDetail() {
         }
       </View>
     </ScrollView>
+    </View>
   )
 }
 
 const s = StyleSheet.create({
   flex:             { flex: 1 },
   center:           { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  backPill:         {
+    position: 'absolute', left: 16, zIndex: 100,
+    width: 40, height: 40, borderRadius: 20,
+    alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.12, shadowRadius: 10, elevation: 4,
+  },
   backdrop:         { height: 200 },
   backdropEmpty:    { height: 24 },
-  backdropOverlay:  { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.72)' },
+  backdropOverlay:  { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.82)' },
 
   headerRow:        { flexDirection: 'row', gap: 16, paddingHorizontal: 16, paddingBottom: 16, paddingTop: 16 },
   posterWrap:       { position: 'relative' },
-  poster:           { width: 110, height: 165, borderRadius: 6, elevation: 6, shadowColor: '#000', shadowOffset: { width: 4, height: 4 }, shadowOpacity: 0.9, shadowRadius: 0 },
+  poster:           { width: 110, height: 165, borderRadius: 6, elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 12 },
   posterRating:     { position: 'absolute', bottom: 6, right: 6, backgroundColor: 'rgba(0,0,0,0.8)', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 3 },
   posterRatingText: { fontSize: 11, fontWeight: '700' },
   headerInfo:       { flex: 1 },
@@ -308,7 +346,7 @@ const s = StyleSheet.create({
   tagline:          { fontSize: 12, fontStyle: 'italic', marginTop: 3 },
   mediaYear:        { fontSize: 13, marginTop: 3 },
   metaRow:          { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 6 },
-  typeBadge:        { borderWidth: 2, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 },
+  typeBadge:        { borderWidth: StyleSheet.hairlineWidth, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 },
   typeText:         { fontSize: 11, fontWeight: '700' },
   genre:            { fontSize: 11 },
   runtime:          { fontSize: 11, marginTop: 4 },
@@ -318,8 +356,7 @@ const s = StyleSheet.create({
   tmdbRating:       { fontSize: 22, fontWeight: '800' },
   ratingLabel:      { fontSize: 10, marginTop: 2 },
 
-  shareBtn:         { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 12, alignSelf: 'flex-start', borderWidth: 2, borderRadius: 4, paddingHorizontal: 10, paddingVertical: 6 },
-  shareBtnText:     { fontSize: 12, fontWeight: '700' },
+  shareIconBtn:     { width: 44, height: 44, borderWidth: StyleSheet.hairlineWidth, borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
 
   overview:         { fontSize: 13, paddingHorizontal: 16, marginBottom: 16, lineHeight: 20 },
 
@@ -336,15 +373,15 @@ const s = StyleSheet.create({
   actionRow:        { flexDirection: 'row', gap: 10, marginHorizontal: 16, marginBottom: 24, marginTop: 8 },
   logBtn:           {
     flex: 1, borderRadius: 6, paddingVertical: 13, alignItems: 'center',
-    borderWidth: 2, borderColor: '#000',
-    shadowColor: '#000', shadowOffset: { width: 3, height: 3 }, shadowOpacity: 0.8, shadowRadius: 0, elevation: 3,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 2,
   },
   logBtnText:       { fontWeight: '800', fontSize: 14 },
-  wlBtn:            { flex: 1, borderRadius: 6, paddingVertical: 13, alignItems: 'center', borderWidth: 2, flexDirection: 'row', gap: 6, justifyContent: 'center' },
+  unreleasedBtn:    { flexDirection: 'row', gap: 6, justifyContent: 'center', shadowOpacity: 0, elevation: 0 },
+  wlBtn:            { flex: 1, borderRadius: 6, paddingVertical: 13, alignItems: 'center', borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', gap: 6, justifyContent: 'center' },
   wlBtnText:        { fontWeight: '700', fontSize: 13 },
 
   entriesBlock:     { paddingHorizontal: 16 },
-  entriesHeader:    { fontSize: 16, fontWeight: '800', marginBottom: 12, paddingBottom: 8, borderBottomWidth: 2 },
+  entriesHeader:    { fontSize: 16, fontWeight: '800', marginBottom: 12, paddingBottom: 8, borderBottomWidth: StyleSheet.hairlineWidth },
   entriesCount:     { fontWeight: '400', fontSize: 14 },
   noEntries:        { textAlign: 'center', paddingVertical: 32 },
 })

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native'
 import { useTheme } from '../context/ThemeContext'
 
@@ -38,6 +38,8 @@ export function StarPicker({ value, onChange }) {
   const { theme }  = useTheme()
   const [inputText, setInputText] = useState(String(value ?? 3))
   const debounceRef = useRef(null)
+
+  useEffect(() => { setInputText(String(value ?? 3)) }, [value])
 
   const emptyColor = theme.bg3 ?? '#2c2c2e'
   const displayValue = value ?? 0

@@ -78,7 +78,7 @@ export async function getInsights() {
 
   const { data: entries, error } = await supabase
     .from('diary_entries')
-    .select('rating, watched_on, media(media_type, runtime)')
+    .select('rating, watched_on, media(media_type, runtime), diary_entry_emotions(emotion_id, emotions(name, icon))')
     .eq('user_id', user.id)
   if (error) throw error
 
@@ -87,6 +87,7 @@ export async function getInsights() {
 
   let totalMovies = 0, totalTV = 0, ratingSum = 0, ratingCount = 0
   let thisMonth = 0, totalRuntime = 0
+  const emotionCount = {}
 
   for (const e of entries) {
     const type = e.media?.media_type
@@ -96,7 +97,35 @@ export async function getInsights() {
     if (e.rating) { ratingSum += Number(e.rating); ratingCount++ }
     if (e.watched_on?.startsWith(month)) thisMonth++
     if (e.media?.runtime) totalRuntime += e.media.runtime
+
+    for (const de of (e.diary_entry_emotions ?? [])) {
+      const em = de.emotions
+      if (!em) continue
+      if (!emotionCount[em.name]) emotionCount[em.name] = { count: 0, name: em.name, icon: em.icon }
+      emotionCount[em.name].count++
+    }
   }
+
+  // Streak: consecutive calendar days with at least one entry, starting from the most recent
+  const uniqueDays = [...new Set(entries.map(e => e.watched_on).filter(Boolean))].sort((a, b) => b.localeCompare(a))
+  let streak = 0
+  if (uniqueDays.length > 0) {
+    let expected = uniqueDays[0]
+    for (const day of uniqueDays) {
+      if (day === expected) {
+        streak++
+        const d = new Date(expected + 'T12:00:00')
+        d.setDate(d.getDate() - 1)
+        expected = d.toISOString().split('T')[0]
+      } else {
+        break
+      }
+    }
+  }
+
+  const sortedEmotions = Object.values(emotionCount).sort((a, b) => b.count - a.count)
+  const topEmotion  = sortedEmotions[0] ?? null
+  const topEmotions = sortedEmotions.slice(0, 3)
 
   return {
     totalMovies,
@@ -104,7 +133,10 @@ export async function getInsights() {
     totalEntries: entries.length,
     avgRating:    ratingCount ? (ratingSum / ratingCount) : null,
     thisMonth,
-    totalRuntime,   // minutes
+    totalRuntime,
+    streak,
+    topEmotion,
+    topEmotions,
   }
 }
 
@@ -319,88 +351,116 @@ export async function getWatchStatesForTmdbIds(tmdbIds) {
 
 // ── Recommendation seeds ──────────────────────────────────────
 /**
- * Returns up to 6 seed titles ranked by a recency-weighted score:
- *   score = (rating / 5) * (1 / (1 + daysSinceWatch / 90))
- * Watchlist items fill remaining slots with a fixed lower score.
- * Each seed includes `title` and `tier` so callers can build "why" labels.
+ * Returns up to 6 seeds (3 films + 3 TV) ranked by:
+ *   score = (rating / 5) * recency * emotionBoost
+ * where recency uses a 180-day half-life and emotionBoost = 1.1 if the
+ * entry has any emotions tagged (signals engagement beyond the rating).
+ * Watchlist items fill remaining slots scored by their own recency.
  */
 export async function getRecommendationSeeds() {
   const { data: { user } } = await supabase.auth.getUser()
 
   const [{ data: entries }, { data: wl }] = await Promise.all([
     supabase.from('diary_entries')
-      .select('rating, watched_on, media(tmdb_id, media_type, title)')
+      .select('rating, watched_on, media(tmdb_id, media_type, title), diary_entry_emotions(id)')
       .eq('user_id', user.id)
       .gte('rating', 3.5)
       .order('rating', { ascending: false })
-      .limit(20),
+      .limit(30),
     supabase.from('watchlist')
       .select('added_at, media(tmdb_id, media_type, title)')
       .eq('user_id', user.id)
       .order('added_at', { ascending: false })
-      .limit(5),
+      .limit(10),
   ])
 
   const today = new Date()
   const seen  = new Set()
-  const candidates = []
+  const films = []
+  const shows = []
 
   for (const row of (entries ?? [])) {
     const m = row.media
     if (!m || seen.has(m.tmdb_id)) continue
-    const daysSince = row.watched_on
+    const daysSince    = row.watched_on
       ? Math.max(0, (today - new Date(row.watched_on)) / 86400000)
       : 365
-    const recency = 1 / (1 + daysSince / 90)
-    candidates.push({
+    const recency      = 1 / (1 + daysSince / 180)
+    const emotionBoost = (row.diary_entry_emotions?.length ?? 0) > 0 ? 1.1 : 1.0
+    const score        = (Number(row.rating) / 5) * recency * emotionBoost
+    const seed = {
       tmdb_id:    m.tmdb_id,
       media_type: m.media_type,
       title:      m.title,
+      rating:     Number(row.rating),
       tier:       'entry',
-      score:      (Number(row.rating) / 5) * recency,
-    })
+      score,
+    }
     seen.add(m.tmdb_id)
+    const isFilm = m.media_type === 'film' || m.media_type === 'movie'
+    if (isFilm) films.push(seed)
+    else        shows.push(seed)
   }
 
-  candidates.sort((a, b) => b.score - a.score)
+  films.sort((a, b) => b.score - a.score)
+  shows.sort((a, b) => b.score - a.score)
 
+  // Up to 3 of each type for diversity, then backfill from the stronger pool
+  const entrySeeds = []
+  const filmSlots  = Math.min(films.length, 3)
+  const tvSlots    = Math.min(shows.length, 3)
+  entrySeeds.push(...films.slice(0, filmSlots), ...shows.slice(0, tvSlots))
+  if (entrySeeds.length < 6) {
+    const extra = [...films.slice(filmSlots), ...shows.slice(tvSlots)]
+      .sort((a, b) => b.score - a.score)
+    entrySeeds.push(...extra.slice(0, 6 - entrySeeds.length))
+  }
+
+  // Watchlist fills any remaining slots with recency-weighted scores
+  const wlSeeds = []
   for (const row of (wl ?? [])) {
+    if (entrySeeds.length + wlSeeds.length >= 6) break
     const m = row.media
     if (!m || seen.has(m.tmdb_id)) continue
-    candidates.push({
+    const daysSince = row.added_at
+      ? Math.max(0, (today - new Date(row.added_at)) / 86400000)
+      : 90
+    wlSeeds.push({
       tmdb_id:    m.tmdb_id,
       media_type: m.media_type,
       title:      m.title,
+      rating:     null,
       tier:       'watchlist',
-      score:      0,
+      score:      0.25 * (1 / (1 + daysSince / 60)),
     })
     seen.add(m.tmdb_id)
   }
 
-  return candidates.slice(0, 6)
+  return [...entrySeeds, ...wlSeeds].slice(0, 6)
 }
 
 /**
- * Returns the user's top 5 preferred genres (by name) derived from
- * their highest-rated diary entries.
+ * Returns the user's top 7 preferred genres weighted by rating,
+ * so a genre from a 5★ entry contributes more than one from a 3.5★ entry.
  */
 export async function getUserGenreAffinity() {
   const { data: { user } } = await supabase.auth.getUser()
   const { data: entries } = await supabase.from('diary_entries')
-    .select('media(genres)')
+    .select('rating, media(genres)')
     .eq('user_id', user.id)
     .gte('rating', 3.5)
-    .limit(20)
+    .limit(30)
   if (!entries?.length) return []
   const tally = {}
   for (const e of entries) {
+    const weight = Number(e.rating) / 5
     for (const genre of (e.media?.genres ?? [])) {
-      tally[genre] = (tally[genre] ?? 0) + 1
+      tally[genre] = (tally[genre] ?? 0) + weight
     }
   }
   return Object.entries(tally)
     .sort((a, b) => b[1] - a[1])
-    .slice(0, 5)
+    .slice(0, 7)
     .map(([g]) => g)
 }
 

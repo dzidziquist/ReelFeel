@@ -34,7 +34,7 @@ function cellColor(count, theme) {
  * GitHub-style calendar heatmap showing last 91 days of watch activity.
  * Props: entries – array of { watched_on: 'YYYY-MM-DD' }
  */
-export default function CalendarHeatmap({ entries = [] }) {
+export default function CalendarHeatmap({ entries = [], onDateSelect, selectedDate }) {
   const { theme }   = useTheme()
   const [tooltip, setTooltip] = useState(null)
 
@@ -118,6 +118,9 @@ export default function CalendarHeatmap({ entries = [] }) {
                     onPress={() => {
                       if (!inRange) return
                       setTooltip(tooltip?.key === key ? null : { key, date, count })
+                      if (onDateSelect) {
+                        onDateSelect(selectedDate === key ? null : key)
+                      }
                     }}
                     activeOpacity={0.7}
                     style={[
@@ -125,7 +128,7 @@ export default function CalendarHeatmap({ entries = [] }) {
                       {
                         backgroundColor: inRange ? cellColor(count, theme) : 'transparent',
                         opacity: inRange ? 1 : 0,
-                        borderWidth: tooltip?.key === key ? 1 : 0,
+                        borderWidth: (tooltip?.key === key || selectedDate === key) ? 1.5 : 0,
                         borderColor: theme.gold ?? '#d4af37',
                       },
                     ]}

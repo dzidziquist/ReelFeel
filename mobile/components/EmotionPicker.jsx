@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { ScrollView, View, Text, TouchableOpacity, StyleSheet } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import { useTheme } from '../context/ThemeContext'
 
 const CATEGORY_ORDER = ['Neutral', 'Happy', 'Interested', 'Surprised', 'Sad', 'Disgusted', 'Afraid', 'Angry']
@@ -38,7 +39,7 @@ export default function EmotionPicker({ emotions = [], selected = [], onChange }
         style={[s.header, { borderColor: theme.text, backgroundColor: theme.bg2 }]}
         activeOpacity={0.75}
       >
-        <Text style={[s.headerArrow, { color: theme.textSub }]}>{isOpen ? '▼' : '▶'}</Text>
+        <Ionicons name={isOpen ? 'chevron-down' : 'chevron-forward'} size={14} color={theme.textSub} />
         <Text style={[s.headerLabel, { color: theme.textSub }]}>How did it make you feel?</Text>
         {!isOpen && selectedEmotions.length > 0 && (
           <ScrollView
@@ -141,7 +142,7 @@ const s = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', gap: 8,
     borderWidth: 2, borderRadius: 6, paddingHorizontal: 12, paddingVertical: 10,
   },
-  headerArrow:    { fontSize: 11, width: 12 },
+  headerArrow:    { width: 14 },
   headerLabel:    { fontSize: 13, fontWeight: '600', flex: 1 },
   collapsedScroll:{ flex: 1 },
   collapsedPills: { flexDirection: 'row', gap: 6, alignItems: 'center' },
@@ -155,11 +156,11 @@ const s = StyleSheet.create({
   tabText:        { fontSize: 13 },
 
   grid:           { flexDirection: 'row', flexWrap: 'wrap', gap: 8, padding: 12 },
-  chip:           { flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1.5, borderRadius: 6, paddingHorizontal: 10, paddingVertical: 7 },
+  chip:           { flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 2, borderRadius: 6, paddingHorizontal: 10, paddingVertical: 7 },
   chipEmoji:      { fontSize: 18 },
   chipName:       { fontSize: 13, fontWeight: '600', flexShrink: 1 },
 
   summary:        { flexDirection: 'row', flexWrap: 'wrap', gap: 6, padding: 10, borderTopWidth: 1 },
-  pill:           { borderWidth: 1.5, borderRadius: 4, paddingHorizontal: 10, paddingVertical: 4 },
+  pill:           { borderWidth: 2, borderRadius: 4, paddingHorizontal: 10, paddingVertical: 4 },
   pillText:       { fontSize: 12, fontWeight: '700' },
 })

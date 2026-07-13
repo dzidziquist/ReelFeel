@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import {
   View, Text, TouchableOpacity, ScrollView, Modal,
-  TextInput, StyleSheet, Platform,
+  TextInput, StyleSheet,
 } from 'react-native'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { Ionicons } from '@expo/vector-icons'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTheme } from '../context/ThemeContext'
 
 const SORT_OPTIONS = [
@@ -20,6 +21,7 @@ const WATCHLIST_SORT = [
   { key: 'added_at_desc', label: 'Added (newest)' },
   { key: 'added_at_asc',  label: 'Added (oldest)' },
   { key: 'title_asc',     label: 'Title A–Z'      },
+  { key: 'coming_soon',   label: 'Coming Soon'    },
 ]
 
 /**
@@ -81,11 +83,11 @@ export default function FilterSortBar({
                   style={[
                     s.chip,
                     active
-                      ? { backgroundColor: theme.red ?? '#dc2626', borderColor: theme.red }
+                      ? { backgroundColor: theme.gold, borderColor: theme.gold }
                       : { borderColor: theme.text, backgroundColor: theme.bg1 },
                   ]}
                 >
-                  <Text style={[s.chipText, { color: active ? '#fff' : theme.textMut }]}>
+                  <Text style={[s.chipText, { color: active ? '#000' : theme.textMut }]}>
                     {opt.label}
                   </Text>
                 </TouchableOpacity>
@@ -128,7 +130,8 @@ const DATE_PRESETS = [
   { label: 'This year',  start: TODAY.slice(0, 4) + '-01-01', end: TODAY },
 ]
 
-function FilterPanel({ theme, filters, onFiltersChange, onClose, emotions, availableGenres, mode }) {
+function FilterPanel({ theme, filters, onFiltersChange, onClose, emotions = [], availableGenres = [], mode }) {
+  const insets = useSafeAreaInsets()
   const [local, setLocal] = useState({
     genre: '', minRating: '', maxRating: '', emotionIds: [], startDate: '', endDate: '',
     ...filters,
@@ -167,10 +170,19 @@ function FilterPanel({ theme, filters, onFiltersChange, onClose, emotions, avail
   return (
     <View style={[fp.container, { backgroundColor: theme.bg0 }]}>
       {/* Header */}
-      <View style={[fp.header, { borderBottomColor: theme.text }]}>
-        <TouchableOpacity onPress={onClose}><Text style={{ color: theme.textSub, fontSize: 15 }}>Cancel</Text></TouchableOpacity>
+      <View style={[fp.header, { borderBottomColor: theme.border }]}>
+        <TouchableOpacity onPress={onClose}>
+          <Text style={{ color: theme.textSub, fontSize: 15 }}>Cancel</Text>
+        </TouchableOpacity>
         <Text style={[fp.title, { color: theme.text }]}>Filter</Text>
-        <TouchableOpacity onPress={reset}><Text style={{ color: theme.red ?? '#dc2626', fontSize: 15 }}>Reset</Text></TouchableOpacity>
+        <View style={fp.headerRight}>
+          <TouchableOpacity onPress={reset}>
+            <Text style={{ color: theme.textMut, fontSize: 14 }}>Reset</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => onFiltersChange(local)} style={[fp.applyBtn, { backgroundColor: theme.gold }]}>
+            <Text style={fp.applyText}>Apply{activeCount > 0 ? ` (${activeCount})` : ''}</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView style={fp.body} contentContainerStyle={{ paddingBottom: 40 }}>
@@ -186,11 +198,11 @@ function FilterPanel({ theme, filters, onFiltersChange, onClose, emotions, avail
                     key={g}
                     onPress={() => patch({ genre: active ? '' : g })}
                     style={[fp.chip, active
-                      ? { backgroundColor: theme.red, borderColor: theme.red }
+                      ? { backgroundColor: theme.gold, borderColor: theme.gold }
                       : { borderColor: theme.text, backgroundColor: theme.bg2 }
                     ]}
                   >
-                    <Text style={[fp.chipText, { color: active ? '#fff' : theme.textSub }]}>{g}</Text>
+                    <Text style={[fp.chipText, { color: active ? '#000' : theme.textSub }]}>{g}</Text>
                   </TouchableOpacity>
                 )
               })}
@@ -244,11 +256,11 @@ function FilterPanel({ theme, filters, onFiltersChange, onClose, emotions, avail
                     key={preset.label}
                     onPress={() => applyPreset(preset)}
                     style={[fp.chip, active
-                      ? { backgroundColor: theme.red, borderColor: theme.red }
+                      ? { backgroundColor: theme.gold, borderColor: theme.gold }
                       : { borderColor: theme.text, backgroundColor: theme.bg2 }
                     ]}
                   >
-                    <Text style={[fp.chipText, { color: active ? '#fff' : theme.textSub }]}>{preset.label}</Text>
+                    <Text style={[fp.chipText, { color: active ? '#000' : theme.textSub }]}>{preset.label}</Text>
                   </TouchableOpacity>
                 )
               })}
@@ -272,18 +284,15 @@ function FilterPanel({ theme, filters, onFiltersChange, onClose, emotions, avail
               <DateTimePicker
                 value={local.startDate ? new Date(local.startDate + 'T00:00:00') : new Date()}
                 mode="date"
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                display="spinner"
                 maximumDate={new Date()}
                 onChange={(_, date) => {
-                  if (Platform.OS === 'android') setShowFromPicker(false)
                   if (date) patch({ startDate: toStr(date) })
                 }}
               />
-              {Platform.OS === 'ios' && (
-                <TouchableOpacity onPress={() => setShowFromPicker(false)} style={fp.doneBtn}>
-                  <Text style={{ color: theme.red, fontWeight: '600' }}>Done</Text>
-                </TouchableOpacity>
-              )}
+              <TouchableOpacity onPress={() => setShowFromPicker(false)} style={fp.doneBtn}>
+                <Text style={{ color: theme.red, fontWeight: '600' }}>Done</Text>
+              </TouchableOpacity>
             </View>
           )}
 
@@ -303,18 +312,15 @@ function FilterPanel({ theme, filters, onFiltersChange, onClose, emotions, avail
               <DateTimePicker
                 value={local.endDate ? new Date(local.endDate + 'T00:00:00') : new Date()}
                 mode="date"
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                display="spinner"
                 maximumDate={new Date()}
                 onChange={(_, date) => {
-                  if (Platform.OS === 'android') setShowToPicker(false)
                   if (date) patch({ endDate: toStr(date) })
                 }}
               />
-              {Platform.OS === 'ios' && (
-                <TouchableOpacity onPress={() => setShowToPicker(false)} style={fp.doneBtn}>
-                  <Text style={{ color: theme.red, fontWeight: '600' }}>Done</Text>
-                </TouchableOpacity>
-              )}
+              <TouchableOpacity onPress={() => setShowToPicker(false)} style={fp.doneBtn}>
+                <Text style={{ color: theme.red, fontWeight: '600' }}>Done</Text>
+              </TouchableOpacity>
             </View>
           )}
         </View>}
@@ -346,26 +352,17 @@ function FilterPanel({ theme, filters, onFiltersChange, onClose, emotions, avail
         )}
       </ScrollView>
 
-      {/* Apply button */}
-      <View style={[fp.footer, { borderTopColor: theme.text }]}>
-        <TouchableOpacity
-          style={[fp.applyBtn, { backgroundColor: theme.red ?? '#dc2626' }]}
-          onPress={() => onFiltersChange(local)}
-        >
-          <Text style={fp.applyText}>
-            Apply{activeCount > 0 ? ` (${activeCount})` : ''}
-          </Text>
-        </TouchableOpacity>
-      </View>
     </View>
   )
 }
+
+export { FilterPanel }
 
 const s = StyleSheet.create({
   bar:       {
     flexDirection: 'row', alignItems: 'center', borderRadius: 4, borderWidth: 2,
     paddingVertical: 8, paddingHorizontal: 12, gap: 10,
-    shadowColor: '#000', shadowOffset: { width: 3, height: 3 }, shadowOpacity: 0.7, shadowRadius: 0,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8,
     elevation: 3,
   },
   filterBtn: { flexDirection: 'row', alignItems: 'center', gap: 5 },
@@ -382,7 +379,7 @@ const s = StyleSheet.create({
 
 const fp = StyleSheet.create({
   container:  { flex: 1 },
-  header:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, paddingTop: 56, borderBottomWidth: StyleSheet.hairlineWidth },
+  header:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, paddingTop: 20, borderBottomWidth: StyleSheet.hairlineWidth },
   title:      { fontSize: 17, fontWeight: '700' },
   body:       { flex: 1, padding: 16 },
   section:    { marginBottom: 24 },
@@ -397,15 +394,13 @@ const fp = StyleSheet.create({
   ratingLbl:  { fontSize: 11, marginBottom: 4 },
   input:      {
     borderWidth: 2, borderRadius: 4, paddingHorizontal: 12, paddingVertical: 10, fontSize: 16,
-    shadowColor: '#000', shadowOffset: { width: 2, height: 2 }, shadowOpacity: 0.5, shadowRadius: 0, elevation: 2,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 2,
   },
-  footer:     { padding: 16, borderTopWidth: 2 },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   applyBtn:   {
-    paddingVertical: 16, borderRadius: 6, alignItems: 'center',
-    borderWidth: 2, borderColor: 'rgba(0,0,0,0.7)',
-    shadowColor: 'rgba(0,0,0,0.85)', shadowOffset: { width: 4, height: 4 }, shadowOpacity: 1, shadowRadius: 0, elevation: 4,
+    paddingVertical: 8, paddingHorizontal: 18, borderRadius: 20, alignItems: 'center',
   },
-  applyText:  { color: '#fff', fontSize: 16, fontWeight: '800' },
+  applyText:  { color: '#000', fontSize: 14, fontWeight: '700' },
   dateRow:    { flexDirection: 'row', alignItems: 'center', borderRadius: 4, borderWidth: 2, paddingHorizontal: 14, paddingVertical: 12, gap: 8 },
   dateLbl:    { fontSize: 13, fontWeight: '600', width: 36 },
   dateVal:    { flex: 1, fontSize: 14 },
