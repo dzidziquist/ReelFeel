@@ -479,6 +479,8 @@ export default function Home() {
     <View style={[s.flex, { backgroundColor: theme.bg0 }]}>
       <StatusBar barStyle={theme.statusBar ?? 'light-content'} backgroundColor={theme.bg0} />
 
+      {/* Safe-area wrapper so stickyHeaderIndices stick below the Dynamic Island */}
+      <View style={[s.flex, { paddingTop: insets.top }]}>
       <ScrollView
         style={s.flex}
         contentContainerStyle={s.content}
@@ -490,7 +492,7 @@ export default function Home() {
       >
         {/* Child 0 — scrolls away */}
         <View>
-          <View style={[s.header, { paddingTop: insets.top + 8 }]}>
+          <View style={[s.header, { paddingTop: 8 }]}>
             <Text style={s.logo}>🎞️</Text>
             <View>
               <Text style={[s.appName, { color: theme.text }]}>ReelFeel</Text>
@@ -656,6 +658,7 @@ export default function Home() {
           </View>
         </View>
       </Modal>
+      </View>
     </View>
   )
 }

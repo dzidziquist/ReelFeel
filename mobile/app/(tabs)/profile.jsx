@@ -38,21 +38,19 @@ function Avatar({ name, size = 64, theme }) {
 
 function EditModal({ visible, profile, onSave, onCancel, theme = {} }) {
   const [displayName, setDisplayName] = useState(profile?.display_name || profile?.username || '')
-  const [bio,         setBio]         = useState(profile?.bio || '')
   const [saving,      setSaving]      = useState(false)
 
   useEffect(() => {
     if (visible) {
       setDisplayName(profile?.display_name || profile?.username || '')
-      setBio(profile?.bio || '')
     }
   }, [visible, profile])
 
   async function save() {
     setSaving(true)
     try {
-      await upsertProfile({ display_name: displayName, bio })
-      onSave({ display_name: displayName, bio })
+      await upsertProfile({ display_name: displayName })
+      onSave({ display_name: displayName })
     } catch (err) {
       Alert.alert('Error', err.message)
     } finally {
@@ -70,7 +68,6 @@ function EditModal({ visible, profile, onSave, onCancel, theme = {} }) {
     label:     { color: theme.textSub ?? '#a3a3a3', fontSize: 13, fontWeight: '600', marginBottom: 8 },
     optional:  { color: theme.textMut ?? '#6b6b6b', fontWeight: '400' },
     input:     { backgroundColor: theme.bg1 ?? '#111', borderWidth: StyleSheet.hairlineWidth, borderColor: theme.text ?? '#fff', borderRadius: 6, paddingHorizontal: 16, paddingVertical: 12, color: theme.text ?? '#fff', fontSize: 14, marginBottom: 20 },
-    charCount: { color: theme.textMut ?? '#6b6b6b', fontSize: 11, textAlign: 'right', marginTop: -16, marginBottom: 20 },
   }
 
   return (
@@ -93,19 +90,6 @@ function EditModal({ visible, profile, onSave, onCancel, theme = {} }) {
             placeholderTextColor={theme.textMut ?? '#6b6b6b'}
             maxLength={40}
           />
-          <Text style={mi.label}>Bio <Text style={mi.optional}>(optional)</Text></Text>
-          <TextInput
-            style={[mi.input, { minHeight: 100 }]}
-            value={bio}
-            onChangeText={setBio}
-            placeholder="A short bio about yourself…"
-            placeholderTextColor={theme.textMut ?? '#6b6b6b'}
-            multiline
-            numberOfLines={4}
-            textAlignVertical="top"
-            maxLength={200}
-          />
-          <Text style={mi.charCount}>{bio.length}/200</Text>
         </ScrollView>
       </View>
     </Modal>
@@ -218,25 +202,22 @@ export default function Profile() {
             <Avatar name={displayName} size={72} theme={theme} />
             <View style={s.heroNames}>
               <View style={s.heroNameRow}>
-                <View style={s.heroNameBlock}>
-                  <Text style={[s.heroName, { color: theme.text }]}>{displayName}</Text>
-                  {username ? <Text style={[s.heroHandle, { color: theme.gold }]}>{username}</Text> : null}
-                </View>
+                <Text style={[s.heroName, { color: theme.text }]}>{displayName}</Text>
                 <TouchableOpacity
                   onPress={() => setEditOpen(true)}
                   style={[s.editIconBtn, { borderColor: theme.border, backgroundColor: theme.bg1 }]}
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
-                  <Ionicons name="pencil-outline" size={15} color={theme.textSub} />
+                  <Ionicons name="pencil-outline" size={13} color={theme.textSub} />
                 </TouchableOpacity>
               </View>
+              {username ? <Text style={[s.heroHandle, { color: theme.gold }]}>{username}</Text> : null}
               {mediaParts.length > 0 && (
                 <Text style={[s.heroMedia, { color: theme.textMut }]}>
                   {mediaParts.join('  ·  ')}
                 </Text>
               )}
               {memberSince ? <Text style={[s.heroSince, { color: theme.textMut }]}>Member since {memberSince}</Text> : null}
-              {profile?.bio ? <Text style={[s.heroBio, { color: theme.textSub }]}>{profile.bio}</Text> : null}
             </View>
           </View>
         </View>
@@ -433,11 +414,9 @@ const s = StyleSheet.create({
   hero:         { paddingBottom: 24, paddingHorizontal: 16 },
   heroTop:      { flexDirection: 'row', alignItems: 'flex-start', gap: 14 },
   heroNames:    { flex: 1, gap: 3 },
-  heroNameRow:  { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
-  heroNameBlock:{ flex: 1, gap: 2 },
+  heroNameRow:  { flexDirection: 'row', alignItems: 'center', gap: 8 },
   heroName:     { fontSize: 24, fontWeight: '900', letterSpacing: -0.5 },
   heroHandle:   { fontSize: 13, fontWeight: '700' },
-  heroBio:      { fontSize: 13, lineHeight: 19, marginTop: 2 },
   heroMedia:    { fontSize: 12, letterSpacing: 0.2, marginTop: 2 },
   heroSince:    { fontSize: 11 },
   editIconBtn:  {

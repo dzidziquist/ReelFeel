@@ -89,6 +89,7 @@ export default function FloatingTabBar({ state, descriptors, navigation }) {
               const isFocused = state.routes[state.index].key === route.key
               const iconName  = ICONS[route.name] ?? 'ellipse-outline'
               const label     = LABELS[route.name] ?? route.name
+              const highlightBg = isDark ? 'rgba(255,255,255,0.13)' : 'rgba(0,0,0,0.09)'
 
               function onPress() {
                 const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true })
@@ -96,16 +97,21 @@ export default function FloatingTabBar({ state, descriptors, navigation }) {
               }
 
               return (
-                <TouchableOpacity key={route.key} onPress={onPress} activeOpacity={0.75} style={[s.tab, navbarShowLabels && s.tabWithLabels]}>
-                  <Ionicons
-                    name={iconName}
-                    size={navbarShowLabels ? 20 : 24}
-                    color={isFocused ? theme.gold : theme.textMut}
-                  />
-                  {navbarShowLabels
-                    ? <Text style={[s.label, { color: isFocused ? theme.gold : theme.textMut }]}>{label.toUpperCase()}</Text>
-                    : <View style={[s.dot, { backgroundColor: isFocused ? theme.gold : 'transparent' }]} />
-                  }
+                <TouchableOpacity key={route.key} onPress={onPress} activeOpacity={0.75} style={s.tab}>
+                  <View style={[
+                    s.tabInner,
+                    navbarShowLabels && s.tabInnerLabels,
+                    !navbarShowLabels && isFocused && { backgroundColor: highlightBg },
+                  ]}>
+                    <Ionicons
+                      name={iconName}
+                      size={navbarShowLabels ? 20 : 24}
+                      color={isFocused ? theme.gold : theme.textMut}
+                    />
+                    {navbarShowLabels && (
+                      <Text style={[s.label, { color: isFocused ? theme.gold : theme.textMut }]}>{label.toUpperCase()}</Text>
+                    )}
+                  </View>
                 </TouchableOpacity>
               )
             })}
@@ -135,7 +141,7 @@ const s = StyleSheet.create({
     left:              0,
     right:             0,
     paddingHorizontal: H_PADDING,
-    alignItems:        'flex-start',
+    alignItems:        'center',
   },
   shadowWrap: {
     shadowColor:  '#000',
@@ -159,26 +165,29 @@ const s = StyleSheet.create({
     alignItems:    'center',
   },
   tab: {
-    flex:              1,
+    flex:           1,
+    alignItems:     'center',
+    justifyContent: 'center',
+    paddingVertical: 4,
+  },
+  tabInner: {
     alignItems:        'center',
     justifyContent:    'center',
+    paddingVertical:   10,
+    paddingHorizontal: 18,
+    borderRadius:      14,
     gap:               3,
-    paddingVertical:   12,
-    paddingHorizontal: 4,
   },
-  tabWithLabels: {
-    paddingVertical: 8,
-    gap:             2,
+  tabInnerLabels: {
+    paddingVertical:   8,
+    paddingHorizontal: 10,
+    borderRadius:      10,
+    gap:               2,
   },
   label: {
     fontSize:      9,
     fontWeight:    '700',
     letterSpacing: 0.6,
-  },
-  dot: {
-    width:        4,
-    height:       4,
-    borderRadius: 2,
   },
   pill: {
     position:       'absolute',
