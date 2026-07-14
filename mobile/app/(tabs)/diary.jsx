@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { BlurView } from 'expo-blur'
 import { getDiary, deleteEntry, getInsights, getEmotions } from '../../lib/queries'
+import { updateWidgetEntry } from '../../lib/widgetBridge'
 import { DEMO_MODE } from '../../constants/demo'
 import { DEMO_ENTRIES, DEMO_INSIGHTS, DEMO_EMOTIONS } from '../../lib/demoData'
 import EntryCard from '../../components/EntryCard'
@@ -165,6 +166,7 @@ export default function Diary() {
       setEntries(data)
       setInsights(ins)
       setEmotions(emos)
+      updateWidgetEntry(data)
     } catch (err) {
       if (err?.code === 'PGRST205' || err?.message?.includes('schema cache')) {
         setError('Database tables not found. Run supabase/schema.sql in your Supabase SQL Editor.')

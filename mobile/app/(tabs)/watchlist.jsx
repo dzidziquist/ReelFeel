@@ -9,6 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { BlurView } from 'expo-blur'
 import { useRouter, useFocusEffect } from 'expo-router'
 import { getWatchlist, removeFromWatchlist } from '../../lib/queries'
+import { updateWidgetWatchlist } from '../../lib/widgetBridge'
 import { DEMO_MODE } from '../../constants/demo'
 import { DEMO_WATCHLIST } from '../../lib/demoData'
 import PosterCard from '../../components/PosterCard'
@@ -132,7 +133,11 @@ export default function Watchlist() {
   const load = useCallback(async () => {
     setError('')
     if (DEMO_MODE) { setItems(DEMO_WATCHLIST); return }
-    try { setItems(await getWatchlist()) }
+    try {
+      const data = await getWatchlist()
+      setItems(data)
+      updateWidgetWatchlist(data)
+    }
     catch (err) { setError(err.message) }
   }, [])
 

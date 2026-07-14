@@ -10,6 +10,7 @@
       "supportsTablet": false,
       "bundleIdentifier": "com.reelfeel.app",
       "buildNumber": "9",
+      "appleTeamId": "DS5DKR22ZZ",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "LSApplicationQueriesSchemes": ["nflx", "aiv", "disneyplus", "hulu", "max", "videos", "peacocktv", "paramountplus", "crunchyroll", "tubi", "starz", "showtime"]
@@ -41,7 +42,9 @@
           "resizeMode": "contain",
           "backgroundColor": "#111827"
         }
-      ]
+      ],
+      "./plugins/withWidgetBridge",
+      ["@bacons/apple-targets", {}]
     ],
     "extra": {
       "router": {},

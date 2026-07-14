@@ -6,6 +6,7 @@ import {
 import { useRouter, useFocusEffect } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { getProfile, upsertProfile, getInsights, deleteAllMyData, deleteMyAccount } from '../../lib/queries'
+import { updateWidgetStats } from '../../lib/widgetBridge'
 import { DEMO_MODE } from '../../constants/demo'
 import { DEMO_PROFILE, DEMO_INSIGHTS } from '../../lib/demoData'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -123,6 +124,7 @@ export default function Profile() {
     try {
       const [p, ins] = await Promise.all([getProfile(), getInsights()])
       setProfile(p); setInsights(ins)
+      updateWidgetStats(ins)
     } catch (err) { setError(err.message) }
   }, [])
 
