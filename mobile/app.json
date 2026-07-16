@@ -14,7 +14,7 @@
       },
       "supportsTablet": false,
       "bundleIdentifier": "com.reelfeel.app",
-      "buildNumber": "11",
+      "buildNumber": "14",
       "appleTeamId": "DS5DKR22ZZ",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
@@ -40,7 +40,6 @@
       "expo-secure-store",
       "expo-image",
       "expo-status-bar",
-      "@react-native-community/datetimepicker",
       "expo-font",
       [
         "expo-splash-screen",
