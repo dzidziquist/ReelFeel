@@ -1,8 +1,24 @@
 const RELEASES = [
   {
-    version: '2.0.1',
+    version: '2.0.2',
     date: 'July 2026',
     label: 'Latest',
+    changes: [
+      'Home screen widget — long-press to choose between Last Watch, Watchlist, or Stats; available in small, medium, and large',
+      'Widget posters now load and display correctly',
+      'Widget automatically refreshes when you open the app — no need to visit individual tabs first',
+      'Widget adapts to system light and dark mode',
+      'New app icon with automatic light and dark variants based on your home screen appearance',
+      'Streaming providers now open the correct app or website — Prime Video, Disney+, Netflix, and others all work reliably',
+      'Now Playing and Coming Soon no longer show the same films',
+      'Tab bar collapsed pill returns to bottom-left corner',
+      'Performance improvements: faster scrolling in the diary, faster home feed filtering, reduced background network usage',
+    ],
+  },
+  {
+    version: '2.0.1',
+    date: 'July 2026',
+    label: null,
     changes: [
       'Floating filter pills on Search, Library, Diary, and Watchlist — liquid glass style, consistent across every screen',
       'Search now has a filter pill for All / Films / TV Shows, replacing the inline tabs',
