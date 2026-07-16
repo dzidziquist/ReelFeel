@@ -231,10 +231,11 @@ export default function Home() {
         getUpcoming(),
         getAiringToday(),
       ])
+      const npIds = new Set(np.map(m => m.id))
       setNowPlaying(np)
       setTrending(tr)
       setPopularTV(tv)
-      setUpcoming(up)
+      setUpcoming(up.filter(m => !npIds.has(m.id)))
       setAiringToday(at)
       lastLoadRef.current = Date.now()
 

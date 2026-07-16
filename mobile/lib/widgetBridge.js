@@ -2,7 +2,7 @@ import { NativeModules, Platform } from 'react-native'
 
 const { WidgetDataBridge } = NativeModules
 
-let cached = { lastEntry: null, watchlist: [], stats: null }
+let cached = { lastEntry: null, watchlist: [], stats: null, recentEntries: [] }
 
 function mapEntry(e) {
   if (!e) return null
@@ -38,12 +38,16 @@ function mapStats(s) {
 }
 
 function flush() {
-  if (Platform.OS !== 'ios' || !WidgetDataBridge) return
+  if (Platform.OS !== 'ios' || !WidgetDataBridge || typeof WidgetDataBridge.setData !== 'function') return
   WidgetDataBridge.setData(JSON.stringify(cached)).catch(() => {})
 }
 
 export function updateWidgetEntry(entries = []) {
-  cached = { ...cached, lastEntry: mapEntry(entries[0] ?? null) }
+  cached = {
+    ...cached,
+    lastEntry: mapEntry(entries[0] ?? null),
+    recentEntries: entries.slice(0, 6).map(mapEntry).filter(Boolean),
+  }
   flush()
 }
 

@@ -141,7 +141,7 @@ const s = StyleSheet.create({
     left:              0,
     right:             0,
     paddingHorizontal: H_PADDING,
-    alignItems:        'center',
+    alignItems:        'flex-start',
   },
   shadowWrap: {
     shadowColor:  '#000',

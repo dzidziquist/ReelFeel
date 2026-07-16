@@ -1,11 +1,38 @@
-import { useEffect } from 'react'
-import { View, ActivityIndicator } from 'react-native'
+import { useEffect, useRef } from 'react'
+import { View, ActivityIndicator, AppState } from 'react-native'
 import { Stack, useRouter, useSegments } from 'expo-router'
 import * as Linking from 'expo-linking'
 import { AuthProvider, useAuth } from '../context/AuthContext'
 import { ThemeProvider, useTheme } from '../context/ThemeContext'
 import ErrorBoundary from '../components/ErrorBoundary'
 import { supabase } from '../lib/supabase'
+import { getDiary, getWatchlist, getInsights } from '../lib/queries'
+import { updateWidgetEntry, updateWidgetWatchlist, updateWidgetStats } from '../lib/widgetBridge'
+
+function WidgetRefresher() {
+  const { user } = useAuth()
+
+  async function refresh() {
+    if (!user) return
+    try {
+      const [diary, watchlist, insights] = await Promise.all([getDiary(), getWatchlist(), getInsights()])
+      updateWidgetEntry(diary)
+      updateWidgetWatchlist(watchlist)
+      updateWidgetStats(insights)
+    } catch (_) {}
+  }
+
+  useEffect(() => { refresh() }, [user])
+
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', state => {
+      if (state === 'active') refresh()
+    })
+    return () => sub.remove()
+  }, [user])
+
+  return null
+}
 
 function AuthGuard() {
   const { user, loading } = useAuth()
@@ -50,6 +77,7 @@ function AppContent() {
   return (
     <>
       <AuthGuard />
+      <WidgetRefresher />
       <AppStack />
     </>
   )

@@ -1,4 +1,5 @@
-import { View, Text, ScrollView, Image, TouchableOpacity, Linking, StyleSheet } from 'react-native'
+import { View, Text, ScrollView, Image, TouchableOpacity, StyleSheet } from 'react-native'
+import * as Linking from 'expo-linking'
 import { Ionicons } from '@expo/vector-icons'
 import { useTheme } from '../context/ThemeContext'
 
@@ -26,16 +27,20 @@ function justWatchFallback(title, justWatchLink) {
 async function openProvider(provider, title, justWatchLink) {
   const known = PROVIDER_LINKS[provider.id]
   if (!known) {
-    Linking.openURL(justWatchFallback(title, justWatchLink))
+    await Linking.openURL(justWatchFallback(title, justWatchLink))
     return
   }
   if (known.app) {
     try {
       const canOpen = await Linking.canOpenURL(known.app)
-      if (canOpen) { Linking.openURL(known.app); return }
+      if (canOpen) { await Linking.openURL(known.app); return }
     } catch (_) {}
   }
-  Linking.openURL(known.web)
+  try {
+    await Linking.openURL(known.web)
+  } catch (_) {
+    await Linking.openURL(justWatchFallback(title, justWatchLink))
+  }
 }
 
 export default function StreamingProviders({
