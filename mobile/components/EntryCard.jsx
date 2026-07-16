@@ -134,7 +134,7 @@ export default memo(function EntryCard({ entry, onDelete }) {
       )}
     </Pressable>
   )
-}
+})
 
 const s = StyleSheet.create({
   card:         {
