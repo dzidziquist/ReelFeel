@@ -159,7 +159,7 @@ struct Provider: AppIntentTimelineProvider {
 
 private let rfGold = Color(red: 212/255, green: 175/255, blue: 55/255)
 
-private struct RFColors {
+struct RFColors {
     let bg:      Color
     let bgCard:  Color
     let border:  Color
