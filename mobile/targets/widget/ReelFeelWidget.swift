@@ -157,15 +157,37 @@ struct Provider: AppIntentTimelineProvider {
 
 // MARK: - Design tokens
 
-private extension Color {
-    static let rfBg      = Color(red: 17/255,  green: 17/255,  blue: 17/255)
-    static let rfBgDark  = Color(red: 0,        green: 0,        blue: 0)
-    static let rfBg3     = Color(red: 44/255,  green: 44/255,  blue: 46/255)
-    static let rfGold    = Color(red: 212/255, green: 175/255, blue: 55/255)
-    static let rfText    = Color.white
-    static let rfTextSub = Color(red: 163/255, green: 163/255, blue: 163/255)
-    static let rfTextMut = Color(red: 107/255, green: 107/255, blue: 107/255)
-    static let rfBorder  = Color(red: 42/255,  green: 42/255,  blue: 42/255)
+private let rfGold = Color(red: 212/255, green: 175/255, blue: 55/255)
+
+private struct RFColors {
+    let bg:      Color
+    let bgCard:  Color
+    let border:  Color
+    let text:    Color
+    let textSub: Color
+    let textMut: Color
+
+    static func make(_ scheme: ColorScheme) -> RFColors {
+        if scheme == .dark {
+            return RFColors(
+                bg:      Color(red: 17/255,  green: 17/255,  blue: 17/255),
+                bgCard:  Color(red: 30/255,  green: 30/255,  blue: 30/255),
+                border:  Color(red: 42/255,  green: 42/255,  blue: 42/255),
+                text:    Color.white,
+                textSub: Color(red: 163/255, green: 163/255, blue: 163/255),
+                textMut: Color(red: 107/255, green: 107/255, blue: 107/255)
+            )
+        } else {
+            return RFColors(
+                bg:      Color(red: 250/255, green: 249/255, blue: 245/255),
+                bgCard:  Color(red: 238/255, green: 236/255, blue: 230/255),
+                border:  Color(red: 210/255, green: 208/255, blue: 200/255),
+                text:    Color(red: 15/255,  green: 15/255,  blue: 15/255),
+                textSub: Color(red: 60/255,  green: 60/255,  blue: 60/255),
+                textMut: Color(red: 120/255, green: 118/255, blue: 112/255)
+            )
+        }
+    }
 }
 
 // MARK: - Subviews
@@ -178,7 +200,7 @@ struct StarRow: View {
             ForEach(1...5, id: \.self) { i in
                 Image(systemName: Double(i) <= rating ? "star.fill" : "star")
                     .font(.system(size: size, weight: .bold))
-                    .foregroundColor(.rfGold)
+                    .foregroundColor(rfGold)
             }
         }
     }
@@ -189,6 +211,7 @@ struct PosterView: View {
     let width: CGFloat
     let height: CGFloat
     var image: CGImage? = nil
+    var c: RFColors
 
     var body: some View {
         Group {
@@ -197,10 +220,10 @@ struct PosterView: View {
                     .resizable()
                     .aspectRatio(contentMode: .fill)
             } else {
-                Color.rfBg3.overlay(
+                c.bgCard.overlay(
                     Text(title.prefix(1).uppercased())
                         .font(.system(size: width * 0.25, weight: .bold))
-                        .foregroundColor(.rfTextMut)
+                        .foregroundColor(c.textMut)
                 )
             }
         }
@@ -212,14 +235,15 @@ struct PosterView: View {
 struct EmptyState: View {
     let icon: String
     let label: String
+    var c: RFColors
     var body: some View {
         VStack(spacing: 6) {
             Image(systemName: icon)
                 .font(.system(size: 22))
-                .foregroundColor(.rfTextMut)
+                .foregroundColor(c.textMut)
             Text(label)
                 .font(.system(size: 11, weight: .medium))
-                .foregroundColor(.rfTextMut)
+                .foregroundColor(c.textMut)
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -230,14 +254,15 @@ struct StatCell: View {
     let value: String
     let label: String
     var gold: Bool = false
+    var c: RFColors
     var body: some View {
         VStack(spacing: 2) {
             Text(value)
                 .font(.system(size: 15, weight: .black))
-                .foregroundColor(gold ? .rfGold : .rfText)
+                .foregroundColor(gold ? rfGold : c.text)
             Text(label.uppercased())
                 .font(.system(size: 7, weight: .bold))
-                .foregroundColor(.rfTextMut)
+                .foregroundColor(c.textMut)
                 .kerning(0.4)
         }
         .frame(maxWidth: .infinity)
@@ -248,43 +273,45 @@ struct StatCell: View {
 
 struct LastWatchSmall: View {
     let entry: ReelFeelEntry
+    var c: RFColors
     var body: some View {
         if let e = entry.data.lastEntry {
             ZStack(alignment: .bottomLeading) {
-                PosterView(title: e.title, width: 170, height: 170, image: entry.poster(for: e.posterURL))
+                PosterView(title: e.title, width: 170, height: 170, image: entry.poster(for: e.posterURL), c: c)
                 LinearGradient(colors: [.clear, Color.black.opacity(0.88)], startPoint: .center, endPoint: .bottom)
                 VStack(alignment: .leading, spacing: 4) {
                     StarRow(rating: e.rating, size: 7.5)
                     Text(e.title)
                         .font(.system(size: 12, weight: .bold))
-                        .foregroundColor(.rfText)
+                        .foregroundColor(.white)
                         .lineLimit(2)
                 }
                 .padding(10)
             }
         } else {
-            EmptyState(icon: "film", label: "Log your first watch")
+            EmptyState(icon: "film", label: "Log your first watch", c: c)
         }
     }
 }
 
 struct LastWatchMedium: View {
     let entry: ReelFeelEntry
+    var c: RFColors
     var body: some View {
         let recent = entry.data.recentEntries.prefix(3)
         if recent.isEmpty {
-            EmptyState(icon: "film", label: "Log your first watch")
+            EmptyState(icon: "film", label: "Log your first watch", c: c)
         } else {
             VStack(alignment: .leading, spacing: 0) {
                 HStack {
                     Text("RECENTLY WATCHED")
                         .font(.system(size: 9, weight: .black))
-                        .foregroundColor(.rfGold)
+                        .foregroundColor(rfGold)
                         .kerning(1.2)
                     Spacer()
                     Image(systemName: "heart.fill")
                         .font(.system(size: 10))
-                        .foregroundColor(.rfGold)
+                        .foregroundColor(rfGold)
                 }
                 .padding(.horizontal, 14)
                 .padding(.top, 12)
@@ -293,10 +320,10 @@ struct LastWatchMedium: View {
                 HStack(alignment: .top, spacing: 10) {
                     ForEach(Array(recent.enumerated()), id: \.offset) { _, e in
                         VStack(alignment: .leading, spacing: 5) {
-                            PosterView(title: e.title, width: 64, height: 94, image: entry.poster(for: e.posterURL))
+                            PosterView(title: e.title, width: 64, height: 94, image: entry.poster(for: e.posterURL), c: c)
                             Text(e.title)
                                 .font(.system(size: 9, weight: .semibold))
-                                .foregroundColor(.rfTextSub)
+                                .foregroundColor(c.textSub)
                                 .lineLimit(2)
                                 .frame(width: 64, alignment: .leading)
                             StarRow(rating: e.rating, size: 6)
@@ -313,13 +340,14 @@ struct LastWatchMedium: View {
 
 struct LastWatchLarge: View {
     let entry: ReelFeelEntry
+    var c: RFColors
     var body: some View {
-        let recent = entry.data.recentEntries.prefix(4)
+        let recent = Array(entry.data.recentEntries.prefix(4))
         VStack(alignment: .leading, spacing: 0) {
             HStack {
                 Text("RECENTLY WATCHED")
                     .font(.system(size: 10, weight: .black))
-                    .foregroundColor(.rfGold)
+                    .foregroundColor(rfGold)
                     .kerning(1.5)
                 Spacer()
             }
@@ -328,25 +356,28 @@ struct LastWatchLarge: View {
             .padding(.bottom, 12)
 
             if recent.isEmpty {
-                EmptyState(icon: "film", label: "Log your first watch")
+                EmptyState(icon: "film", label: "Log your first watch", c: c)
             } else {
-                HStack(alignment: .top, spacing: 8) {
-                    ForEach(Array(recent.enumerated()), id: \.offset) { _, e in
-                        VStack(alignment: .leading, spacing: 4) {
-                            PosterView(title: e.title, width: 58, height: 84, image: entry.poster(for: e.posterURL))
-                            Text(e.title)
-                                .font(.system(size: 8, weight: .semibold))
-                                .foregroundColor(.rfTextSub)
-                                .lineLimit(2)
-                                .frame(width: 58, alignment: .leading)
-                            StarRow(rating: e.rating, size: 5.5)
+                GeometryReader { geo in
+                    let posterH = geo.size.height - 28
+                    let posterW = posterH * 2 / 3
+                    HStack(alignment: .top, spacing: 8) {
+                        ForEach(Array(recent.enumerated()), id: \.offset) { _, e in
+                            VStack(alignment: .leading, spacing: 4) {
+                                PosterView(title: e.title, width: posterW, height: posterH, image: entry.poster(for: e.posterURL), c: c)
+                                Text(e.title)
+                                    .font(.system(size: 8, weight: .semibold))
+                                    .foregroundColor(c.textSub)
+                                    .lineLimit(2)
+                                    .frame(width: posterW, alignment: .leading)
+                                StarRow(rating: e.rating, size: 5.5)
+                            }
                         }
+                        Spacer()
                     }
-                    Spacer()
+                    .padding(.horizontal, 14)
                 }
-                .padding(.horizontal, 14)
             }
-            Spacer()
         }
     }
 }
@@ -355,45 +386,47 @@ struct LastWatchLarge: View {
 
 struct WatchlistSmall: View {
     let entry: ReelFeelEntry
+    var c: RFColors
     var body: some View {
         if let item = entry.data.watchlist.first {
             ZStack(alignment: .bottomLeading) {
-                PosterView(title: item.title, width: 170, height: 170, image: entry.poster(for: item.posterURL))
+                PosterView(title: item.title, width: 170, height: 170, image: entry.poster(for: item.posterURL), c: c)
                 LinearGradient(colors: [.clear, Color.black.opacity(0.88)], startPoint: .center, endPoint: .bottom)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("UP NEXT")
                         .font(.system(size: 7, weight: .black))
-                        .foregroundColor(.rfGold)
+                        .foregroundColor(rfGold)
                         .kerning(1.0)
                     Text(item.title)
                         .font(.system(size: 12, weight: .bold))
-                        .foregroundColor(.rfText)
+                        .foregroundColor(.white)
                         .lineLimit(2)
                 }
                 .padding(10)
             }
         } else {
-            EmptyState(icon: "bookmark", label: "Your watchlist is empty")
+            EmptyState(icon: "bookmark", label: "Your watchlist is empty", c: c)
         }
     }
 }
 
 struct WatchlistMedium: View {
     let entry: ReelFeelEntry
+    var c: RFColors
     var body: some View {
         if entry.data.watchlist.isEmpty {
-            EmptyState(icon: "bookmark", label: "Your watchlist is empty")
+            EmptyState(icon: "bookmark", label: "Your watchlist is empty", c: c)
         } else {
             VStack(alignment: .leading, spacing: 0) {
                 HStack {
                     Text("UP NEXT")
                         .font(.system(size: 9, weight: .black))
-                        .foregroundColor(.rfGold)
+                        .foregroundColor(rfGold)
                         .kerning(1.2)
                     Spacer()
                     Image(systemName: "bookmark.fill")
                         .font(.system(size: 10))
-                        .foregroundColor(.rfGold)
+                        .foregroundColor(rfGold)
                 }
                 .padding(.horizontal, 14)
                 .padding(.top, 12)
@@ -402,10 +435,10 @@ struct WatchlistMedium: View {
                 HStack(alignment: .top, spacing: 10) {
                     ForEach(Array(entry.data.watchlist.prefix(3).enumerated()), id: \.offset) { _, item in
                         VStack(alignment: .leading, spacing: 5) {
-                            PosterView(title: item.title, width: 64, height: 94, image: entry.poster(for: item.posterURL))
+                            PosterView(title: item.title, width: 64, height: 94, image: entry.poster(for: item.posterURL), c: c)
                             Text(item.title)
                                 .font(.system(size: 9, weight: .semibold))
-                                .foregroundColor(.rfTextSub)
+                                .foregroundColor(c.textSub)
                                 .lineLimit(2)
                                 .frame(width: 64, alignment: .leading)
                         }
@@ -421,49 +454,46 @@ struct WatchlistMedium: View {
 
 struct WatchlistLarge: View {
     let entry: ReelFeelEntry
+    var c: RFColors
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
                 Text("WATCHLIST")
                     .font(.system(size: 10, weight: .black))
-                    .foregroundColor(.rfGold)
+                    .foregroundColor(rfGold)
                     .kerning(1.5)
                 Spacer()
                 Image(systemName: "bookmark.fill")
                     .font(.system(size: 11))
-                    .foregroundColor(.rfGold)
+                    .foregroundColor(rfGold)
             }
             .padding(.horizontal, 14)
             .padding(.top, 14)
             .padding(.bottom, 12)
 
             if entry.data.watchlist.isEmpty {
-                EmptyState(icon: "bookmark", label: "Add films to your watchlist")
+                EmptyState(icon: "bookmark", label: "Add films to your watchlist", c: c)
             } else {
-                let rows: [[WidgetData.WatchlistItem]] = stride(
-                    from: 0, to: min(entry.data.watchlist.count, 8), by: 4
-                ).map { Array(entry.data.watchlist[$0..<min($0 + 4, entry.data.watchlist.count)]) }
-
-                VStack(alignment: .leading, spacing: 10) {
-                    ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
-                        HStack(alignment: .top, spacing: 8) {
-                            ForEach(Array(row.enumerated()), id: \.offset) { _, item in
-                                VStack(alignment: .leading, spacing: 4) {
-                                    PosterView(title: item.title, width: 58, height: 84, image: entry.poster(for: item.posterURL))
-                                    Text(item.title)
-                                        .font(.system(size: 8, weight: .semibold))
-                                        .foregroundColor(.rfTextSub)
-                                        .lineLimit(2)
-                                        .frame(width: 58, alignment: .leading)
-                                }
+                GeometryReader { geo in
+                    let items = Array(entry.data.watchlist.prefix(4))
+                    let posterH = geo.size.height - 28
+                    let posterW = posterH * 2 / 3
+                    HStack(alignment: .top, spacing: 8) {
+                        ForEach(Array(items.enumerated()), id: \.offset) { _, item in
+                            VStack(alignment: .leading, spacing: 4) {
+                                PosterView(title: item.title, width: posterW, height: posterH, image: entry.poster(for: item.posterURL), c: c)
+                                Text(item.title)
+                                    .font(.system(size: 8, weight: .semibold))
+                                    .foregroundColor(c.textSub)
+                                    .lineLimit(2)
+                                    .frame(width: posterW, alignment: .leading)
                             }
-                            Spacer()
                         }
+                        Spacer()
                     }
+                    .padding(.horizontal, 14)
                 }
-                .padding(.horizontal, 14)
             }
-            Spacer()
         }
     }
 }
@@ -472,41 +502,43 @@ struct WatchlistLarge: View {
 
 struct StatsSmall: View {
     let entry: ReelFeelEntry
+    var c: RFColors
     var body: some View {
         if let s = entry.data.stats {
             VStack(spacing: 8) {
                 Text("REELFEEL")
                     .font(.system(size: 8, weight: .black))
-                    .foregroundColor(.rfGold)
+                    .foregroundColor(rfGold)
                     .kerning(1.2)
                 Text("\(s.totalEntries)")
                     .font(.system(size: 36, weight: .black))
-                    .foregroundColor(.rfText)
+                    .foregroundColor(c.text)
                 Text("WATCHED")
                     .font(.system(size: 8, weight: .bold))
-                    .foregroundColor(.rfTextMut)
+                    .foregroundColor(c.textMut)
                     .kerning(0.8)
                 if let avg = s.avgRating {
                     Text(String(format: "%.1f★ avg", avg))
                         .font(.system(size: 11, weight: .bold))
-                        .foregroundColor(.rfGold)
+                        .foregroundColor(rfGold)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
-            EmptyState(icon: "chart.bar.fill", label: "No stats yet")
+            EmptyState(icon: "chart.bar.fill", label: "No stats yet", c: c)
         }
     }
 }
 
 struct StatsMedium: View {
     let entry: ReelFeelEntry
+    var c: RFColors
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
                 Text("REELFEEL")
                     .font(.system(size: 9, weight: .black))
-                    .foregroundColor(.rfGold)
+                    .foregroundColor(rfGold)
                     .kerning(1.2)
                 Spacer()
             }
@@ -516,14 +548,14 @@ struct StatsMedium: View {
 
             if let s = entry.data.stats {
                 HStack(spacing: 0) {
-                    StatCell(value: "\(s.totalMovies)", label: "Films")
-                    Color.rfBorder.frame(width: 0.5, height: 28)
-                    StatCell(value: "\(s.totalTV)", label: "Shows")
-                    Color.rfBorder.frame(width: 0.5, height: 28)
-                    StatCell(value: "\(s.thisMonth)", label: "This month")
+                    StatCell(value: "\(s.totalMovies)", label: "Films", c: c)
+                    c.border.frame(width: 0.5, height: 28)
+                    StatCell(value: "\(s.totalTV)", label: "Shows", c: c)
+                    c.border.frame(width: 0.5, height: 28)
+                    StatCell(value: "\(s.thisMonth)", label: "This month", c: c)
                     if let avg = s.avgRating {
-                        Color.rfBorder.frame(width: 0.5, height: 28)
-                        StatCell(value: String(format: "%.1f★", avg), label: "Avg rating", gold: true)
+                        c.border.frame(width: 0.5, height: 28)
+                        StatCell(value: String(format: "%.1f★", avg), label: "Avg rating", gold: true, c: c)
                     }
                 }
             }
@@ -534,12 +566,13 @@ struct StatsMedium: View {
 
 struct StatsLarge: View {
     let entry: ReelFeelEntry
+    var c: RFColors
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
                 Text("REELFEEL")
                     .font(.system(size: 10, weight: .black))
-                    .foregroundColor(.rfGold)
+                    .foregroundColor(rfGold)
                     .kerning(1.5)
                 Spacer()
             }
@@ -549,49 +582,52 @@ struct StatsLarge: View {
 
             if let s = entry.data.stats {
                 HStack(spacing: 0) {
-                    StatCell(value: "\(s.totalMovies)", label: "Films")
-                    Color.rfBorder.frame(width: 0.5, height: 28)
-                    StatCell(value: "\(s.totalTV)", label: "Shows")
-                    Color.rfBorder.frame(width: 0.5, height: 28)
-                    StatCell(value: "\(s.thisMonth)", label: "This month")
+                    StatCell(value: "\(s.totalMovies)", label: "Films", c: c)
+                    c.border.frame(width: 0.5, height: 28)
+                    StatCell(value: "\(s.totalTV)", label: "Shows", c: c)
+                    c.border.frame(width: 0.5, height: 28)
+                    StatCell(value: "\(s.thisMonth)", label: "This month", c: c)
                     if let avg = s.avgRating {
-                        Color.rfBorder.frame(width: 0.5, height: 28)
-                        StatCell(value: String(format: "%.1f★", avg), label: "Avg rating", gold: true)
+                        c.border.frame(width: 0.5, height: 28)
+                        StatCell(value: String(format: "%.1f★", avg), label: "Avg rating", gold: true, c: c)
                     }
                 }
                 .padding(.bottom, 12)
             }
 
-            Color.rfBorder.frame(height: 0.5).padding(.horizontal, 14)
+            c.border.frame(height: 0.5).padding(.horizontal, 14)
 
-            if !entry.data.watchlist.isEmpty {
-                Text("WATCHLIST")
-                    .font(.system(size: 9, weight: .black))
-                    .foregroundColor(.rfTextMut)
-                    .kerning(1.0)
-                    .padding(.horizontal, 14)
-                    .padding(.top, 12)
-                    .padding(.bottom, 8)
-
-                HStack(alignment: .top, spacing: 8) {
-                    ForEach(Array(entry.data.watchlist.prefix(4).enumerated()), id: \.offset) { _, item in
-                        VStack(alignment: .leading, spacing: 4) {
-                            PosterView(title: item.title, width: 58, height: 84, image: entry.poster(for: item.posterURL))
-                            Text(item.title)
-                                .font(.system(size: 8, weight: .semibold))
-                                .foregroundColor(.rfTextSub)
-                                .lineLimit(2)
-                                .frame(width: 58, alignment: .leading)
-                        }
-                    }
-                    Spacer()
-                }
+            Text("WATCHLIST")
+                .font(.system(size: 9, weight: .black))
+                .foregroundColor(c.textMut)
+                .kerning(1.0)
                 .padding(.horizontal, 14)
-            } else {
-                EmptyState(icon: "bookmark", label: "Add films to your watchlist")
-            }
+                .padding(.top, 12)
+                .padding(.bottom, 8)
 
-            Spacer()
+            if entry.data.watchlist.isEmpty {
+                EmptyState(icon: "bookmark", label: "Add films to your watchlist", c: c)
+            } else {
+                GeometryReader { geo in
+                    let items = Array(entry.data.watchlist.prefix(4))
+                    let posterH = geo.size.height - 24
+                    let posterW = posterH * 2 / 3
+                    HStack(alignment: .top, spacing: 8) {
+                        ForEach(Array(items.enumerated()), id: \.offset) { _, item in
+                            VStack(alignment: .leading, spacing: 4) {
+                                PosterView(title: item.title, width: posterW, height: posterH, image: entry.poster(for: item.posterURL), c: c)
+                                Text(item.title)
+                                    .font(.system(size: 8, weight: .semibold))
+                                    .foregroundColor(c.textSub)
+                                    .lineLimit(2)
+                                    .frame(width: posterW, alignment: .leading)
+                            }
+                        }
+                        Spacer()
+                    }
+                    .padding(.horizontal, 14)
+                }
+            }
         }
     }
 }
@@ -600,27 +636,47 @@ struct StatsLarge: View {
 
 struct ReelFeelWidgetEntryView: View {
     @Environment(\.widgetFamily) var family
+    @Environment(\.colorScheme) var scheme
     var entry: ReelFeelEntry
 
     var body: some View {
+        let c = RFColors.make(scheme)
         switch entry.configuration.content {
         case .lastWatch:
             switch family {
-            case .systemSmall:  LastWatchSmall(entry: entry).containerBackground(Color.rfBgDark, for: .widget)
-            case .systemMedium: LastWatchMedium(entry: entry).containerBackground(Color.rfBg, for: .widget)
-            default:            LastWatchLarge(entry: entry).containerBackground(Color.rfBg, for: .widget)
+            case .systemSmall:
+                LastWatchSmall(entry: entry, c: c)
+                    .containerBackground(scheme == .dark ? Color(red: 0, green: 0, blue: 0) : Color(red: 250/255, green: 249/255, blue: 245/255), for: .widget)
+            case .systemMedium:
+                LastWatchMedium(entry: entry, c: c)
+                    .containerBackground(c.bg, for: .widget)
+            default:
+                LastWatchLarge(entry: entry, c: c)
+                    .containerBackground(c.bg, for: .widget)
             }
         case .watchlist:
             switch family {
-            case .systemSmall:  WatchlistSmall(entry: entry).containerBackground(Color.rfBgDark, for: .widget)
-            case .systemMedium: WatchlistMedium(entry: entry).containerBackground(Color.rfBg, for: .widget)
-            default:            WatchlistLarge(entry: entry).containerBackground(Color.rfBg, for: .widget)
+            case .systemSmall:
+                WatchlistSmall(entry: entry, c: c)
+                    .containerBackground(scheme == .dark ? Color(red: 0, green: 0, blue: 0) : Color(red: 250/255, green: 249/255, blue: 245/255), for: .widget)
+            case .systemMedium:
+                WatchlistMedium(entry: entry, c: c)
+                    .containerBackground(c.bg, for: .widget)
+            default:
+                WatchlistLarge(entry: entry, c: c)
+                    .containerBackground(c.bg, for: .widget)
             }
         case .stats:
             switch family {
-            case .systemSmall:  StatsSmall(entry: entry).containerBackground(Color.rfBg, for: .widget)
-            case .systemMedium: StatsMedium(entry: entry).containerBackground(Color.rfBg, for: .widget)
-            default:            StatsLarge(entry: entry).containerBackground(Color.rfBg, for: .widget)
+            case .systemSmall:
+                StatsSmall(entry: entry, c: c)
+                    .containerBackground(c.bg, for: .widget)
+            case .systemMedium:
+                StatsMedium(entry: entry, c: c)
+                    .containerBackground(c.bg, for: .widget)
+            default:
+                StatsLarge(entry: entry, c: c)
+                    .containerBackground(c.bg, for: .widget)
             }
         }
     }

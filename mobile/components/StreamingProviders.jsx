@@ -24,8 +24,33 @@ function justWatchFallback(title, justWatchLink) {
   return `https://www.justwatch.com/us/search?q=${encodeURIComponent(title || '')}`
 }
 
+const PROVIDER_NAME_KEYWORDS = {
+  netflix:      'https://www.netflix.com',
+  prime:        'https://www.amazon.com/gp/video',
+  amazon:       'https://www.amazon.com/gp/video',
+  disney:       'https://www.disneyplus.com',
+  hulu:         'https://www.hulu.com',
+  'apple tv':   'https://tv.apple.com',
+  peacock:      'https://www.peacocktv.com',
+  paramount:    'https://www.paramountplus.com',
+  crunchyroll:  'https://www.crunchyroll.com',
+  tubi:         'https://tubitv.com',
+  starz:        'https://www.starz.com',
+  showtime:     'https://www.sho.com',
+  max:          'https://www.max.com',
+}
+
+function resolveProviderUrl(provider) {
+  if (PROVIDER_URLS[provider.id]) return PROVIDER_URLS[provider.id]
+  const name = (provider.name ?? '').toLowerCase()
+  for (const [keyword, url] of Object.entries(PROVIDER_NAME_KEYWORDS)) {
+    if (name.includes(keyword)) return url
+  }
+  return null
+}
+
 async function openProvider(provider, title, justWatchLink) {
-  const url = PROVIDER_URLS[provider.id] ?? justWatchFallback(title, justWatchLink)
+  const url = resolveProviderUrl(provider) ?? justWatchFallback(title, justWatchLink)
   try {
     await Linking.openURL(url)
   } catch (_) {
