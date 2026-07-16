@@ -1,10 +1,11 @@
+import { memo } from 'react'
 import { View, Text, Image, TouchableOpacity, Pressable, StyleSheet, Share, Alert } from 'react-native'
 import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { StarDisplay } from './StarRating'
 import { useTheme } from '../context/ThemeContext'
 
-export default function EntryCard({ entry, onDelete }) {
+export default memo(function EntryCard({ entry, onDelete }) {
   const { media } = entry
   const router    = useRouter()
   const { theme } = useTheme()

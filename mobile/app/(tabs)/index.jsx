@@ -461,7 +461,10 @@ export default function Home() {
   }, [selectedGenre])
 
   const heroItem    = heroItems[heroIndex] ?? nowPlaying[0] ?? null
-  const forYouShown = filterByGenre(forYou.filter(i => !watchStates.get(i.tmdb_id)?.watched), selectedGenre)
+  const forYouShown = useMemo(
+    () => filterByGenre(forYou.filter(i => !watchStates.get(i.tmdb_id)?.watched), selectedGenre),
+    [forYou, watchStates, selectedGenre]
+  )
 
   const sortedGenres = useMemo(() => {
     if (!affinityGenreIds.length) return GENRES

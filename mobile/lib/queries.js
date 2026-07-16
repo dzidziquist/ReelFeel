@@ -53,6 +53,7 @@ export async function createEntry({ tmdb_id, media_type, rating, watched_on, rev
   // Auto-remove from watchlist when logged (ignore error if not present)
   await supabase.from('watchlist').delete()
     .eq('user_id', user.id).eq('media_id', media.id)
+  invalidateInsightsCache()
   return entry
 }
 
@@ -70,10 +71,18 @@ export async function updateEntry(id, { rating, watched_on, review, rewatch, emo
 export async function deleteEntry(id) {
   const { error } = await supabase.from('diary_entries').delete().eq('id', id)
   if (error) throw error
+  invalidateInsightsCache()
 }
 
 // ── Insights ──────────────────────────────────────────────────
+let _insightsCache = null
+let _insightsCacheAt = 0
+const INSIGHTS_TTL = 5 * 60 * 1000
+
+export function invalidateInsightsCache() { _insightsCache = null }
+
 export async function getInsights() {
+  if (_insightsCache && Date.now() - _insightsCacheAt < INSIGHTS_TTL) return _insightsCache
   const { data: { user } } = await supabase.auth.getUser()
 
   const { data: entries, error } = await supabase
@@ -127,7 +136,7 @@ export async function getInsights() {
   const topEmotion  = sortedEmotions[0] ?? null
   const topEmotions = sortedEmotions.slice(0, 3)
 
-  return {
+  const result = {
     totalMovies,
     totalTV,
     totalEntries: entries.length,
@@ -138,6 +147,9 @@ export async function getInsights() {
     topEmotion,
     topEmotions,
   }
+  _insightsCache = result
+  _insightsCacheAt = Date.now()
+  return result
 }
 
 // ── Library ───────────────────────────────────────────────────

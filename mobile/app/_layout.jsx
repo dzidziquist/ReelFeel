@@ -11,9 +11,13 @@ import { updateWidgetEntry, updateWidgetWatchlist, updateWidgetStats } from '../
 
 function WidgetRefresher() {
   const { user } = useAuth()
+  const lastRefresh = useRef(0)
 
-  async function refresh() {
+  async function refresh(force = false) {
     if (!user) return
+    const now = Date.now()
+    if (!force && now - lastRefresh.current < 5 * 60 * 1000) return
+    lastRefresh.current = now
     try {
       const [diary, watchlist, insights] = await Promise.all([getDiary(), getWatchlist(), getInsights()])
       updateWidgetEntry(diary)
@@ -22,7 +26,7 @@ function WidgetRefresher() {
     } catch (_) {}
   }
 
-  useEffect(() => { refresh() }, [user])
+  useEffect(() => { refresh(true) }, [user])
 
   useEffect(() => {
     const sub = AppState.addEventListener('change', state => {

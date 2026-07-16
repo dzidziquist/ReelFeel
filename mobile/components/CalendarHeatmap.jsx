@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { memo, useState, useMemo } from 'react'
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native'
 import { useTheme } from '../context/ThemeContext'
 
@@ -34,47 +34,41 @@ function cellColor(count, theme) {
  * GitHub-style calendar heatmap showing last 91 days of watch activity.
  * Props: entries – array of { watched_on: 'YYYY-MM-DD' }
  */
-export default function CalendarHeatmap({ entries = [], onDateSelect, selectedDate }) {
+export default memo(function CalendarHeatmap({ entries = [], onDateSelect, selectedDate }) {
   const { theme }   = useTheme()
   const [tooltip, setTooltip] = useState(null)
 
-  // Build count map
-  const countMap = new Map()
-  for (const e of entries) {
-    const k = e.watched_on?.slice(0, 10)
-    if (k) countMap.set(k, (countMap.get(k) ?? 0) + 1)
-  }
-
-  // Build grid: WEEKS columns × 7 rows, aligned to Sunday start
-  const today     = new Date()
-  today.setHours(0, 0, 0, 0)
-  const startDate  = addDays(today, -(WEEKS * DAYS - 1))
-  const startDow   = startDate.getDay()
-  const gridStart  = addDays(startDate, -startDow)
-
-  // Collect month-label positions
-  const monthLabels = []
-  const weeks = []
-
-  for (let w = 0; w < WEEKS; w++) {
-    const weekDays = []
-    for (let d = 0; d < DAYS; d++) {
-      const date  = addDays(gridStart, w * 7 + d)
-      const key   = dateToDayKey(date)
-      const count = countMap.get(key) ?? 0
-      const inRange = date >= startDate && date <= today
-      weekDays.push({ date, key, count, inRange })
-
-      // First Sunday of the month → emit label above this week
-      if (d === 0 && date.getDate() <= 7) {
-        monthLabels.push({
-          weekIdx: w,
-          label: date.toLocaleString('default', { month: 'short' }),
-        })
-      }
+  const { weeks, monthLabels } = useMemo(() => {
+    const countMap = new Map()
+    for (const e of entries) {
+      const k = e.watched_on?.slice(0, 10)
+      if (k) countMap.set(k, (countMap.get(k) ?? 0) + 1)
     }
-    weeks.push(weekDays)
-  }
+
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const startDate = addDays(today, -(WEEKS * DAYS - 1))
+    const gridStart = addDays(startDate, -startDate.getDay())
+
+    const monthLabels = []
+    const weeks = []
+
+    for (let w = 0; w < WEEKS; w++) {
+      const weekDays = []
+      for (let d = 0; d < DAYS; d++) {
+        const date    = addDays(gridStart, w * 7 + d)
+        const key     = dateToDayKey(date)
+        const count   = countMap.get(key) ?? 0
+        const inRange = date >= startDate && date <= today
+        weekDays.push({ date, key, count, inRange })
+        if (d === 0 && date.getDate() <= 7) {
+          monthLabels.push({ weekIdx: w, label: date.toLocaleString('default', { month: 'short' }) })
+        }
+      }
+      weeks.push(weekDays)
+    }
+    return { weeks, monthLabels }
+  }, [entries])
 
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -162,7 +156,7 @@ export default function CalendarHeatmap({ entries = [], onDateSelect, selectedDa
       </View>
     </ScrollView>
   )
-}
+})
 
 const s = StyleSheet.create({
   root:       { paddingVertical: 4 },
