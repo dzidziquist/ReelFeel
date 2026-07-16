@@ -14,13 +14,15 @@
       },
       "supportsTablet": false,
       "bundleIdentifier": "com.reelfeel.app",
-      "buildNumber": "9",
+      "buildNumber": "10",
       "appleTeamId": "DS5DKR22ZZ",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false,
-        "LSApplicationQueriesSchemes": ["nflx", "aiv", "disneyplus", "hulu", "max", "videos", "peacocktv", "paramountplus", "crunchyroll", "tubi", "starz", "showtime"]
+        "ITSAppUsesNonExemptEncryption": false
       },
-      "associatedDomains": ["applinks:reelfeel.me", "webcredentials:reelfeel.me"]
+      "associatedDomains": [
+        "applinks:reelfeel.me",
+        "webcredentials:reelfeel.me"
+      ]
     },
     "android": {
       "adaptiveIcon": {
@@ -49,7 +51,10 @@
         }
       ],
       "./plugins/withWidgetBridge",
-      ["@bacons/apple-targets", {}]
+      [
+        "@bacons/apple-targets",
+        {}
+      ]
     ],
     "extra": {
       "router": {},

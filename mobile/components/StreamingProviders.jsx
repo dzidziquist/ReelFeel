@@ -3,20 +3,20 @@ import * as Linking from 'expo-linking'
 import { Ionicons } from '@expo/vector-icons'
 import { useTheme } from '../context/ThemeContext'
 
-// TMDB provider IDs → app URI scheme + web fallback
-const PROVIDER_LINKS = {
-  8:   { app: 'nflx://www.netflix.com',       web: 'https://www.netflix.com' },
-  9:   { app: 'aiv://',                         web: 'https://www.amazon.com/gp/video' },
-  337: { app: 'disneyplus://',                 web: 'https://www.disneyplus.com' },
-  15:  { app: 'hulu://',                        web: 'https://www.hulu.com' },
-  384: { app: 'max://',                         web: 'https://www.max.com' },
-  2:   { app: 'videos://',                      web: 'https://tv.apple.com' },
-  387: { app: 'peacocktv://',                  web: 'https://www.peacocktv.com' },
-  531: { app: 'paramountplus://',              web: 'https://www.paramountplus.com' },
-  283: { app: 'crunchyroll://',               web: 'https://www.crunchyroll.com' },
-  300: { app: 'tubi://',                       web: 'https://tubitv.com' },
-  43:  { app: 'starz://',                      web: 'https://www.starz.com' },
-  37:  { app: 'showtime://',                   web: 'https://www.sho.com' },
+// Universal Links — iOS opens the app if installed, Safari otherwise
+const PROVIDER_URLS = {
+  8:   'https://www.netflix.com',
+  9:   'https://www.amazon.com/gp/video',
+  337: 'https://www.disneyplus.com',
+  15:  'https://www.hulu.com',
+  384: 'https://www.max.com',
+  2:   'https://tv.apple.com',
+  387: 'https://www.peacocktv.com',
+  531: 'https://www.paramountplus.com',
+  283: 'https://www.crunchyroll.com',
+  300: 'https://tubitv.com',
+  43:  'https://www.starz.com',
+  37:  'https://www.sho.com',
 }
 
 function justWatchFallback(title, justWatchLink) {
@@ -25,19 +25,9 @@ function justWatchFallback(title, justWatchLink) {
 }
 
 async function openProvider(provider, title, justWatchLink) {
-  const known = PROVIDER_LINKS[provider.id]
-  if (!known) {
-    await Linking.openURL(justWatchFallback(title, justWatchLink))
-    return
-  }
-  if (known.app) {
-    try {
-      const canOpen = await Linking.canOpenURL(known.app)
-      if (canOpen) { await Linking.openURL(known.app); return }
-    } catch (_) {}
-  }
+  const url = PROVIDER_URLS[provider.id] ?? justWatchFallback(title, justWatchLink)
   try {
-    await Linking.openURL(known.web)
+    await Linking.openURL(url)
   } catch (_) {
     await Linking.openURL(justWatchFallback(title, justWatchLink))
   }
