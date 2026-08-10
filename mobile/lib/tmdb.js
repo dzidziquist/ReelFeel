@@ -22,6 +22,13 @@ function normalizeType(raw) {
   return raw  // already 'film' or 'tv'
 }
 
+// TMDB flags adult titles per-result. search/ and discover/ take include_adult=false,
+// but trending, now_playing, upcoming, airing_today and recommendations do not —
+// they have to be filtered client-side to keep the feed inside our 12+ age rating.
+function notAdult(r) {
+  return !r.adult
+}
+
 function mapResult(r, fallbackType = null) {
   const mediaType  = normalizeType(r.media_type || fallbackType || 'movie')
   const rawDate    = r.release_date ?? null
@@ -76,7 +83,7 @@ export async function searchTMDB(query) {
 export async function getTrending(mediaType = 'all', timeWindow = 'week') {
   const json = await get(`/trending/${mediaType}/${timeWindow}`)
   return (json.results ?? [])
-    .filter(r => r.media_type === 'movie' || r.media_type === 'tv')
+    .filter(r => (r.media_type === 'movie' || r.media_type === 'tv') && notAdult(r))
     .map(r => mapResult(r))
 }
 
@@ -85,7 +92,7 @@ export async function getTrending(mediaType = 'all', timeWindow = 'week') {
  */
 export async function getNowPlaying() {
   const json = await get('/movie/now_playing')
-  return (json.results ?? []).map(r => mapResult(r, 'movie'))
+  return (json.results ?? []).filter(notAdult).map(r => mapResult(r, 'movie'))
 }
 
 /**
@@ -93,7 +100,7 @@ export async function getNowPlaying() {
  */
 export async function getPopularTV() {
   const json = await get('/tv/popular')
-  return (json.results ?? []).map(r => mapResult(r, 'tv'))
+  return (json.results ?? []).filter(notAdult).map(r => mapResult(r, 'tv'))
 }
 
 /**
@@ -101,7 +108,7 @@ export async function getPopularTV() {
  */
 export async function getUpcoming() {
   const json = await get('/movie/upcoming')
-  return (json.results ?? []).map(r => mapResult(r, 'movie'))
+  return (json.results ?? []).filter(notAdult).map(r => mapResult(r, 'movie'))
 }
 
 /**
@@ -109,7 +116,7 @@ export async function getUpcoming() {
  */
 export async function getAiringToday() {
   const json = await get('/tv/airing_today')
-  return (json.results ?? []).map(r => mapResult(r, 'tv'))
+  return (json.results ?? []).filter(notAdult).map(r => mapResult(r, 'tv'))
 }
 
 // ── Detail ───────────────────────────────────────────────────
@@ -187,7 +194,7 @@ export async function discoverByGenre(genreIds, mediaType = 'movie') {
     sort_by:       'popularity.desc',
     include_adult: false,
   })
-  return (json.results ?? []).map(r => mapResult(r, type))
+  return (json.results ?? []).filter(notAdult).map(r => mapResult(r, type))
 }
 
 // ── Recommendations ──────────────────────────────────────────
@@ -199,7 +206,9 @@ export async function getRecommendations(tmdbId, mediaType) {
   const path = (mediaType === 'film' || mediaType === 'movie') ? 'movie' : 'tv'
   try {
     const json = await get(`/${path}/${tmdbId}/recommendations`)
-    return (json.results ?? []).map(r => mapResult(r, mediaType === 'tv' ? 'tv' : 'movie'))
+    return (json.results ?? [])
+      .filter(notAdult)
+      .map(r => mapResult(r, mediaType === 'tv' ? 'tv' : 'movie'))
   } catch {
     return []
   }

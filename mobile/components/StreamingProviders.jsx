@@ -126,7 +126,7 @@ export default function StreamingProviders({
             onPress={() => Linking.openURL(justWatchFallback(title, justWatchLink))}
             activeOpacity={0.7}
           >
-            <Text style={[s.justWatch, { color: theme.textMut }]}>More options →</Text>
+            <Text style={[s.justWatch, { color: theme.textMut }]}>More on JustWatch →</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -175,6 +175,20 @@ export default function StreamingProviders({
       <Row label="Stream"  items={streaming} />
       <Row label="Rent"    items={rent} />
       <Row label="Buy"     items={buy} />
+
+      {/* Required attribution — TMDB sources watch-provider data from JustWatch
+          and its API terms require the source to be credited wherever it is shown. */}
+      {(!!streaming.length || !!rent.length || !!buy.length) && (
+        <TouchableOpacity
+          onPress={() => Linking.openURL(justWatchFallback(title, justWatchLink))}
+          activeOpacity={0.7}
+          style={s.attributionRow}
+        >
+          <Text style={[s.attribution, { color: theme.textMut }]}>
+            Where-to-watch data provided by JustWatch
+          </Text>
+        </TouchableOpacity>
+      )}
     </View>
   )
 }
@@ -202,6 +216,8 @@ const s = StyleSheet.create({
   row:             { marginBottom: 12, paddingHorizontal: 16 },
   rowLabel:        { fontSize: 11, fontWeight: '600', marginBottom: 8 },
   scroll:          { gap: 12 },
+  attributionRow:  { paddingHorizontal: 16, paddingTop: 2 },
+  attribution:     { fontSize: 10, letterSpacing: 0.2 },
   provider:        { alignItems: 'center', width: 56 },
   logo:            { width: 44, height: 44, borderRadius: 6 },
   logoFallback:    { width: 44, height: 44, borderRadius: 6, alignItems: 'center', justifyContent: 'center' },

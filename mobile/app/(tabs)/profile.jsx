@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import {
-  View, Text, Image, ScrollView, TouchableOpacity, ActivityIndicator,
+  View, Text, ScrollView, TouchableOpacity, ActivityIndicator,
   Alert, TextInput, Modal, RefreshControl, StyleSheet, Switch, Linking,
 } from 'react-native'
+import { Image as ExpoImage } from 'expo-image'
 import { useRouter, useFocusEffect } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { getProfile, upsertProfile, getInsights, deleteAllMyData, deleteMyAccount } from '../../lib/queries'
@@ -22,6 +23,12 @@ function fmtRuntime(mins) {
 }
 
 const EMOTION_COLORS = ['#d4af37', '#7c3aed', '#ec4899']
+
+// TMDB attribution mark. Required alongside the disclaimer text by the TMDB API
+// terms of use. Hosted by TMDB — the disclaimer below it stands on its own if
+// the image ever fails to load.
+const TMDB_LOGO_URL =
+  'https://www.themoviedb.org/assets/2/v4/logos/v2/blue_square_2-d537fb228cf3ded904ef09b136fe3fec72548ebc1fea3fbbd1ad9e36364db38b.svg'
 
 function Avatar({ name, size = 64, theme }) {
   const initials = (name || '?').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
@@ -385,10 +392,13 @@ export default function Profile() {
               ReelFeel is your personal film and TV diary — log watches, rate them, and tag how they made you feel.
             </Text>
             <View style={[ab.tmdbBox, { backgroundColor: theme.bg2, borderColor: theme.border }]}>
-              <Image
-                source={{ uri: 'https://www.themoviedb.org/assets/2/v4/logos/v2/blue_square_2-d537fb228cf3ded904ef09b136fe3fec72548ebc1fea3fbbd1ad9e36364db38b.svg' }}
+              {/* expo-image, not RN Image: the TMDB attribution mark is an SVG and
+                  RN's Image cannot decode SVG — it rendered as an empty box. */}
+              <ExpoImage
+                source={{ uri: TMDB_LOGO_URL }}
                 style={ab.tmdbLogo}
-                resizeMode="contain"
+                contentFit="contain"
+                transition={0}
               />
               <Text style={[ab.tmdbText, { color: theme.textSub }]}>
                 This product uses the TMDb API but is not endorsed or certified by TMDb.
