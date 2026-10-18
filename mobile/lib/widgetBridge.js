@@ -2,7 +2,8 @@ import { NativeModules, Platform } from 'react-native'
 
 const { WidgetDataBridge } = NativeModules
 
-let cached = { lastEntry: null, watchlist: [], stats: null, recentEntries: [] }
+const EMPTY = { lastEntry: null, watchlist: [], stats: null, recentEntries: [] }
+let cached = EMPTY
 
 function mapEntry(e) {
   if (!e) return null
@@ -53,6 +54,12 @@ export function updateWidgetEntry(entries = []) {
 
 export function updateWidgetWatchlist(watchlist = []) {
   cached = { ...cached, watchlist: watchlist.slice(0, 4).map(mapWatchlistItem) }
+  flush()
+}
+
+// Wipe the widget (e.g. on sign-out) so it never shows a previous user's data.
+export function clearWidget() {
+  cached = EMPTY
   flush()
 }
 

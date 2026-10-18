@@ -6,7 +6,7 @@ import {
 import { useRouter, useFocusEffect } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { getProfile, upsertProfile, getInsights, deleteAllMyData, deleteMyAccount } from '../../lib/queries'
-import { updateWidgetStats } from '../../lib/widgetBridge'
+import { updateWidgetStats, updateWidgetEntry, updateWidgetWatchlist } from '../../lib/widgetBridge'
 import { DEMO_MODE } from '../../constants/demo'
 import { DEMO_PROFILE, DEMO_INSIGHTS } from '../../lib/demoData'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -140,7 +140,11 @@ export default function Profile() {
       { text: 'Delete Data', style: 'destructive', onPress: async () => {
         try {
           await deleteAllMyData()
-          setInsights({ totalMovies: 0, totalTV: 0, totalEntries: 0, avgRating: null, thisMonth: 0 })
+          const empty = { totalMovies: 0, totalTV: 0, totalEntries: 0, avgRating: null, thisMonth: 0 }
+          setInsights(empty)
+          updateWidgetEntry([])
+          updateWidgetWatchlist([])
+          updateWidgetStats(empty)
           Alert.alert('Done', 'All your data has been deleted.')
         } catch (err) { Alert.alert('Error', err.message) }
       }},
@@ -154,8 +158,10 @@ export default function Profile() {
         Alert.alert('Are you absolutely sure?', 'This action is irreversible.', [
           { text: 'Cancel', style: 'cancel' },
           { text: 'Delete Forever', style: 'destructive', onPress: async () => {
-            try { await deleteMyAccount() } catch {
-              await deleteAllMyData(); await logout()
+            // Never fall back to a partial delete: the account would survive
+            // while the user is told it is gone.
+            try { await deleteMyAccount() } catch (err) {
+              Alert.alert('Could not delete account', `${err.message}\n\nNothing was deleted. Please try again.`)
             }
           }},
         ])

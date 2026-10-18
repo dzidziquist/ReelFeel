@@ -7,6 +7,7 @@ import DateTimePicker from '@react-native-community/datetimepicker'
 import { Ionicons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTheme } from '../context/ThemeContext'
+import { toLocalDateString } from '../lib/dates'
 
 const SORT_OPTIONS = [
   { key: 'watched_on_desc', label: 'Date (newest)' },
@@ -114,7 +115,7 @@ export default function FilterSortBar({
 }
 
 // ── Date helpers ──────────────────────────────────────────────
-function toStr(d) { return d.toISOString().split('T')[0] }
+const toStr = toLocalDateString
 function startOfWeek() {
   const d = new Date(); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return d
 }

@@ -9,7 +9,7 @@ import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { BlurView } from 'expo-blur'
 import { searchTMDB, getRecommendations } from '../../lib/tmdb'
-import { addToWatchlist, getRecommendationSeeds, getUserGenreAffinity, getWatchStatesForTmdbIds } from '../../lib/queries'
+import { addToWatchlist, getRecommendationSeeds, getUserGenreAffinity, getWatchStates, watchKey } from '../../lib/queries'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTheme } from '../../context/ThemeContext'
 import { useTabBar } from '../../context/TabBarContext'
@@ -150,9 +150,8 @@ export default function Search() {
         if (genreFiltered.length >= 10) filtered = genreFiltered
       }
 
-      const allIds     = filtered.map(i => i.tmdb_id)
-      const watchStates = await getWatchStatesForTmdbIds(allIds).catch(() => new Map())
-      setRecs(filtered.filter(i => !watchStates.get(i.tmdb_id)?.watched).slice(0, 20))
+      const watchStates = await getWatchStates(filtered).catch(() => new Map())
+      setRecs(filtered.filter(i => !watchStates.get(watchKey(i))?.watched).slice(0, 20))
     } catch (_) {}
     finally { setRecsLoading(false) }
   }, [])
@@ -166,8 +165,8 @@ export default function Search() {
     reset()
     const current = recsRef.current
     if (!current.length) return
-    getWatchStatesForTmdbIds(current.map(r => r.tmdb_id))
-      .then(states => setRecs(prev => prev.filter(r => !states.get(r.tmdb_id)?.watched)))
+    getWatchStates(current)
+      .then(states => setRecs(prev => prev.filter(r => !states.get(watchKey(r))?.watched)))
       .catch(() => {})
   }, []))
 

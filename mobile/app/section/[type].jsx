@@ -5,9 +5,10 @@ import {
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { getTrending, getNowPlaying, getPopularTV, getUpcoming, getAiringToday } from '../../lib/tmdb'
-import { addToWatchlist, createEntry, getWatchStatesForTmdbIds } from '../../lib/queries'
+import { addToWatchlist, createEntry, getWatchStates, watchKey } from '../../lib/queries'
 import { Ionicons } from '@expo/vector-icons'
 import { useTheme } from '../../context/ThemeContext'
+import { toLocalDateString } from '../../lib/dates'
 import PosterCard from '../../components/PosterCard'
 import ActionSheet from '../../components/ActionSheet'
 
@@ -41,7 +42,7 @@ export default function SectionAll() {
     config.fetch()
       .then(items => {
         setData(items)
-        return getWatchStatesForTmdbIds(items.map(i => i.tmdb_id)).catch(() => new Map())
+        return getWatchStates(items).catch(() => new Map())
       })
       .then(states => setWatchStates(states))
       .catch(() => {})
@@ -60,7 +61,7 @@ export default function SectionAll() {
           await addToWatchlist(sheet.item.tmdb_id, sheet.item.media_type)
           setWatchStates(prev => {
             const m = new Map(prev)
-            m.set(sheet.item.tmdb_id, { ...(prev.get(sheet.item.tmdb_id) ?? {}), inWatchlist: true })
+            m.set(watchKey(sheet.item), { ...(prev.get(watchKey(sheet.item)) ?? {}), inWatchlist: true })
             return m
           })
         } catch (_) {}
@@ -73,12 +74,12 @@ export default function SectionAll() {
         try {
           await createEntry({
             tmdb_id: sheet.item.tmdb_id, media_type: sheet.item.media_type,
-            rating: 3, watched_on: new Date().toISOString().split('T')[0],
+            rating: 3, watched_on: toLocalDateString(),
             review: '', rewatch: false, emotion_ids: [],
           })
           setWatchStates(prev => {
             const m = new Map(prev)
-            m.set(sheet.item.tmdb_id, { watched: true, liked: false, rated: true, inWatchlist: false })
+            m.set(watchKey(sheet.item), { watched: true, liked: false, rated: true, inWatchlist: false })
             return m
           })
         } catch (_) {}
@@ -91,7 +92,7 @@ export default function SectionAll() {
     <PosterCard
       item={item}
       width={CARD_WIDTH}
-      watchState={watchStates.get(item.tmdb_id)}
+      watchState={watchStates.get(watchKey(item))}
       comingSoon={item.comingSoon}
       onPress={() => router.push(`/media/${item.tmdb_id}?type=${item.media_type}`)}
       onLongPress={() => setSheet({ visible: true, item })}

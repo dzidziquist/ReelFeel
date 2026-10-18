@@ -9,8 +9,9 @@ import { useRouter, useFocusEffect } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { getTrending, getNowPlaying, getPopularTV, getUpcoming, getAiringToday, getRecommendations, discoverByGenre } from '../../lib/tmdb'
-import { addToWatchlist, createEntry, deleteEntry, getWatchStatesForTmdbIds, getRecommendationSeeds, getUserGenreAffinity } from '../../lib/queries'
+import { addToWatchlist, createEntry, deleteEntry, getWatchStates, watchKey, getRecommendationSeeds, getUserGenreAffinity } from '../../lib/queries'
 import { DEMO_MODE } from '../../constants/demo'
+import { toLocalDateString } from '../../lib/dates'
 import { DEMO_HOME } from '../../lib/demoData'
 import { StarPicker } from '../../components/StarRating'
 import PosterCard from '../../components/PosterCard'
@@ -149,7 +150,7 @@ const Section = memo(function Section({ title, emoji, data, onItemPress, onItemL
             width={CARD_WIDTH}
             onPress={() => onItemPress(item)}
             onLongPress={() => onItemLongPress(item)}
-            watchState={watchStates?.get(item.tmdb_id)}
+            watchState={watchStates?.get(watchKey(item))}
             comingSoon={item.comingSoon}
             reason={showReason ? item._reason : null}
             style={{ marginRight: CARD_GAP }}
@@ -239,9 +240,8 @@ export default function Home() {
       setAiringToday(at)
       lastLoadRef.current = Date.now()
 
-      const allIds = [...new Set([...np, ...tr, ...tv, ...up, ...at].map(m => m.tmdb_id))]
       try {
-        const states = await getWatchStatesForTmdbIds(allIds)
+        const states = await getWatchStates([...np, ...tr, ...tv, ...up, ...at])
         setWatchStates(states)
       } catch (_) {}
 
@@ -335,9 +335,8 @@ export default function Home() {
         ...upcomingRef.current,
         ...airingRef.current,
       ]
-      const ids = [...new Set(allItems.map(i => i.tmdb_id))]
-      if (!ids.length) return
-      getWatchStatesForTmdbIds(ids)
+      if (!allItems.length) return
+      getWatchStates(allItems)
         .then(states => setWatchStates(states))
         .catch(() => {})
     }, [load])
@@ -357,8 +356,8 @@ export default function Home() {
       await addToWatchlist(item.tmdb_id, item.media_type)
       setWatchStates(prev => {
         const map = new Map(prev)
-        const cur = prev.get(item.tmdb_id) ?? {}
-        map.set(item.tmdb_id, { ...cur, inWatchlist: true })
+        const cur = prev.get(watchKey(item)) ?? {}
+        map.set(watchKey(item), { ...cur, inWatchlist: true })
         return map
       })
     } catch (err) {
@@ -372,14 +371,14 @@ export default function Home() {
         tmdb_id:     item.tmdb_id,
         media_type:  item.media_type,
         rating:      3,
-        watched_on:  new Date().toISOString().split('T')[0],
+        watched_on:  toLocalDateString(),
         review:      '',
         rewatch:     false,
         emotion_ids: [],
       })
       setWatchStates(prev => {
         const map = new Map(prev)
-        map.set(item.tmdb_id, { watched: true, liked: false, rated: true, inWatchlist: false })
+        map.set(watchKey(item), { watched: true, liked: false, rated: true, inWatchlist: false })
         return map
       })
       Alert.alert(
@@ -391,7 +390,7 @@ export default function Home() {
             onPress: async () => {
               try {
                 await deleteEntry(entry.id)
-                setWatchStates(prev => { const m = new Map(prev); m.delete(item.tmdb_id); return m })
+                setWatchStates(prev => { const m = new Map(prev); m.delete(watchKey(item)); return m })
               } catch (_) {}
             },
           },
@@ -412,14 +411,14 @@ export default function Home() {
         tmdb_id:     item.tmdb_id,
         media_type:  item.media_type,
         rating:      value,
-        watched_on:  new Date().toISOString().split('T')[0],
+        watched_on:  toLocalDateString(),
         review:      '',
         rewatch:     false,
         emotion_ids: [],
       })
       setWatchStates(prev => {
         const map = new Map(prev)
-        map.set(item.tmdb_id, { watched: true, liked: value >= 4, rated: true, inWatchlist: prev.get(item.tmdb_id)?.inWatchlist ?? false })
+        map.set(watchKey(item), { watched: true, liked: value >= 4, rated: true, inWatchlist: prev.get(watchKey(item))?.inWatchlist ?? false })
         return map
       })
       setRateModal({ visible: false, item: null, value: 3 })
@@ -462,7 +461,7 @@ export default function Home() {
 
   const heroItem    = heroItems[heroIndex] ?? nowPlaying[0] ?? null
   const forYouShown = useMemo(
-    () => filterByGenre(forYou.filter(i => !watchStates.get(i.tmdb_id)?.watched), selectedGenre),
+    () => filterByGenre(forYou.filter(i => !watchStates.get(watchKey(i))?.watched), selectedGenre),
     [forYou, watchStates, selectedGenre]
   )
 
@@ -525,7 +524,7 @@ export default function Home() {
               onPress={() => heroItem && openMovie(heroItem)}
               onLongPress={() => heroItem && openSheet(heroItem)}
               onSave={handleWatchlist}
-              watchState={watchStates.get(heroItem?.tmdb_id)}
+              watchState={heroItem ? watchStates.get(watchKey(heroItem)) : undefined}
               dotIndex={heroIndex}
               dotTotal={heroItems.length}
             />
