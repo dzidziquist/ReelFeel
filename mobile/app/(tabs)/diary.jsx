@@ -17,6 +17,7 @@ import { FilterPanel } from '../../components/FilterSortBar'
 import CalendarHeatmap from '../../components/CalendarHeatmap'
 import PosterCard from '../../components/PosterCard'
 import { useTheme } from '../../context/ThemeContext'
+import { usePersistedState } from '../../lib/usePersistedState'
 import { useTabBar } from '../../context/TabBarContext'
 
 const NUM_COLS   = 3
@@ -146,7 +147,7 @@ export default function Diary() {
   const [refreshing,  setRefreshing]  = useState(false)
   const [error,       setError]       = useState('')
   const [showHeatmap, setShowHeatmap] = useState(false)
-  const [viewMode,    setViewMode]    = useState('list')
+  const [viewMode,    setViewMode]    = usePersistedState('diary_view_mode', 'list')
   const [filters,     setFilters]     = useState({ genre: '', minRating: '', maxRating: '', emotionIds: [], startDate: '', endDate: '' })
   const [sort,        setSort]        = useState('watched_on_desc')
   const [filterOpen,    setFilterOpen]    = useState(false)
