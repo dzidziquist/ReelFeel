@@ -6,12 +6,13 @@ import {
 import { useRouter, useFocusEffect } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { getProfile, upsertProfile, getInsights, deleteAllMyData, deleteMyAccount } from '../../lib/queries'
-import { updateWidgetStats } from '../../lib/widgetBridge'
+import { updateWidgetStats, updateWidgetEntry, updateWidgetWatchlist } from '../../lib/widgetBridge'
 import { DEMO_MODE } from '../../constants/demo'
 import { DEMO_PROFILE, DEMO_INSIGHTS } from '../../lib/demoData'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
+import { displayType } from '../../lib/typography'
 import { useTabBar } from '../../context/TabBarContext'
 
 function fmtRuntime(mins) {
@@ -97,6 +98,11 @@ function EditModal({ visible, profile, onSave, onCancel, theme = {} }) {
   )
 }
 
+const UI_STYLE_OPTIONS = [
+  { key: 'classic', label: 'Classic',     icon: 'film-outline' },
+  { key: 'ticket',  label: 'Ticket Stub', icon: 'ticket-outline', badge: 'NEW' },
+]
+
 const BRIGHTNESS_MODES = [
   { key: 'system', label: 'System', icon: 'phone-portrait-outline' },
   { key: 'light',  label: 'Light',  icon: 'sunny-outline' },
@@ -106,7 +112,7 @@ const BRIGHTNESS_MODES = [
 export default function Profile() {
   const { logout } = useAuth()
   const router     = useRouter()
-  const { theme, isDark, mode, setMode, navbarShowLabels, setNavbarShowLabels } = useTheme()
+  const { theme, isDark, mode, setMode, navbarShowLabels, setNavbarShowLabels, uiStyle, setUiStyle } = useTheme()
   const { onScroll, reset } = useTabBar()
   const insets = useSafeAreaInsets()
 
@@ -140,7 +146,11 @@ export default function Profile() {
       { text: 'Delete Data', style: 'destructive', onPress: async () => {
         try {
           await deleteAllMyData()
-          setInsights({ totalMovies: 0, totalTV: 0, totalEntries: 0, avgRating: null, thisMonth: 0 })
+          const empty = { totalMovies: 0, totalTV: 0, totalEntries: 0, avgRating: null, thisMonth: 0 }
+          setInsights(empty)
+          updateWidgetEntry([])
+          updateWidgetWatchlist([])
+          updateWidgetStats(empty)
           Alert.alert('Done', 'All your data has been deleted.')
         } catch (err) { Alert.alert('Error', err.message) }
       }},
@@ -154,8 +164,10 @@ export default function Profile() {
         Alert.alert('Are you absolutely sure?', 'This action is irreversible.', [
           { text: 'Cancel', style: 'cancel' },
           { text: 'Delete Forever', style: 'destructive', onPress: async () => {
-            try { await deleteMyAccount() } catch {
-              await deleteAllMyData(); await logout()
+            // Never fall back to a partial delete: the account would survive
+            // while the user is told it is gone.
+            try { await deleteMyAccount() } catch (err) {
+              Alert.alert('Could not delete account', `${err.message}\n\nNothing was deleted. Please try again.`)
             }
           }},
         ])
@@ -204,7 +216,7 @@ export default function Profile() {
             <Avatar name={displayName} size={72} theme={theme} />
             <View style={s.heroNames}>
               <View style={s.heroNameRow}>
-                <Text style={[s.heroName, { color: theme.text }]}>{displayName}</Text>
+                <Text style={[s.heroName, { color: theme.text }, displayType(theme)]}>{displayName}</Text>
                 <TouchableOpacity
                   onPress={() => setEditOpen(true)}
                   style={[s.editIconBtn, { borderColor: theme.border, backgroundColor: theme.bg1 }]}
@@ -294,6 +306,32 @@ export default function Profile() {
         {/* ── Appearance ── */}
         <View style={[s.section, { backgroundColor: theme.bg1, borderColor: theme.text }]}>
           <Text style={[s.sectionLabel, { color: theme.textMut }]}>APPEARANCE</Text>
+
+          <Text style={[s.switchLabel, s.styleLabel, { color: theme.textSub }]}>Style</Text>
+          <View style={[s.segmented, s.styleSegmented, { backgroundColor: theme.bg2, borderColor: theme.border }]}>
+            {UI_STYLE_OPTIONS.map(o => {
+              const active = uiStyle === o.key
+              const fg     = active ? (isDark ? '#000' : '#fff') : theme.textSub
+              return (
+                <TouchableOpacity
+                  key={o.key}
+                  onPress={() => setUiStyle(o.key)}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: active }}
+                  style={[s.segment, active
+                    ? { backgroundColor: theme.gold, borderColor: theme.gold }
+                    : { backgroundColor: isDark ? theme.bg3 : theme.bg1, borderColor: 'transparent' }
+                  ]}
+                >
+                  <Ionicons name={o.icon} size={14} color={fg} />
+                  <Text style={[s.segmentText, { color: fg }]}>{o.label}</Text>
+                  {o.badge && !active ? (
+                    <Text style={[s.styleBadge, { color: theme.red, borderColor: theme.red }]}>{o.badge}</Text>
+                  ) : null}
+                </TouchableOpacity>
+              )
+            })}
+          </View>
 
           <View style={[s.segmented, { backgroundColor: theme.bg2, borderColor: theme.border }]}>
             {BRIGHTNESS_MODES.map(m => {
@@ -462,6 +500,9 @@ const s = StyleSheet.create({
   segmented:    { flexDirection: 'row', borderRadius: 6, borderWidth: StyleSheet.hairlineWidth, padding: 3, gap: 3 },
   segment:      { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, paddingVertical: 8, borderRadius: 4 },
   segmentText:  { fontSize: 12, fontWeight: '700' },
+  styleLabel:   { marginBottom: 8 },
+  styleSegmented: { marginBottom: 12 },
+  styleBadge:   { fontSize: 9, fontWeight: '800', borderWidth: 1, borderRadius: 3, paddingHorizontal: 3, overflow: 'hidden' },
 
   // Switch row
   switchRow:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 14, paddingTop: 14, borderTopWidth: 1 },

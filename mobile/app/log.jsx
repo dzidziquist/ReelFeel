@@ -12,10 +12,7 @@ import EmotionPicker from '../components/EmotionPicker'
 import { StarPicker } from '../components/StarRating'
 import TVEpisodeBrowser from '../components/TVEpisodeBrowser'
 import { useTheme } from '../context/ThemeContext'
-
-function toDateString(d) {
-  return d.toISOString().split('T')[0]
-}
+import { toLocalDateString } from '../lib/dates'
 
 export default function LogEntry() {
   const params   = useLocalSearchParams()
@@ -34,7 +31,7 @@ export default function LogEntry() {
   const [form, setForm] = useState({
     tmdb_id:        tmdbId || '',
     media_type:     type,
-    watched_on:     toDateString(new Date()),
+    watched_on:     toLocalDateString(new Date()),
     rating:         3,
     review:         '',
     rewatch:        false,
@@ -45,7 +42,7 @@ export default function LogEntry() {
   const [error, setError]   = useState('')
   const [loading, setLoading] = useState(false)
 
-  useEffect(() => { getEmotions().then(setEmotions) }, [])
+  useEffect(() => { getEmotions().then(setEmotions).catch(() => {}) }, [])
 
   useEffect(() => {
     if (!tmdbId) return
@@ -155,7 +152,7 @@ export default function LogEntry() {
             <View style={s.searchResults}>
               {searchResults.slice(0, 5).map(r => (
                 <TouchableOpacity
-                  key={r.tmdb_id}
+                  key={`${r.media_type}:${r.tmdb_id}`}
                   onPress={() => selectMedia(r)}
                   style={[s.searchRow2, { backgroundColor: theme.bg2 }]}
                 >
@@ -224,7 +221,7 @@ export default function LogEntry() {
                 maximumDate={new Date()}
                 onChange={(_, date) => {
                   setShowDatePicker(Platform.OS === 'ios')
-                  if (date) setForm(f => ({ ...f, watched_on: toDateString(date) }))
+                  if (date) setForm(f => ({ ...f, watched_on: toLocalDateString(date) }))
                 }}
               />
             )}

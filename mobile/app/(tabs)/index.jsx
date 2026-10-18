@@ -9,8 +9,10 @@ import { useRouter, useFocusEffect } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { getTrending, getNowPlaying, getPopularTV, getUpcoming, getAiringToday, getRecommendations, discoverByGenre } from '../../lib/tmdb'
-import { addToWatchlist, createEntry, deleteEntry, getWatchStatesForTmdbIds, getRecommendationSeeds, getUserGenreAffinity } from '../../lib/queries'
+import { addToWatchlist, createEntry, deleteEntry, getWatchStates, watchKey, getRecommendationSeeds, getUserGenreAffinity } from '../../lib/queries'
 import { DEMO_MODE } from '../../constants/demo'
+import { toLocalDateString } from '../../lib/dates'
+import { displayType, bodyType, monoType } from '../../lib/typography'
 import { DEMO_HOME } from '../../lib/demoData'
 import { StarPicker } from '../../components/StarRating'
 import PosterCard from '../../components/PosterCard'
@@ -110,6 +112,23 @@ function GenreChips({ genres, selected, onSelect, theme }) {
     >
       {all.map(g => {
         const active = g.ids === null ? !selected : selected === g.label
+        if (theme.style === 'ticket') {
+          // Ticket Stub: plain text tabs with an accent underline
+          return (
+            <TouchableOpacity
+              key={g.label}
+              onPress={() => onSelect(g.ids === null ? null : (active ? null : g.label))}
+              style={[s.tabChip, active && { borderBottomColor: theme.red }]}
+              activeOpacity={0.75}
+              accessibilityRole="button"
+              accessibilityState={{ selected: active }}
+            >
+              <Text style={[s.chipText, { color: active ? theme.text : theme.textMut }, bodyType(theme, active ? 'bold' : 'medium'), s.tabChipText]}>
+                {g.label}
+              </Text>
+            </TouchableOpacity>
+          )
+        }
         return (
           <TouchableOpacity
             key={g.label}
@@ -139,7 +158,9 @@ const Section = memo(function Section({ title, emoji, data, onItemPress, onItemL
   return (
     <View style={s.section}>
       <View style={s.sectionHeader}>
-        <Text style={[s.sectionTitle, { color: theme.text }]}>{emoji}  {title}</Text>
+        <Text style={[s.sectionTitle, { color: theme.text }, displayType(theme), theme.style === 'ticket' && s.sectionTitleTicket]}>
+          {theme.style === 'ticket' ? title : `${emoji}  ${title}`}
+        </Text>
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.row}>
         {data.map(item => (
@@ -149,7 +170,7 @@ const Section = memo(function Section({ title, emoji, data, onItemPress, onItemL
             width={CARD_WIDTH}
             onPress={() => onItemPress(item)}
             onLongPress={() => onItemLongPress(item)}
-            watchState={watchStates?.get(item.tmdb_id)}
+            watchState={watchStates?.get(watchKey(item))}
             comingSoon={item.comingSoon}
             reason={showReason ? item._reason : null}
             style={{ marginRight: CARD_GAP }}
@@ -239,9 +260,8 @@ export default function Home() {
       setAiringToday(at)
       lastLoadRef.current = Date.now()
 
-      const allIds = [...new Set([...np, ...tr, ...tv, ...up, ...at].map(m => m.tmdb_id))]
       try {
-        const states = await getWatchStatesForTmdbIds(allIds)
+        const states = await getWatchStates([...np, ...tr, ...tv, ...up, ...at])
         setWatchStates(states)
       } catch (_) {}
 
@@ -335,9 +355,8 @@ export default function Home() {
         ...upcomingRef.current,
         ...airingRef.current,
       ]
-      const ids = [...new Set(allItems.map(i => i.tmdb_id))]
-      if (!ids.length) return
-      getWatchStatesForTmdbIds(ids)
+      if (!allItems.length) return
+      getWatchStates(allItems)
         .then(states => setWatchStates(states))
         .catch(() => {})
     }, [load])
@@ -357,8 +376,8 @@ export default function Home() {
       await addToWatchlist(item.tmdb_id, item.media_type)
       setWatchStates(prev => {
         const map = new Map(prev)
-        const cur = prev.get(item.tmdb_id) ?? {}
-        map.set(item.tmdb_id, { ...cur, inWatchlist: true })
+        const cur = prev.get(watchKey(item)) ?? {}
+        map.set(watchKey(item), { ...cur, inWatchlist: true })
         return map
       })
     } catch (err) {
@@ -372,14 +391,14 @@ export default function Home() {
         tmdb_id:     item.tmdb_id,
         media_type:  item.media_type,
         rating:      3,
-        watched_on:  new Date().toISOString().split('T')[0],
+        watched_on:  toLocalDateString(),
         review:      '',
         rewatch:     false,
         emotion_ids: [],
       })
       setWatchStates(prev => {
         const map = new Map(prev)
-        map.set(item.tmdb_id, { watched: true, liked: false, rated: true, inWatchlist: false })
+        map.set(watchKey(item), { watched: true, liked: false, rated: true, inWatchlist: false })
         return map
       })
       Alert.alert(
@@ -391,7 +410,7 @@ export default function Home() {
             onPress: async () => {
               try {
                 await deleteEntry(entry.id)
-                setWatchStates(prev => { const m = new Map(prev); m.delete(item.tmdb_id); return m })
+                setWatchStates(prev => { const m = new Map(prev); m.delete(watchKey(item)); return m })
               } catch (_) {}
             },
           },
@@ -412,14 +431,14 @@ export default function Home() {
         tmdb_id:     item.tmdb_id,
         media_type:  item.media_type,
         rating:      value,
-        watched_on:  new Date().toISOString().split('T')[0],
+        watched_on:  toLocalDateString(),
         review:      '',
         rewatch:     false,
         emotion_ids: [],
       })
       setWatchStates(prev => {
         const map = new Map(prev)
-        map.set(item.tmdb_id, { watched: true, liked: value >= 4, rated: true, inWatchlist: prev.get(item.tmdb_id)?.inWatchlist ?? false })
+        map.set(watchKey(item), { watched: true, liked: value >= 4, rated: true, inWatchlist: prev.get(watchKey(item))?.inWatchlist ?? false })
         return map
       })
       setRateModal({ visible: false, item: null, value: 3 })
@@ -462,7 +481,7 @@ export default function Home() {
 
   const heroItem    = heroItems[heroIndex] ?? nowPlaying[0] ?? null
   const forYouShown = useMemo(
-    () => filterByGenre(forYou.filter(i => !watchStates.get(i.tmdb_id)?.watched), selectedGenre),
+    () => filterByGenre(forYou.filter(i => !watchStates.get(watchKey(i))?.watched), selectedGenre),
     [forYou, watchStates, selectedGenre]
   )
 
@@ -497,10 +516,12 @@ export default function Home() {
         {/* Child 0 — scrolls away */}
         <View>
           <View style={[s.header, { paddingTop: 8 }]}>
-            <Text style={s.logo}>🎞️</Text>
+            {theme.style !== 'ticket' && <Text style={s.logo}>🎞️</Text>}
             <View>
-              <Text style={[s.appName, { color: theme.text }]}>ReelFeel</Text>
-              <Text style={[s.subtitle, { color: theme.redL }]}>what are we watching? 👀</Text>
+              <Text style={[s.appName, { color: theme.text }, displayType(theme), theme.style === 'ticket' && s.appNameTicket]}>ReelFeel</Text>
+              <Text style={[s.subtitle, { color: theme.style === 'ticket' ? theme.textMut : theme.redL }, monoType(theme)]}>
+                {theme.style === 'ticket' ? 'what are we watching?' : 'what are we watching? 👀'}
+              </Text>
             </View>
           </View>
 
@@ -525,7 +546,7 @@ export default function Home() {
               onPress={() => heroItem && openMovie(heroItem)}
               onLongPress={() => heroItem && openSheet(heroItem)}
               onSave={handleWatchlist}
-              watchState={watchStates.get(heroItem?.tmdb_id)}
+              watchState={heroItem ? watchStates.get(watchKey(heroItem)) : undefined}
               dotIndex={heroIndex}
               dotTotal={heroItems.length}
             />
@@ -673,6 +694,7 @@ const s = StyleSheet.create({
   header:  { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingBottom: 16 },
   logo:    { fontSize: 24 },
   appName: { fontSize: 28, fontWeight: '900' },
+  appNameTicket: { fontSize: 38, lineHeight: 42 },
   subtitle:{ fontSize: 12, marginTop: 2 },
 
   // Hero
@@ -710,11 +732,14 @@ const s = StyleSheet.create({
   chipsRow:  { paddingHorizontal: 16, paddingBottom: 16, gap: 8, alignItems: 'center' },
   chip:      { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignSelf: 'flex-start' },
   chipText:  { fontSize: 12 },
+  tabChip:   { minHeight: 44, justifyContent: 'center', borderBottomWidth: 3, borderBottomColor: 'transparent', marginRight: 10 },
+  tabChipText: { fontSize: 14 },
 
   // Section
   section:      { marginBottom: 28 },
   sectionHeader:{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, marginBottom: 12 },
   sectionTitle: { fontSize: 17, fontWeight: '800' },
+  sectionTitleTicket: { fontSize: 22 },
   seeAllBtn:    { flexDirection: 'row', alignItems: 'center', gap: 2 },
   seeAllText:   { fontSize: 12, fontWeight: '600' },
   row:          { paddingHorizontal: 16 },

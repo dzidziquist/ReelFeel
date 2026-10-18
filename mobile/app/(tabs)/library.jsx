@@ -10,6 +10,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { getLibrary } from '../../lib/queries'
 import PosterCard from '../../components/PosterCard'
 import { useTheme } from '../../context/ThemeContext'
+import { displayType } from '../../lib/typography'
 import { useTabBar } from '../../context/TabBarContext'
 
 const NUM_COLS   = 3
@@ -74,7 +75,7 @@ export default function Library() {
         }
         ListHeaderComponent={
           <View style={[s.headerBlock, { paddingTop: insets.top + 16 }]}>
-            <Text style={[s.title, { color: theme.text }]}>Library</Text>
+            <Text style={[s.title, { color: theme.text }, displayType(theme), theme.style === 'ticket' && { fontSize: 34 }]}>Library</Text>
             <Text style={[s.subtitle, { color: theme.textMut }]}>
               {items.length} {items.length === 1 ? 'title' : 'titles'} watched
             </Text>

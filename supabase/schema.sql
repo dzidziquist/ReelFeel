@@ -140,18 +140,18 @@ alter table public.diary_entry_emotions enable row level security;
 alter table public.profiles             enable row level security;
 alter table public.watchlist            enable row level security;
 
--- media: readable by everyone, writable by authenticated users
+-- media: readable by everyone; clients cannot insert or update.
+-- Rows are a shared catalogue, so one user must not be able to decide what a
+-- title says for everyone. New rows are created server-side from TMDB data by
+-- the ensure-media Edge Function (supabase/functions/ensure-media).
+-- The legacy "media_insert" policy is removed by lock-media-inserts.sql, which
+-- must only run once the function is deployed and the app update has shipped.
 do $$ begin
   if not exists (select 1 from pg_policies where tablename='media' and policyname='media_read') then
     create policy "media_read"   on public.media for select using (true);
   end if;
-  if not exists (select 1 from pg_policies where tablename='media' and policyname='media_insert') then
-    create policy "media_insert" on public.media for insert with check (auth.uid() is not null);
-  end if;
-  if not exists (select 1 from pg_policies where tablename='media' and policyname='media_update') then
-    create policy "media_update" on public.media for update using (auth.uid() is not null);
-  end if;
 end $$;
+drop policy if exists "media_update" on public.media;
 
 -- emotions: read-only for everyone
 do $$ begin
@@ -195,11 +195,10 @@ do $$ begin
   end if;
 end $$;
 
--- profiles: public read, owner write
+-- profiles: owner read/write (the app only ever reads the current user's profile)
+drop policy if exists "profiles_select" on public.profiles;
+create policy "profiles_select" on public.profiles for select using (auth.uid() = id);
 do $$ begin
-  if not exists (select 1 from pg_policies where tablename='profiles' and policyname='profiles_select') then
-    create policy "profiles_select" on public.profiles for select using (true);
-  end if;
   if not exists (select 1 from pg_policies where tablename='profiles' and policyname='profiles_insert') then
     create policy "profiles_insert" on public.profiles for insert with check (auth.uid() = id);
   end if;

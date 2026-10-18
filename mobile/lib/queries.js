@@ -1,5 +1,6 @@
 import { supabase } from './supabase'
 import { fetchTMDBDetail, TMDB_IMG } from './tmdb'
+import { toLocalDateString, addDaysToDateString } from './dates'
 
 const toURL      = p => p ? `${TMDB_IMG}/w500${p}`      : null
 const toBackdrop = p => p ? `${TMDB_IMG}/original${p}`  : null
@@ -7,6 +8,19 @@ const toBackdrop = p => p ? `${TMDB_IMG}/original${p}`  : null
 function fmtMedia(m) {
   return { ...m, poster_url: toURL(m.poster_path), backdrop_url: toBackdrop(m.backdrop_path) }
 }
+
+// TMDB numbers films and TV shows separately, so a tmdb_id alone is ambiguous.
+// 'movie' is the legacy name for 'film' still present in older rows.
+const normType = t => (t === 'movie' ? 'film' : t)
+const typeVariants = t => {
+  const n = normType(t)
+  if (n === 'film') return ['film', 'movie']
+  if (n === 'tv')   return ['tv']
+  return null
+}
+
+// Key for the Map returned by getWatchStates.
+export const watchKey = item => `${normType(item.media_type)}:${item.tmdb_id}`
 
 function fmtEntry(e) {
   return {
@@ -62,10 +76,14 @@ export async function updateEntry(id, { rating, watched_on, review, rewatch, emo
   const { error } = await supabase
     .from('diary_entries').update(updates).eq('id', id)
   if (error) throw error
-  await supabase.from('diary_entry_emotions').delete().eq('entry_id', id)
-  if (emotion_ids.length)
-    await supabase.from('diary_entry_emotions')
+  invalidateInsightsCache()
+  const { error: dErr } = await supabase.from('diary_entry_emotions').delete().eq('entry_id', id)
+  if (dErr) throw dErr
+  if (emotion_ids.length) {
+    const { error: iErr } = await supabase.from('diary_entry_emotions')
       .insert(emotion_ids.map(eid => ({ entry_id: id, emotion_id: eid })))
+    if (iErr) throw iErr
+  }
 }
 
 export async function deleteEntry(id) {
@@ -77,12 +95,15 @@ export async function deleteEntry(id) {
 // ── Insights ──────────────────────────────────────────────────
 let _insightsCache = null
 let _insightsCacheAt = 0
+let _insightsCacheUser = null
 const INSIGHTS_TTL = 5 * 60 * 1000
 
-export function invalidateInsightsCache() { _insightsCache = null }
+export function invalidateInsightsCache() { _insightsCache = null; _insightsCacheUser = null }
 
 export async function getInsights() {
-  if (_insightsCache && Date.now() - _insightsCacheAt < INSIGHTS_TTL) return _insightsCache
+  // getSession is local (no network), so a cache hit stays instant
+  const { data: { session } } = await supabase.auth.getSession()
+  if (_insightsCache && _insightsCacheUser === session?.user?.id && Date.now() - _insightsCacheAt < INSIGHTS_TTL) return _insightsCache
   const { data: { user } } = await supabase.auth.getUser()
 
   const { data: entries, error } = await supabase
@@ -115,17 +136,20 @@ export async function getInsights() {
     }
   }
 
-  // Streak: consecutive calendar days with at least one entry, starting from the most recent
+  // Streak: consecutive calendar days with at least one entry, ending today
+  // (or yesterday, so the streak survives until the end of today).
   const uniqueDays = [...new Set(entries.map(e => e.watched_on).filter(Boolean))].sort((a, b) => b.localeCompare(a))
+  const today      = toLocalDateString(now)
+  const yesterday  = addDaysToDateString(today, -1)
   let streak = 0
-  if (uniqueDays.length > 0) {
-    let expected = uniqueDays[0]
+  const latest = uniqueDays.find(d => d <= today)
+  if (latest === today || latest === yesterday) {
+    let expected = latest
     for (const day of uniqueDays) {
+      if (day > today) continue
       if (day === expected) {
         streak++
-        const d = new Date(expected + 'T12:00:00')
-        d.setDate(d.getDate() - 1)
-        expected = d.toISOString().split('T')[0]
+        expected = addDaysToDateString(expected, -1)
       } else {
         break
       }
@@ -149,6 +173,7 @@ export async function getInsights() {
   }
   _insightsCache = result
   _insightsCacheAt = Date.now()
+  _insightsCacheUser = user.id
   return result
 }
 
@@ -172,38 +197,36 @@ export async function getOrCreateMedia(tmdbId, mediaType) {
     .eq('tmdb_id', tmdbId).eq('media_type', mediaType).maybeSingle()
   if (existing) return existing
 
-  const detail = await fetchTMDBDetail(tmdbId, mediaType)
-  const { data, error } = await supabase.from('media').insert({
-    tmdb_id:       detail.tmdb_id,
-    media_type:    detail.media_type,
-    title:         detail.title,
-    year:          detail.year,
-    poster_path:   detail.poster_path,
-    backdrop_path: detail.backdrop_path,
-    overview:      detail.overview,
-    tagline:       detail.tagline,
-    genres:        detail.genres,
-    runtime:       detail.runtime,
-    tmdb_rating:   detail.tmdb_rating,
-    vote_count:    detail.vote_count,
-  }).select().single()
-  if (error) throw error
+  // New titles are created server-side from TMDB data (supabase/functions/ensure-media),
+  // so no client can write what a shared catalogue row says.
+  const { data, error } = await supabase.functions.invoke('ensure-media', {
+    body: { tmdb_id: tmdbId, media_type: mediaType },
+  })
+  if (error) {
+    const body = await error.context?.json?.().catch(() => null)
+    throw new Error(body?.error ?? error.message)
+  }
   return data
 }
 
-export async function getMedia(tmdbId, fallbackType = 'film') {
+export async function getMedia(tmdbId, mediaType) {
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Try to find media in DB first
-  const { data: media } = await supabase
-    .from('media').select('*').eq('tmdb_id', Number(tmdbId)).maybeSingle()
+  // Try to find media in DB first (scoped to the type when known)
+  let q = supabase.from('media').select('*').eq('tmdb_id', Number(tmdbId))
+  const variants = typeVariants(mediaType)
+  if (variants) q = q.in('media_type', variants)
+  const { data: rows } = await q.order('id')
+  // Legacy 'movie' and 'film' rows can coexist for one title; read entries from both
+  const media      = rows?.[0] ?? null
+  const sameTitle  = (rows ?? []).filter(r => media && normType(r.media_type) === normType(media.media_type))
 
   let mediaRow
   if (media) {
     mediaRow = fmtMedia(media)
   } else {
     // Not in DB yet — fetch from TMDB directly and return without storing
-    const detail = await fetchTMDBDetail(Number(tmdbId), fallbackType)
+    const detail = await fetchTMDBDetail(Number(tmdbId), mediaType || 'film')
     mediaRow = {
       ...detail,
       id:           null,
@@ -216,7 +239,7 @@ export async function getMedia(tmdbId, fallbackType = 'film') {
   const { data: entries, error: eErr } = await supabase
     .from('diary_entries')
     .select('id, watched_on, rating, review, rewatch, season_number, episode_number, created_at, diary_entry_emotions(emotions(*))')
-    .eq('user_id', user.id).eq('media_id', media.id)
+    .eq('user_id', user.id).in('media_id', sameTitle.map(r => r.id))
     .order('watched_on', { ascending: false })
   if (eErr) throw eErr
 
@@ -270,12 +293,16 @@ export async function isInWatchlist(mediaId) {
 }
 
 // Remove by tmdb_id (convenience — when we only have tmdb_id, not DB media_id)
-export async function removeFromWatchlistByTmdbId(tmdbId) {
+export async function removeFromWatchlistByTmdbId(tmdbId, mediaType) {
   const { data: { user } } = await supabase.auth.getUser()
-  const { data: media } = await supabase
-    .from('media').select('id').eq('tmdb_id', tmdbId).maybeSingle()
-  if (!media) return
-  await removeFromWatchlist(media.id)
+  const { data: rows, error } = await supabase
+    .from('media').select('id').eq('tmdb_id', tmdbId).in('media_type', typeVariants(mediaType) ?? ['film', 'movie', 'tv'])
+  if (error) throw error
+  if (!rows?.length) return
+  const { error: dErr } = await supabase
+    .from('watchlist').delete()
+    .eq('user_id', user.id).in('media_id', rows.map(r => r.id))
+  if (dErr) throw dErr
 }
 
 // ── Profile ───────────────────────────────────────────────────
@@ -309,22 +336,23 @@ export async function upsertProfile({ display_name, bio }) {
 
 // ── Watch States (batch, for home feed badges) ────────────────
 /**
- * For a list of tmdb_ids, return a Map<tmdb_id, { watched, liked, rated, inWatchlist }>
+ * For a list of { tmdb_id, media_type } items, return a
+ * Map<watchKey(item), { watched, liked, rated, inWatchlist }>.
  * Used by the Home screen to decorate poster cards.
  */
-export async function getWatchStatesForTmdbIds(tmdbIds) {
+export async function getWatchStates(items) {
   const result = new Map()
-  if (!tmdbIds?.length) return result
+  const tmdbIds = [...new Set((items ?? []).map(i => i.tmdb_id))]
+  if (!tmdbIds.length) return result
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return result
 
   // Get all media IDs for these tmdb_ids
   const { data: mediaRows } = await supabase
-    .from('media').select('id, tmdb_id').in('tmdb_id', tmdbIds)
+    .from('media').select('id, tmdb_id, media_type').in('tmdb_id', tmdbIds)
   if (!mediaRows?.length) return result
 
-  const mediaIdToTmdbId = new Map(mediaRows.map(m => [m.id, m.tmdb_id]))
   const mediaIds = mediaRows.map(m => m.id)
 
   // Get diary entries for these media
@@ -346,15 +374,24 @@ export async function getWatchStatesForTmdbIds(tmdbIds) {
     diaryByMedia.get(row.media_id).push(row)
   }
 
-  for (const { id: mediaId, tmdb_id } of mediaRows) {
-    const entries = diaryByMedia.get(mediaId) ?? []
+  // Group legacy 'movie' + 'film' rows of the same title under one key
+  const byKey = new Map()
+  for (const m of mediaRows) {
+    const key = watchKey(m)
+    if (!byKey.has(key)) byKey.set(key, { entries: [], inWatchlist: false })
+    const agg = byKey.get(key)
+    agg.entries.push(...(diaryByMedia.get(m.id) ?? []))
+    if (watchlistSet.has(m.id)) agg.inWatchlist = true
+  }
+
+  for (const [key, { entries, inWatchlist }] of byKey) {
     const ratings = entries.map(e => Number(e.rating)).filter(Boolean)
     const avgRating = ratings.length ? ratings.reduce((a, b) => a + b, 0) / ratings.length : null
-    result.set(tmdb_id, {
+    result.set(key, {
       watched:     entries.length > 0,
       liked:       avgRating != null && avgRating >= 4,
       rated:       ratings.length > 0,
-      inWatchlist: watchlistSet.has(mediaId),
+      inWatchlist,
     })
   }
 
@@ -483,12 +520,17 @@ export async function deleteAllMyData() {
 
   // Delete in dependency order
   const entries = await supabase.from('diary_entries').select('id').eq('user_id', uid)
+  if (entries.error) throw entries.error
   if (entries.data?.length) {
-    await supabase.from('diary_entry_emotions')
+    const { error } = await supabase.from('diary_entry_emotions')
       .delete().in('entry_id', entries.data.map(e => e.id))
+    if (error) throw error
   }
-  await supabase.from('diary_entries').delete().eq('user_id', uid)
-  await supabase.from('watchlist').delete().eq('user_id', uid)
+  const { error: dErr } = await supabase.from('diary_entries').delete().eq('user_id', uid)
+  if (dErr) throw dErr
+  const { error: wErr } = await supabase.from('watchlist').delete().eq('user_id', uid)
+  if (wErr) throw wErr
+  invalidateInsightsCache()
 }
 
 export async function deleteMyAccount() {

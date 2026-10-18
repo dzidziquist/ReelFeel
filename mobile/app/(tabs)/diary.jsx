@@ -17,6 +17,8 @@ import { FilterPanel } from '../../components/FilterSortBar'
 import CalendarHeatmap from '../../components/CalendarHeatmap'
 import PosterCard from '../../components/PosterCard'
 import { useTheme } from '../../context/ThemeContext'
+import { displayType } from '../../lib/typography'
+import { usePersistedState } from '../../lib/usePersistedState'
 import { useTabBar } from '../../context/TabBarContext'
 
 const NUM_COLS   = 3
@@ -146,7 +148,7 @@ export default function Diary() {
   const [refreshing,  setRefreshing]  = useState(false)
   const [error,       setError]       = useState('')
   const [showHeatmap, setShowHeatmap] = useState(false)
-  const [viewMode,    setViewMode]    = useState('list')
+  const [viewMode,    setViewMode]    = usePersistedState('diary_view_mode', 'list')
   const [filters,     setFilters]     = useState({ genre: '', minRating: '', maxRating: '', emotionIds: [], startDate: '', endDate: '' })
   const [sort,        setSort]        = useState('watched_on_desc')
   const [filterOpen,    setFilterOpen]    = useState(false)
@@ -234,7 +236,7 @@ export default function Diary() {
     <View style={[s.headerBlock, { paddingTop: insets.top + 16 }]}>
       <View style={s.titleRow}>
         <View style={{ flex: 1 }}>
-          <Text style={[s.title, { color: theme.text }]}>My Diary</Text>
+          <Text style={[s.title, { color: theme.text }, displayType(theme), theme.style === 'ticket' && { fontSize: 34 }]}>{theme.style === 'ticket' ? 'Diary' : 'My Diary'}</Text>
           <Text style={[s.subtitle, { color: theme.textMut }]}>{entries.length} {entries.length === 1 ? 'entry' : 'entries'} logged</Text>
         </View>
       </View>

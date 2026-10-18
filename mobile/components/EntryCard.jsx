@@ -30,7 +30,7 @@ export default memo(function EntryCard({ entry, onDelete }) {
     }
   }
 
-  const nav = () => router.push(`/media/${media.tmdb_id}`)
+  const nav = () => router.push(`/media/${media.tmdb_id}?type=${media.media_type}`)
 
   return (
     <Pressable

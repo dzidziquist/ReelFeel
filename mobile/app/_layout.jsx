@@ -1,13 +1,13 @@
 import { useEffect, useRef } from 'react'
-import { View, ActivityIndicator, AppState } from 'react-native'
+import { View, ActivityIndicator, AppState, Alert } from 'react-native'
 import { Stack, useRouter, useSegments } from 'expo-router'
 import * as Linking from 'expo-linking'
 import { AuthProvider, useAuth } from '../context/AuthContext'
 import { ThemeProvider, useTheme } from '../context/ThemeContext'
 import ErrorBoundary from '../components/ErrorBoundary'
 import { supabase } from '../lib/supabase'
-import { getDiary, getWatchlist, getInsights } from '../lib/queries'
-import { updateWidgetEntry, updateWidgetWatchlist, updateWidgetStats } from '../lib/widgetBridge'
+import { getDiary, getWatchlist, getInsights, invalidateInsightsCache } from '../lib/queries'
+import { updateWidgetEntry, updateWidgetWatchlist, updateWidgetStats, clearWidget } from '../lib/widgetBridge'
 
 function WidgetRefresher() {
   const { user } = useAuth()
@@ -26,7 +26,14 @@ function WidgetRefresher() {
     } catch (_) {}
   }
 
-  useEffect(() => { refresh(true) }, [user])
+  useEffect(() => {
+    if (!user) {
+      invalidateInsightsCache()
+      clearWidget()
+      return
+    }
+    refresh(true)
+  }, [user])
 
   useEffect(() => {
     const sub = AppState.addEventListener('change', state => {
@@ -39,7 +46,7 @@ function WidgetRefresher() {
 }
 
 function AuthGuard() {
-  const { user, loading } = useAuth()
+  const { user, loading, recoverySession } = useAuth()
   const segments = useSegments()
   const router   = useRouter()
 
@@ -47,8 +54,9 @@ function AuthGuard() {
     if (loading) return
     const inAuth = segments[0] === '(auth)'
     if (!user && !inAuth) router.replace('/(auth)/login')
-    else if (user && inAuth) router.replace('/(tabs)')
-  }, [user, loading])
+    // A password-reset session is signed in but must stay on the reset screen
+    else if (user && inAuth && !recoverySession) router.replace('/(tabs)')
+  }, [user, loading, recoverySession])
 
   return null
 }
@@ -81,6 +89,7 @@ function AppContent() {
   return (
     <>
       <AuthGuard />
+      <DeepLinkHandler />
       <WidgetRefresher />
       <AppStack />
     </>
@@ -88,17 +97,45 @@ function AppContent() {
 }
 
 function DeepLinkHandler() {
+  const { beginRecovery, cancelRecovery } = useAuth()
+  const router  = useRouter()
+  const handled = useRef(new Set())
+
   useEffect(() => {
+    // Email links (PKCE flow) arrive as reelfeel://reset-password?code=...
+    // Tokens in a URL fragment (the old implicit flow) are deliberately
+    // ignored: anyone could craft such a link with their own account's tokens.
     const handleUrl = async ({ url }) => {
       if (!url) return
-      const hash = url.split('#')[1]
-      if (!hash) return
-      const params = Object.fromEntries(new URLSearchParams(hash))
-      if (params.access_token && params.refresh_token) {
-        await supabase.auth.setSession({
-          access_token: params.access_token,
-          refresh_token: params.refresh_token,
-        })
+      const { hostname, path, queryParams = {} } = Linking.parse(url)
+      // reelfeel://reset-password parses as hostname, https://…/reset-password as path
+      const isReset = [hostname, path].some(p => (p ?? '').replace(/^\/+|\/+$/g, '') === 'reset-password')
+
+      if (queryParams.error) {
+        Alert.alert('Link expired', 'This link is invalid or has expired. Please request a new one.')
+        if (isReset) router.replace('/(auth)/forgot-password')
+        return
+      }
+
+      const code = queryParams.code
+      if (!code || handled.current.has(code)) return
+      handled.current.add(code)
+
+      if (isReset) beginRecovery()
+      const { data, error } = await supabase.auth.exchangeCodeForSession(String(code))
+        .catch(err => ({ data: null, error: err }))
+      if (error) {
+        if (isReset) cancelRecovery()
+        Alert.alert(
+          'Could not open link',
+          'Open the email link on the same device you requested it from, or request a new one.',
+        )
+        if (isReset) router.replace('/(auth)/forgot-password')
+        return
+      }
+      if (data?.redirectType === 'PASSWORD_RECOVERY' && !isReset) {
+        beginRecovery()
+        router.replace('/(auth)/reset-password')
       }
     }
     Linking.getInitialURL().then(url => { if (url) handleUrl({ url }) })
@@ -113,7 +150,6 @@ export default function RootLayout() {
     <ErrorBoundary>
       <ThemeProvider>
         <AuthProvider>
-          <DeepLinkHandler />
           <AppContent />
         </AuthProvider>
       </ThemeProvider>

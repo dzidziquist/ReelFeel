@@ -31,7 +31,7 @@ export default function MediaDetail() {
 
   const load = useCallback(async () => {
     try {
-      const d = await getMedia(Number(tmdbId), type || 'film')
+      const d = await getMedia(Number(tmdbId), type)
       setData(d)
       if (d.media.id) {
         const wl = await isInWatchlist(d.media.id)
@@ -60,8 +60,12 @@ export default function MediaDetail() {
       {
         text: 'Delete', style: 'destructive',
         onPress: async () => {
-          await deleteEntry(id)
-          setData(prev => ({ ...prev, entries: prev.entries.filter(e => e.id !== id) }))
+          try {
+            await deleteEntry(id)
+            setData(prev => ({ ...prev, entries: prev.entries.filter(e => e.id !== id) }))
+          } catch (err) {
+            Alert.alert('Error', err.message)
+          }
         },
       },
     ])
@@ -93,7 +97,7 @@ export default function MediaDetail() {
     setWlLoading(true)
     try {
       if (inWatchlist) {
-        await removeFromWatchlistByTmdbId(Number(tmdbId))
+        await removeFromWatchlistByTmdbId(Number(tmdbId), data.media.media_type || type)
         setInWatchlist(false)
       } else {
         await addToWatchlist(Number(tmdbId), data.media.media_type || type || 'film')

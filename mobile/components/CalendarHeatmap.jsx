@@ -1,6 +1,7 @@
 import { memo, useState, useMemo } from 'react'
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native'
 import { useTheme } from '../context/ThemeContext'
+import { toLocalDateString } from '../lib/dates'
 
 const WEEKS     = 13
 const DAYS      = 7
@@ -12,10 +13,6 @@ const COL_GAP   = 4                      // gap between day-label col and week g
 
 // Only show alternating day labels (M, W, F) to save space
 const DAY_LABELS = ['', 'M', '', 'W', '', 'F', '']
-
-function dateToDayKey(d) {
-  return d.toISOString().split('T')[0]
-}
 
 function addDays(date, n) {
   const d = new Date(date)
@@ -57,7 +54,7 @@ export default memo(function CalendarHeatmap({ entries = [], onDateSelect, selec
       const weekDays = []
       for (let d = 0; d < DAYS; d++) {
         const date    = addDays(gridStart, w * 7 + d)
-        const key     = dateToDayKey(date)
+        const key     = toLocalDateString(date)
         const count   = countMap.get(key) ?? 0
         const inRange = date >= startDate && date <= today
         weekDays.push({ date, key, count, inRange })

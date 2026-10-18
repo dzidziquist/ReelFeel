@@ -40,5 +40,9 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: false,
+    // PKCE: email links carry a one-time code that only this device can
+    // exchange (it holds the verifier), so a link minted for another
+    // account cannot sign anyone in.
+    flowType: 'pkce',
   },
 })

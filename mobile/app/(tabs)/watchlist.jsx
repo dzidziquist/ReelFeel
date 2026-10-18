@@ -15,6 +15,8 @@ import { DEMO_WATCHLIST } from '../../lib/demoData'
 import PosterCard from '../../components/PosterCard'
 import { FilterPanel } from '../../components/FilterSortBar'
 import { useTheme } from '../../context/ThemeContext'
+import { displayType } from '../../lib/typography'
+import { usePersistedState } from '../../lib/usePersistedState'
 import { useTabBar } from '../../context/TabBarContext'
 
 const NUM_COLS   = 3
@@ -126,7 +128,7 @@ export default function Watchlist() {
   const [error,      setError]      = useState('')
   const [filters,    setFilters]    = useState({ genre: '' })
   const [sort,       setSort]       = useState('added_at_desc')
-  const [viewMode,   setViewMode]   = useState('grid')
+  const [viewMode,   setViewMode]   = usePersistedState('watchlist_view_mode', 'grid')
   const [filterOpen, setFilterOpen] = useState(false)
   const [sortOpen,   setSortOpen]   = useState(false)
 
@@ -186,7 +188,7 @@ export default function Watchlist() {
 
   const sharedHeader = (
     <View style={[s.headerBlock, { paddingTop: insets.top + 16 }]}>
-      <Text style={[s.title, { color: theme.text }]}>Watchlist</Text>
+      <Text style={[s.title, { color: theme.text }, displayType(theme), theme.style === 'ticket' && { fontSize: 34 }]}>Watchlist</Text>
       <Text style={[s.subtitle, { color: theme.textMut }]}>
         {items.length} {items.length === 1 ? 'title' : 'titles'} saved
         {items.filter(isComingSoon).length > 0 ? ` · ${items.filter(isComingSoon).length} coming soon` : ''}
