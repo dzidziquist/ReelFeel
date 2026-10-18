@@ -140,15 +140,15 @@ alter table public.diary_entry_emotions enable row level security;
 alter table public.profiles             enable row level security;
 alter table public.watchlist            enable row level security;
 
--- media: readable by everyone, insertable by authenticated users.
--- No update policy: rows are a shared catalogue, so one user must not be able
--- to rewrite a title for everyone. The app never updates media rows.
+-- media: readable by everyone; clients cannot insert or update.
+-- Rows are a shared catalogue, so one user must not be able to decide what a
+-- title says for everyone. New rows are created server-side from TMDB data by
+-- the ensure-media Edge Function (supabase/functions/ensure-media).
+-- The legacy "media_insert" policy is removed by lock-media-inserts.sql, which
+-- must only run once the function is deployed and the app update has shipped.
 do $$ begin
   if not exists (select 1 from pg_policies where tablename='media' and policyname='media_read') then
     create policy "media_read"   on public.media for select using (true);
-  end if;
-  if not exists (select 1 from pg_policies where tablename='media' and policyname='media_insert') then
-    create policy "media_insert" on public.media for insert with check (auth.uid() is not null);
   end if;
 end $$;
 drop policy if exists "media_update" on public.media;

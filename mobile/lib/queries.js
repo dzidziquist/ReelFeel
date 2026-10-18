@@ -197,22 +197,15 @@ export async function getOrCreateMedia(tmdbId, mediaType) {
     .eq('tmdb_id', tmdbId).eq('media_type', mediaType).maybeSingle()
   if (existing) return existing
 
-  const detail = await fetchTMDBDetail(tmdbId, mediaType)
-  const { data, error } = await supabase.from('media').insert({
-    tmdb_id:       detail.tmdb_id,
-    media_type:    detail.media_type,
-    title:         detail.title,
-    year:          detail.year,
-    poster_path:   detail.poster_path,
-    backdrop_path: detail.backdrop_path,
-    overview:      detail.overview,
-    tagline:       detail.tagline,
-    genres:        detail.genres,
-    runtime:       detail.runtime,
-    tmdb_rating:   detail.tmdb_rating,
-    vote_count:    detail.vote_count,
-  }).select().single()
-  if (error) throw error
+  // New titles are created server-side from TMDB data (supabase/functions/ensure-media),
+  // so no client can write what a shared catalogue row says.
+  const { data, error } = await supabase.functions.invoke('ensure-media', {
+    body: { tmdb_id: tmdbId, media_type: mediaType },
+  })
+  if (error) {
+    const body = await error.context?.json?.().catch(() => null)
+    throw new Error(body?.error ?? error.message)
+  }
   return data
 }
 

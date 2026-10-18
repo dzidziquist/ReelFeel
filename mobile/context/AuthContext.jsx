@@ -25,7 +25,9 @@ export function AuthProvider({ children }) {
           didNavigate.current = true
           router.replace('/(auth)/reset-password')
         }
-      } else {
+      } else if (event === 'SIGNED_OUT') {
+        // Other events (SIGNED_IN from the recovery code exchange,
+        // TOKEN_REFRESHED) must not end an in-progress password reset.
         setRecoverySession(false)
         didNavigate.current = false
       }
@@ -61,12 +63,17 @@ export function AuthProvider({ children }) {
     setRecoverySession(false)
   }
 
+  // Called by the deep-link handler around a password-reset code exchange,
+  // so AuthGuard keeps the user on the reset screen once they are signed in.
+  function beginRecovery() { setRecoverySession(true) }
+  function cancelRecovery() { setRecoverySession(false) }
+
   async function logout() {
     await supabase.auth.signOut()
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, resetPassword, updatePassword, logout, recoverySession }}>
+    <AuthContext.Provider value={{ user, loading, login, register, resetPassword, updatePassword, logout, recoverySession, beginRecovery, cancelRecovery }}>
       {children}
     </AuthContext.Provider>
   )

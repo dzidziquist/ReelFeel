@@ -46,7 +46,7 @@ function WidgetRefresher() {
 }
 
 function AuthGuard() {
-  const { user, loading } = useAuth()
+  const { user, loading, recoverySession } = useAuth()
   const segments = useSegments()
   const router   = useRouter()
 
@@ -54,8 +54,9 @@ function AuthGuard() {
     if (loading) return
     const inAuth = segments[0] === '(auth)'
     if (!user && !inAuth) router.replace('/(auth)/login')
-    else if (user && inAuth) router.replace('/(tabs)')
-  }, [user, loading])
+    // A password-reset session is signed in but must stay on the reset screen
+    else if (user && inAuth && !recoverySession) router.replace('/(tabs)')
+  }, [user, loading, recoverySession])
 
   return null
 }
@@ -88,6 +89,7 @@ function AppContent() {
   return (
     <>
       <AuthGuard />
+      <DeepLinkHandler />
       <WidgetRefresher />
       <AppStack />
     </>
@@ -95,33 +97,46 @@ function AppContent() {
 }
 
 function DeepLinkHandler() {
+  const { beginRecovery, cancelRecovery } = useAuth()
+  const router  = useRouter()
+  const handled = useRef(new Set())
+
   useEffect(() => {
+    // Email links (PKCE flow) arrive as reelfeel://reset-password?code=...
+    // Tokens in a URL fragment (the old implicit flow) are deliberately
+    // ignored: anyone could craft such a link with their own account's tokens.
     const handleUrl = async ({ url }) => {
       if (!url) return
-      const hash = url.split('#')[1]
-      if (!hash) return
-      const params = Object.fromEntries(new URLSearchParams(hash))
-      if (!params.access_token || !params.refresh_token) return
-      const apply = () => supabase.auth.setSession({
-        access_token: params.access_token,
-        refresh_token: params.refresh_token,
-      }).catch(() => {})
+      const { hostname, path, queryParams = {} } = Linking.parse(url)
+      // reelfeel://reset-password parses as hostname, https://…/reset-password as path
+      const isReset = [hostname, path].some(p => (p ?? '').replace(/^\/+|\/+$/g, '') === 'reset-password')
 
-      // A crafted link could carry someone else's tokens. Never silently swap
-      // out the signed-in account: ask first if the link is for another user.
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session?.user) { await apply(); return }
-      const { data: { user: linkUser } } = await supabase.auth.getUser(params.access_token)
-      if (!linkUser) return
-      if (linkUser.id === session.user.id) { await apply(); return }
-      Alert.alert(
-        'Switch account?',
-        `This link signs you in as ${linkUser.email ?? 'a different account'}. You are signed in as ${session.user.email}.`,
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Switch', style: 'destructive', onPress: apply },
-        ]
-      )
+      if (queryParams.error) {
+        Alert.alert('Link expired', 'This link is invalid or has expired. Please request a new one.')
+        if (isReset) router.replace('/(auth)/forgot-password')
+        return
+      }
+
+      const code = queryParams.code
+      if (!code || handled.current.has(code)) return
+      handled.current.add(code)
+
+      if (isReset) beginRecovery()
+      const { data, error } = await supabase.auth.exchangeCodeForSession(String(code))
+        .catch(err => ({ data: null, error: err }))
+      if (error) {
+        if (isReset) cancelRecovery()
+        Alert.alert(
+          'Could not open link',
+          'Open the email link on the same device you requested it from, or request a new one.',
+        )
+        if (isReset) router.replace('/(auth)/forgot-password')
+        return
+      }
+      if (data?.redirectType === 'PASSWORD_RECOVERY' && !isReset) {
+        beginRecovery()
+        router.replace('/(auth)/reset-password')
+      }
     }
     Linking.getInitialURL().then(url => { if (url) handleUrl({ url }) })
     const sub = Linking.addEventListener('url', handleUrl)
@@ -135,7 +150,6 @@ export default function RootLayout() {
     <ErrorBoundary>
       <ThemeProvider>
         <AuthProvider>
-          <DeepLinkHandler />
           <AppContent />
         </AuthProvider>
       </ThemeProvider>
