@@ -1,0 +1,114 @@
+name: TestFlight (macOS runner)
+
+# Builds the iOS app on a GitHub-hosted Mac (instead of EAS cloud builders)
+# and uploads the .ipa to TestFlight.
+#
+# Required secrets:
+#   EXPO_TOKEN                 – signing credentials are pulled from EAS
+# Optional secrets (otherwise EAS env vars / stored submit key are used):
+#   EXPO_PUBLIC_SUPABASE_URL, EXPO_PUBLIC_SUPABASE_ANON_KEY,
+#   EXPO_PUBLIC_TMDB_API_KEY, EXPO_PUBLIC_WEB_URL
+#   ASC_API_KEY_P8, ASC_API_KEY_ID, ASC_API_ISSUER_ID
+
+on:
+  workflow_dispatch:
+    inputs:
+      submit:
+        description: Upload to TestFlight after building
+        required: true
+        default: true
+        type: boolean
+
+concurrency:
+  group: testflight-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build iOS & upload to TestFlight
+    runs-on: macos-26
+    timeout-minutes: 90
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Write .env from secrets
+        env:
+          EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
+          EXPO_PUBLIC_TMDB_API_KEY: ${{ secrets.EXPO_PUBLIC_TMDB_API_KEY }}
+          EXPO_PUBLIC_WEB_URL: ${{ secrets.EXPO_PUBLIC_WEB_URL }}
+        run: |
+          : > .env
+          for k in EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_ANON_KEY EXPO_PUBLIC_TMDB_API_KEY EXPO_PUBLIC_WEB_URL; do
+            if [ -n "${!k}" ]; then echo "$k=${!k}" >> .env; fi
+          done
+
+      # appVersionSource is "local", so bump past the committed buildNumber
+      # with the run number to keep every TestFlight upload unique.
+      - name: Set build number
+        run: |
+          node -e '
+            const fs = require("fs")
+            const app = JSON.parse(fs.readFileSync("app.json", "utf8"))
+            const base = parseInt(app.expo.ios.buildNumber, 10)
+            app.expo.ios.buildNumber = String(base + Number(process.env.GITHUB_RUN_NUMBER))
+            fs.writeFileSync("app.json", JSON.stringify(app, null, 2) + "\n")
+            console.log("buildNumber =", app.expo.ios.buildNumber)
+          '
+
+      - name: Build .ipa locally
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          npx eas-cli@latest build \
+            --platform ios \
+            --profile production \
+            --local \
+            --non-interactive \
+            --output "$RUNNER_TEMP/ReelFeel.ipa"
+
+      - name: Upload .ipa artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ReelFeel-ios-${{ github.run_number }}
+          path: ${{ runner.temp }}/ReelFeel.ipa
+          retention-days: 14
+
+      - name: Submit to TestFlight
+        if: ${{ inputs.submit }}
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
+          ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+          ASC_API_ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
+        run: |
+          if [ -n "$ASC_API_KEY_P8" ]; then
+            printf '%s' "$ASC_API_KEY_P8" > "$RUNNER_TEMP/asc_key.p8"
+            export EXPO_ASC_API_KEY_PATH="$RUNNER_TEMP/asc_key.p8"
+            export EXPO_ASC_KEY_ID="$ASC_API_KEY_ID"
+            export EXPO_ASC_ISSUER_ID="$ASC_API_ISSUER_ID"
+          fi
+          npx eas-cli@latest submit \
+            --platform ios \
+            --profile production \
+            --path "$RUNNER_TEMP/ReelFeel.ipa" \
+            --non-interactive
