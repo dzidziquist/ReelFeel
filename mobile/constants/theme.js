@@ -25,6 +25,8 @@ export const DARK = {
   shadowColor: '#ffffff',
   shadowOpacity: 0.18,
   statusBar: 'light-content',
+  style:     'classic',
+  fonts:     {},
 }
 
 // ── Light theme ───────────────────────────────────────────────
@@ -54,12 +56,85 @@ export const LIGHT = {
   shadowColor: '#000000',
   shadowOpacity: 0.8,
   statusBar: 'dark-content',
+  style:     'classic',
+  fonts:     {},
 }
 
-// Theme variant matrix: brightness → theme
+// ── Ticket Stub style (opt-in) ────────────────────────────────
+// Warm ink ground, paper-coloured "tickets", condensed display type.
+// Font names are the PostScript names embedded via the expo-font plugin.
+const TICKET_FONTS = {
+  display:  'Anton-Regular',
+  body:     'IBMPlexSans-Regular',
+  medium:   'IBMPlexSans-Medium',
+  semibold: 'IBMPlexSans-SemiBold',
+  bold:     'IBMPlexSans-Bold',
+  mono:     'IBMPlexMono-Medium',
+  monoBold: 'IBMPlexMono-SemiBold',
+}
+
+export const TICKET_DARK = {
+  ...DARK,
+  bg0:       '#141110',
+  bg1:       '#1d1917',
+  bg2:       '#241f1c',
+  bg3:       '#3a3330',
+  border:    '#3a3330',
+  text:      '#efe7d6',
+  textSub:   '#c9c0b4',
+  textMut:   '#958d83',
+  red:       '#e8463c',
+  redL:      '#f0675e',
+  gold:      '#e0b23f',
+  goldL:     '#ecc560',
+  card:      '#1d1917',
+  inputBg:   '#241f1c',
+  tabBg:     '#0d0b0a',
+  headerBg:  '#1d1917',
+  shadowColor: '#000000',
+  shadowOpacity: 0,
+  paper:     '#efe7d6',
+  ink:       '#141110',
+  inkSub:    '#4a423c',
+  perforation: '#8a8279',
+  style:     'ticket',
+  fonts:     TICKET_FONTS,
+}
+
+export const TICKET_LIGHT = {
+  ...LIGHT,
+  bg0:       '#f3ede1',
+  bg1:       '#fbf8f1',
+  bg2:       '#e8e0d0',
+  bg3:       '#d9cfbc',
+  border:    '#cfc4ae',
+  text:      '#1a1614',
+  textSub:   '#3a332e',
+  textMut:   '#5c534c',
+  red:       '#c8302b',
+  redL:      '#b3261e',
+  gold:      '#85600f',
+  goldL:     '#b8892b',
+  card:      '#fbf8f1',
+  inputBg:   '#fbf8f1',
+  tabBg:     '#fbf8f1',
+  headerBg:  '#fbf8f1',
+  shadowColor: '#000000',
+  shadowOpacity: 0,
+  paper:     '#fbf8f1',
+  ink:       '#1a1614',
+  inkSub:    '#5c534c',
+  perforation: '#a89d8a',
+  style:     'ticket',
+  fonts:     TICKET_FONTS,
+}
+
+export const UI_STYLES = ['classic', 'ticket']
+
+// Theme variant matrix: style → brightness → theme
 export const THEME_VARIANTS = {
-  dark:  DARK,
-  light: LIGHT,
+  classic: { dark: DARK,        light: LIGHT },
+  ticket:  { dark: TICKET_DARK, light: TICKET_LIGHT },
 }
 
 // Default export stays DARK for backward-compat with existing imports

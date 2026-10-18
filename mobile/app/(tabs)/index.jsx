@@ -12,6 +12,7 @@ import { getTrending, getNowPlaying, getPopularTV, getUpcoming, getAiringToday, 
 import { addToWatchlist, createEntry, deleteEntry, getWatchStates, watchKey, getRecommendationSeeds, getUserGenreAffinity } from '../../lib/queries'
 import { DEMO_MODE } from '../../constants/demo'
 import { toLocalDateString } from '../../lib/dates'
+import { displayType, bodyType, monoType } from '../../lib/typography'
 import { DEMO_HOME } from '../../lib/demoData'
 import { StarPicker } from '../../components/StarRating'
 import PosterCard from '../../components/PosterCard'
@@ -111,6 +112,23 @@ function GenreChips({ genres, selected, onSelect, theme }) {
     >
       {all.map(g => {
         const active = g.ids === null ? !selected : selected === g.label
+        if (theme.style === 'ticket') {
+          // Ticket Stub: plain text tabs with an accent underline
+          return (
+            <TouchableOpacity
+              key={g.label}
+              onPress={() => onSelect(g.ids === null ? null : (active ? null : g.label))}
+              style={[s.tabChip, active && { borderBottomColor: theme.red }]}
+              activeOpacity={0.75}
+              accessibilityRole="button"
+              accessibilityState={{ selected: active }}
+            >
+              <Text style={[s.chipText, { color: active ? theme.text : theme.textMut }, bodyType(theme, active ? 'bold' : 'medium'), s.tabChipText]}>
+                {g.label}
+              </Text>
+            </TouchableOpacity>
+          )
+        }
         return (
           <TouchableOpacity
             key={g.label}
@@ -140,7 +158,9 @@ const Section = memo(function Section({ title, emoji, data, onItemPress, onItemL
   return (
     <View style={s.section}>
       <View style={s.sectionHeader}>
-        <Text style={[s.sectionTitle, { color: theme.text }]}>{emoji}  {title}</Text>
+        <Text style={[s.sectionTitle, { color: theme.text }, displayType(theme), theme.style === 'ticket' && s.sectionTitleTicket]}>
+          {theme.style === 'ticket' ? title : `${emoji}  ${title}`}
+        </Text>
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.row}>
         {data.map(item => (
@@ -496,10 +516,12 @@ export default function Home() {
         {/* Child 0 — scrolls away */}
         <View>
           <View style={[s.header, { paddingTop: 8 }]}>
-            <Text style={s.logo}>🎞️</Text>
+            {theme.style !== 'ticket' && <Text style={s.logo}>🎞️</Text>}
             <View>
-              <Text style={[s.appName, { color: theme.text }]}>ReelFeel</Text>
-              <Text style={[s.subtitle, { color: theme.redL }]}>what are we watching? 👀</Text>
+              <Text style={[s.appName, { color: theme.text }, displayType(theme), theme.style === 'ticket' && s.appNameTicket]}>ReelFeel</Text>
+              <Text style={[s.subtitle, { color: theme.style === 'ticket' ? theme.textMut : theme.redL }, monoType(theme)]}>
+                {theme.style === 'ticket' ? 'what are we watching?' : 'what are we watching? 👀'}
+              </Text>
             </View>
           </View>
 
@@ -672,6 +694,7 @@ const s = StyleSheet.create({
   header:  { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingBottom: 16 },
   logo:    { fontSize: 24 },
   appName: { fontSize: 28, fontWeight: '900' },
+  appNameTicket: { fontSize: 38, lineHeight: 42 },
   subtitle:{ fontSize: 12, marginTop: 2 },
 
   // Hero
@@ -709,11 +732,14 @@ const s = StyleSheet.create({
   chipsRow:  { paddingHorizontal: 16, paddingBottom: 16, gap: 8, alignItems: 'center' },
   chip:      { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignSelf: 'flex-start' },
   chipText:  { fontSize: 12 },
+  tabChip:   { minHeight: 44, justifyContent: 'center', borderBottomWidth: 3, borderBottomColor: 'transparent', marginRight: 10 },
+  tabChipText: { fontSize: 14 },
 
   // Section
   section:      { marginBottom: 28 },
   sectionHeader:{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, marginBottom: 12 },
   sectionTitle: { fontSize: 17, fontWeight: '800' },
+  sectionTitleTicket: { fontSize: 22 },
   seeAllBtn:    { flexDirection: 'row', alignItems: 'center', gap: 2 },
   seeAllText:   { fontSize: 12, fontWeight: '600' },
   row:          { paddingHorizontal: 16 },

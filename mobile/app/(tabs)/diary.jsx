@@ -17,6 +17,7 @@ import { FilterPanel } from '../../components/FilterSortBar'
 import CalendarHeatmap from '../../components/CalendarHeatmap'
 import PosterCard from '../../components/PosterCard'
 import { useTheme } from '../../context/ThemeContext'
+import { displayType } from '../../lib/typography'
 import { usePersistedState } from '../../lib/usePersistedState'
 import { useTabBar } from '../../context/TabBarContext'
 
@@ -235,7 +236,7 @@ export default function Diary() {
     <View style={[s.headerBlock, { paddingTop: insets.top + 16 }]}>
       <View style={s.titleRow}>
         <View style={{ flex: 1 }}>
-          <Text style={[s.title, { color: theme.text }]}>My Diary</Text>
+          <Text style={[s.title, { color: theme.text }, displayType(theme), theme.style === 'ticket' && { fontSize: 34 }]}>{theme.style === 'ticket' ? 'Diary' : 'My Diary'}</Text>
           <Text style={[s.subtitle, { color: theme.textMut }]}>{entries.length} {entries.length === 1 ? 'entry' : 'entries'} logged</Text>
         </View>
       </View>

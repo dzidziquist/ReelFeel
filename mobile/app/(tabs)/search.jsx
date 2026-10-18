@@ -12,6 +12,7 @@ import { searchTMDB, getRecommendations } from '../../lib/tmdb'
 import { addToWatchlist, getRecommendationSeeds, getUserGenreAffinity, getWatchStates, watchKey } from '../../lib/queries'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTheme } from '../../context/ThemeContext'
+import { displayType } from '../../lib/typography'
 import { useTabBar } from '../../context/TabBarContext'
 
 const isFilm = r => r.media_type === 'film' || r.media_type === 'movie'
@@ -246,7 +247,7 @@ export default function Search() {
         renderItem={renderItem}
         ListHeaderComponent={
           <View style={[s.headerBlock, { paddingTop: insets.top + 16 }]}>
-            <Text style={[s.title, { color: theme.text }]}>Search</Text>
+            <Text style={[s.title, { color: theme.text }, displayType(theme), theme.style === 'ticket' && { fontSize: 34 }]}>Search</Text>
             <View style={s.inputRow}>
               <TextInput
                 style={[s.input, { backgroundColor: theme.bg2, borderColor: theme.text, color: theme.text, shadowColor: theme.shadowColor, shadowOpacity: theme.shadowOpacity }]}

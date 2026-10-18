@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { useTheme } from '../context/ThemeContext'
 import { useTabBar } from '../context/TabBarContext'
+import { bodyType } from '../lib/typography'
 
 const ICONS = {
   index:     'telescope-outline',
@@ -26,6 +27,9 @@ const H_PADDING = 16
 
 export default function FloatingTabBar({ state, descriptors, navigation }) {
   const { theme, isDark, navbarShowLabels } = useTheme()
+  // Ticket Stub: solid ink bar with a hairline edge instead of frosted glass
+  const ticket = theme.style === 'ticket'
+  const activeColor = ticket ? theme.red : theme.gold
   const insets = useSafeAreaInsets()
   const { collapsedAnim, collapsed, expand } = useTabBar()
 
@@ -39,7 +43,7 @@ export default function FloatingTabBar({ state, descriptors, navigation }) {
 
   const borderRadius = collapsedAnim.interpolate({
     inputRange:  [0, 1],
-    outputRange: [44, PILL_SIZE / 2],
+    outputRange: [ticket ? 18 : 44, PILL_SIZE / 2],
   })
 
   // Clamp height to PILL_SIZE when collapsed so labels don't make a tall oval
@@ -76,9 +80,12 @@ export default function FloatingTabBar({ state, descriptors, navigation }) {
     <View pointerEvents="box-none" style={[s.wrapper, { paddingBottom: Math.max(insets.bottom, 8) + 8 }]}>
       {/* Shadow lives outside overflow:hidden so it isn't clipped */}
       <Animated.View style={[s.shadowWrap, { width: barWidth, borderRadius, shadowOpacity }]}>
-      <Animated.View style={[s.shell, { width: barWidth, borderRadius, maxHeight }, !isDark && s.shellLight]}>
+      <Animated.View style={[
+        s.shell, { width: barWidth, borderRadius, maxHeight },
+        ticket ? { backgroundColor: theme.tabBg, borderWidth: 1, borderColor: theme.border } : !isDark && s.shellLight,
+      ]}>
 
-        <BlurView intensity={isDark ? 72 : 88} tint={tint} style={StyleSheet.absoluteFill} />
+        {!ticket && <BlurView intensity={isDark ? 72 : 88} tint={tint} style={StyleSheet.absoluteFill} />}
 
         {/* Content layer — always full opacity */}
         <View style={s.content}>
@@ -89,7 +96,7 @@ export default function FloatingTabBar({ state, descriptors, navigation }) {
               const isFocused = state.routes[state.index].key === route.key
               const iconName  = ICONS[route.name] ?? 'ellipse-outline'
               const label     = LABELS[route.name] ?? route.name
-              const highlightBg = isDark ? 'rgba(255,255,255,0.13)' : 'rgba(0,0,0,0.09)'
+              const highlightBg = ticket ? theme.bg2 : isDark ? 'rgba(255,255,255,0.13)' : 'rgba(0,0,0,0.09)'
 
               function onPress() {
                 const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true })
@@ -106,10 +113,12 @@ export default function FloatingTabBar({ state, descriptors, navigation }) {
                     <Ionicons
                       name={iconName}
                       size={navbarShowLabels ? 20 : 24}
-                      color={isFocused ? theme.gold : theme.textMut}
+                      color={isFocused ? activeColor : theme.textMut}
                     />
                     {navbarShowLabels && (
-                      <Text style={[s.label, { color: isFocused ? theme.gold : theme.textMut }]}>{label.toUpperCase()}</Text>
+                      <Text style={[s.label, { color: isFocused ? activeColor : theme.textMut }, bodyType(theme, 'semibold')]}>
+                        {ticket ? label : label.toUpperCase()}
+                      </Text>
                     )}
                   </View>
                 </TouchableOpacity>
@@ -123,7 +132,7 @@ export default function FloatingTabBar({ state, descriptors, navigation }) {
             pointerEvents={collapsed ? 'box-none' : 'none'}
           >
             <TouchableOpacity onPress={expand} activeOpacity={0.7} style={s.pillTap}>
-              <Ionicons name={activeIconName} size={24} color={theme.gold} />
+              <Ionicons name={activeIconName} size={24} color={activeColor} />
             </TouchableOpacity>
           </Animated.View>
 

@@ -40,7 +40,20 @@
       "expo-secure-store",
       "expo-image",
       "expo-status-bar",
-      "expo-font",
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/Anton-Regular.ttf",
+            "./assets/fonts/IBMPlexSans-Regular.ttf",
+            "./assets/fonts/IBMPlexSans-Medium.ttf",
+            "./assets/fonts/IBMPlexSans-SemiBold.ttf",
+            "./assets/fonts/IBMPlexSans-Bold.ttf",
+            "./assets/fonts/IBMPlexMono-Medium.ttf",
+            "./assets/fonts/IBMPlexMono-SemiBold.ttf"
+          ]
+        }
+      ],
       [
         "expo-splash-screen",
         {

@@ -8,6 +8,7 @@ import { getTrending, getNowPlaying, getPopularTV, getUpcoming, getAiringToday }
 import { addToWatchlist, createEntry, getWatchStates, watchKey } from '../../lib/queries'
 import { Ionicons } from '@expo/vector-icons'
 import { useTheme } from '../../context/ThemeContext'
+import { displayType } from '../../lib/typography'
 import { toLocalDateString } from '../../lib/dates'
 import PosterCard from '../../components/PosterCard'
 import ActionSheet from '../../components/ActionSheet'
@@ -101,8 +102,8 @@ export default function SectionAll() {
 
   const listHeader = (
     <View style={{ paddingTop: insets.top + 60, paddingHorizontal: H_PAD, paddingBottom: 12 }}>
-      <Text style={{ color: theme.text, fontSize: 22, fontWeight: '800' }}>
-        {config.emoji}{'  '}{config.label}
+      <Text style={[{ color: theme.text, fontSize: 22, fontWeight: '800' }, displayType(theme), theme.style === 'ticket' && { fontSize: 28 }]}>
+        {theme.style === 'ticket' ? config.label : `${config.emoji}  ${config.label}`}
       </Text>
     </View>
   )
